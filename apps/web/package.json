@@ -11,6 +11,10 @@
   },
   "dependencies": {
     "@repo/shadcn-ui": "workspace:*",
+    "@stripe/react-stripe-js": "^4.0.0",
+    "@stripe/stripe-js": "^5.0.0",
+    "@supabase/supabase-js": "^2.46.0",
+    "better-auth": "^1.0.0",
     "next": "16.0.4",
     "next-themes": "^0.4.6",
     "react": "19.2.0",

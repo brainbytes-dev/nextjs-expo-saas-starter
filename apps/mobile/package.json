@@ -12,7 +12,10 @@
     "ios": "expo run:ios"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^1.23.0",
     "@repo/nativewindui": "workspace:*",
+    "@supabase/supabase-js": "^2.46.0",
+    "better-auth": "^1.0.0",
     "expo": "~54.0.0",
     "expo-router": "~4.0.0",
     "expo-status-bar": "~2.0.1",
