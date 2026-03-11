@@ -1,3 +1,8 @@
+"use client"
+
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
+import { useSession } from "@/lib/auth-client"
 import { AppSidebar } from "@/components/app-sidebar"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { DataTable } from "@/components/data-table"
@@ -10,7 +15,30 @@ import {
 
 import data from "./data.json"
 
-export default function Page() {
+export default function DashboardPage() {
+  const router = useRouter()
+  const { data: session, isPending } = useSession()
+
+  useEffect(() => {
+    if (!isPending && !session) {
+      router.push("/login")
+    }
+  }, [session, isPending, router])
+
+  if (isPending) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!session) {
+    return null
+  }
+
   return (
     <SidebarProvider
       style={
