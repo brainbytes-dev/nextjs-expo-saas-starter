@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { getAuthUser } from "@/lib/supabase";
 import { checkRateLimit } from "@/lib/rate-limit";
