@@ -52,6 +52,9 @@ cd apps/mobile && pnpm dev     # Expo dev server
 | Rate Limit | Upstash Redis (sliding window, 10/min) | — |
 | Analytics | PostHog (posthog-js) | PostHog (posthog-react-native) |
 | Errors | Sentry (@sentry/nextjs) | Sentry (@sentry/react-native) |
+| Tracing | OpenTelemetry (OTLP export) | — |
+| Feature Flags | PostHog (server + client) | — |
+| Canary/Rollout | Vercel Edge Config | — |
 | Testing | Vitest + happy-dom | — |
 | CI/CD | GitHub Actions → Turbo | GitHub Actions → EAS Build |
 
@@ -136,11 +139,20 @@ See `.env.example` for all required vars. Key groups:
 - `SENTRY_*` / `EXPO_PUBLIC_SENTRY_*` — Error tracking
 - `POSTHOG_*` / `EXPO_PUBLIC_POSTHOG_*` — Analytics
 - `REVENUECAT_*` / `EXPO_PUBLIC_REVENUECAT_*` — Mobile IAP
+- `OTEL_EXPORTER_OTLP_ENDPOINT` — OpenTelemetry trace export
+- `EDGE_CONFIG` — Vercel Edge Config (auto-set on Vercel)
+
+## Observability & Rollout
+
+- **OpenTelemetry**: `src/instrumentation.ts` — auto-instruments HTTP, fetch, DB. Exports traces via OTLP. Sentry integrated as span processor. Sample rate: 10% prod, 100% dev.
+- **Feature Flags**: PostHog-powered. Server: `isFeatureEnabled(flag, userId)` in `src/lib/feature-flags.ts`. Client: `useFeatureFlag(flag)` hook in `src/hooks/use-feature-flag.ts`. Define flags in PostHog dashboard.
+- **Canary Rollouts**: Vercel Edge Config in `src/lib/edge-config.ts`. `isInCanaryRollout(key, userId)` for percentage-based rollouts. `isMaintenanceMode()` for kill switches. <1ms reads at the edge.
+- **Error Boundaries**: `error.tsx` + `global-error.tsx` auto-report to Sentry. Custom `not-found.tsx` 404 page.
 
 ## Key Patterns
 
 - **Lazy initialization**: Stripe, Supabase, Resend, PostHog, and DB clients are all lazy-initialized to avoid build-time crashes when env vars are missing
-- **Fail-open rate limiting**: `checkRateLimit()` returns `true` on Redis errors
+- **Fail-open**: Rate limiting and feature flags return safe defaults on service errors
 - **Platform-adaptive UI**: Mobile screens use `Platform.select()` for iOS vs Android differences
 - **Haptic feedback**: Auth screens use expo-haptics for validation errors and success
 - **Event-driven**: Webhooks emit Inngest events; Inngest functions handle email/cleanup async
