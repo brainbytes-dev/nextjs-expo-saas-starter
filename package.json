@@ -2,6 +2,7 @@
   "name": "repo",
   "private": true,
   "scripts": {
+    "setup": "bash scripts/setup.sh",
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",

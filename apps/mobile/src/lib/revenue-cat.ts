@@ -1,4 +1,4 @@
-import Purchases from "react-native-purchases";
+import Purchases, { PurchasesPackage } from "react-native-purchases";
 
 /**
  * RevenueCat Configuration for In-App Purchases
@@ -100,7 +100,7 @@ export const purchasePackage = async (packageId: string) => {
     }
 
     const package_ = offerings.current.availablePackages.find(
-      (pkg: any) => pkg.identifier === packageId
+      (pkg: PurchasesPackage) => pkg.identifier === packageId
     );
 
     if (!package_) {

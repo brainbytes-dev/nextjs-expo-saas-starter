@@ -5,6 +5,7 @@ import {
   getCurrentPlan,
   initializeRevenueCat,
   RCCustomerInfo,
+  RCEntitlement,
 } from "../lib/revenue-cat";
 
 export interface SubscriptionState {
@@ -94,9 +95,9 @@ export function useSubscriptionExpired() {
     return false;
   }
 
-  const activeSubscription = customerInfo.entitlements[
+  const activeSubscription: RCEntitlement | undefined = customerInfo.entitlements[
     customerInfo.activeSubscriptions[0]
-  ] as any;
+  ];
 
   if (!activeSubscription?.expirationDate) {
     return false;
@@ -116,9 +117,9 @@ export function useSubscriptionExpirationDate() {
     return null;
   }
 
-  const activeSubscription = customerInfo.entitlements[
+  const activeSubscription: RCEntitlement | undefined = customerInfo.entitlements[
     customerInfo.activeSubscriptions[0]
-  ] as any;
+  ];
 
   return activeSubscription?.expirationDate
     ? new Date(activeSubscription.expirationDate)
