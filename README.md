@@ -7,6 +7,7 @@
   <img src="https://img.shields.io/badge/Next.js-16-black?logo=next.js" alt="Next.js 16">
   <img src="https://img.shields.io/badge/Expo-SDK%2055-000020?logo=expo" alt="Expo SDK 55">
   <img src="https://img.shields.io/badge/TypeScript-5-blue?logo=typescript" alt="TypeScript">
+  <a href="https://buymeacoffee.com/brainbytes"><img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-☕-yellow" alt="Buy me a coffee"></a>
 </p>
 
 <p align="center">
