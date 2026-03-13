@@ -4,7 +4,6 @@ import { auth } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
-    // Get session from Better-Auth
     const session = await auth.api.getSession({ headers: request.headers });
 
     if (!session) {
@@ -28,9 +27,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Better-Auth password change is handled via changePassword API
-    // This is a simplified implementation - in production, you'd use Better-Auth's built-in methods
-    console.log(`Password change requested for user ${session.user.id}`);
+    await auth.api.changePassword({
+      body: { currentPassword, newPassword, revokeOtherSessions: false },
+      headers: request.headers,
+    });
 
     return NextResponse.json({ success: true, message: "Password updated successfully" });
   } catch (error) {

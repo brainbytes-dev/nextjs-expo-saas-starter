@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { sendPaymentFailedEmail } from "@/lib/email";
 import { trackEvent } from "@/lib/posthog";
-import { getSupabaseClient } from "@/lib/supabase";
+import { getDb, mobileSubscriptions, eq } from "@repo/db";
 
 /**
  * POST /api/webhooks/revenuecat
@@ -39,14 +39,6 @@ function verifyWebhookSignature(request: NextRequest): boolean {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      return NextResponse.json(
-        { error: "Supabase is not configured" },
-        { status: 500 }
-      );
-    }
-
     // Verify webhook signature
     if (!verifyWebhookSignature(request)) {
       console.warn("Invalid RevenueCat webhook signature");
@@ -64,6 +56,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const db = getDb();
     const eventData = event.subscription_event_data || event;
 
     switch (event.type) {
@@ -76,34 +69,45 @@ export async function POST(request: NextRequest) {
         console.log("Initial subscription purchase:", eventData.product_id);
 
         try {
-          // Supabase: cast to any for database operations
-          // Proper types require: supabase gen types or Drizzle ORM (Phase 2)
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { error } = await (supabase as any)
-            .from("mobile_subscriptions")
-            .upsert(
-              {
-                revenuecat_user_id: eventData.app_user_id,
-                product_id: eventData.product_id,
-                store: eventData.store, // apple, google, stripe
+          await db
+            .insert(mobileSubscriptions)
+            .values({
+              revenuecatUserId: eventData.app_user_id,
+              productId: eventData.product_id,
+              store: eventData.store,
+              status: "active",
+              autoResumeDate: eventData.auto_resume_date
+                ? new Date(eventData.auto_resume_date)
+                : null,
+              expirationDate: eventData.expiration_date
+                ? new Date(eventData.expiration_date)
+                : null,
+              purchaseDate: eventData.purchase_date
+                ? new Date(eventData.purchase_date)
+                : null,
+              updatedAt: new Date(),
+            })
+            .onConflictDoUpdate({
+              target: mobileSubscriptions.revenuecatUserId,
+              set: {
+                productId: eventData.product_id,
+                store: eventData.store,
                 status: "active",
-                auto_resume_date: eventData.auto_resume_date || null,
-                expiration_date: eventData.expiration_date || null,
-                purchase_date: eventData.purchase_date,
-                updated_at: new Date().toISOString(),
+                expirationDate: eventData.expiration_date
+                  ? new Date(eventData.expiration_date)
+                  : null,
+                updatedAt: new Date(),
               },
-              { onConflict: "revenuecat_user_id" }
-            );
+            });
 
-          if (error) {
-            console.error("Error recording subscription:", error);
-            Sentry.captureException(error, { tags: { webhook: "revenuecat", event: "INITIAL_PURCHASE" } });
-          } else {
-            trackEvent("mobile_subscription_started", { productId: eventData.product_id });
-          }
+          trackEvent("mobile_subscription_started", {
+            productId: eventData.product_id,
+          });
         } catch (err) {
           console.error("Error processing purchase:", err);
-          Sentry.captureException(err, { tags: { webhook: "revenuecat", event: "INITIAL_PURCHASE" } });
+          Sentry.captureException(err, {
+            tags: { webhook: "revenuecat", event: "INITIAL_PURCHASE" },
+          });
         }
         break;
       }
@@ -112,21 +116,18 @@ export async function POST(request: NextRequest) {
         console.log("Subscription renewal:", eventData.product_id);
 
         try {
-          // Supabase: cast to any for database operations
-          // Proper types require: supabase gen types or Drizzle ORM (Phase 2)
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { error } = await (supabase as any)
-            .from("mobile_subscriptions")
-            .update({
+          await db
+            .update(mobileSubscriptions)
+            .set({
               status: "active",
-              expiration_date: eventData.expiration_date || null,
-              updated_at: new Date().toISOString(),
+              expirationDate: eventData.expiration_date
+                ? new Date(eventData.expiration_date)
+                : null,
+              updatedAt: new Date(),
             })
-            .eq("revenuecat_user_id", eventData.app_user_id);
-
-          if (error) {
-            console.error("Error updating subscription:", error);
-          }
+            .where(
+              eq(mobileSubscriptions.revenuecatUserId, eventData.app_user_id)
+            );
         } catch (err) {
           console.error("Error processing renewal:", err);
         }
@@ -137,21 +138,16 @@ export async function POST(request: NextRequest) {
         console.log("Subscription cancelled:", eventData.product_id);
 
         try {
-          // Supabase: cast to any for database operations
-          // Proper types require: supabase gen types or Drizzle ORM (Phase 2)
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { error } = await (supabase as any)
-            .from("mobile_subscriptions")
-            .update({
+          await db
+            .update(mobileSubscriptions)
+            .set({
               status: "canceled",
-              canceled_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
+              canceledAt: new Date(),
+              updatedAt: new Date(),
             })
-            .eq("revenuecat_user_id", eventData.app_user_id);
-
-          if (error) {
-            console.error("Error canceling subscription:", error);
-          }
+            .where(
+              eq(mobileSubscriptions.revenuecatUserId, eventData.app_user_id)
+            );
         } catch (err) {
           console.error("Error processing cancellation:", err);
         }
@@ -162,35 +158,34 @@ export async function POST(request: NextRequest) {
         console.log("Billing issue:", eventData.product_id);
 
         try {
-          // Supabase: cast to any for database operations
-          // Proper types require: supabase gen types or Drizzle ORM (Phase 2)
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { error } = await (supabase as any)
-            .from("mobile_subscriptions")
-            .update({
-              status: "payment_failed",
-              updated_at: new Date().toISOString(),
-            })
-            .eq("revenuecat_user_id", eventData.app_user_id);
+          await db
+            .update(mobileSubscriptions)
+            .set({ status: "payment_failed", updatedAt: new Date() })
+            .where(
+              eq(mobileSubscriptions.revenuecatUserId, eventData.app_user_id)
+            );
 
-          if (error) {
-            console.error("Error recording billing issue:", error);
-            Sentry.captureException(error, { tags: { webhook: "revenuecat", event: "BILLING_ISSUE" } });
-          }
-
-          // Send email notification to user
           if (eventData.email) {
             try {
               await sendPaymentFailedEmail(eventData.email);
-              trackEvent("mobile_payment_failed", { productId: eventData.product_id });
+              trackEvent("mobile_payment_failed", {
+                productId: eventData.product_id,
+              });
             } catch (emailErr) {
               console.error("Error sending payment failed email:", emailErr);
-              Sentry.captureException(emailErr, { tags: { webhook: "revenuecat", action: "send_payment_failed_email" } });
+              Sentry.captureException(emailErr, {
+                tags: {
+                  webhook: "revenuecat",
+                  action: "send_payment_failed_email",
+                },
+              });
             }
           }
         } catch (err) {
           console.error("Error processing billing issue:", err);
-          Sentry.captureException(err, { tags: { webhook: "revenuecat", event: "BILLING_ISSUE" } });
+          Sentry.captureException(err, {
+            tags: { webhook: "revenuecat", event: "BILLING_ISSUE" },
+          });
         }
         break;
       }
@@ -204,20 +199,12 @@ export async function POST(request: NextRequest) {
         );
 
         try {
-          // Supabase: cast to any for database operations
-          // Proper types require: supabase gen types or Drizzle ORM (Phase 2)
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { error } = await (supabase as any)
-            .from("mobile_subscriptions")
-            .update({
-              product_id: eventData.new_product_id,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("revenuecat_user_id", eventData.app_user_id);
-
-          if (error) {
-            console.error("Error updating product:", error);
-          }
+          await db
+            .update(mobileSubscriptions)
+            .set({ productId: eventData.new_product_id, updatedAt: new Date() })
+            .where(
+              eq(mobileSubscriptions.revenuecatUserId, eventData.app_user_id)
+            );
         } catch (err) {
           console.error("Error processing product change:", err);
         }
@@ -228,20 +215,12 @@ export async function POST(request: NextRequest) {
         console.log("Subscription transferred:", eventData.product_id);
 
         try {
-          // Supabase: cast to any for database operations
-          // Proper types require: supabase gen types or Drizzle ORM (Phase 2)
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { error } = await (supabase as any)
-            .from("mobile_subscriptions")
-            .update({
-              store: eventData.store,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("revenuecat_user_id", eventData.app_user_id);
-
-          if (error) {
-            console.error("Error recording transfer:", error);
-          }
+          await db
+            .update(mobileSubscriptions)
+            .set({ store: eventData.store, updatedAt: new Date() })
+            .where(
+              eq(mobileSubscriptions.revenuecatUserId, eventData.app_user_id)
+            );
         } catch (err) {
           console.error("Error processing transfer:", err);
         }

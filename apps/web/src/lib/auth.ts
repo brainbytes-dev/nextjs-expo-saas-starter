@@ -1,9 +1,16 @@
 import { betterAuth } from "better-auth";
 import { nextCookies } from "better-auth/next-js";
 import { admin } from "better-auth/plugins";
+import type { Auth } from "better-auth";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let authInstance: any;
+// Construct the full auth type from better-auth's exported Auth generic,
+// parameterised with the plugins we actually use. No runtime variable needed.
+type AuthInstance = Auth<{
+  plugins: [ReturnType<typeof nextCookies>, ReturnType<typeof admin>];
+  database: { type: "postgres"; url: string };
+}>;
+
+let authInstance: AuthInstance | null = null;
 
 try {
   const databaseUrl = process.env.DATABASE_URL;
@@ -24,7 +31,7 @@ try {
       type: "postgres",
       url: databaseUrl,
     },
-  });
+  }) as unknown as AuthInstance;
 } catch (error) {
   authInstance = null;
   if (process.env.NODE_ENV === "development") {
@@ -32,11 +39,10 @@ try {
   }
 }
 
-export const auth = authInstance;
+export const auth = authInstance as AuthInstance;
 
 export function getAuth() {
   return auth;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Session = any;
+export type Session = NonNullable<Awaited<ReturnType<AuthInstance["api"]["getSession"]>>>;

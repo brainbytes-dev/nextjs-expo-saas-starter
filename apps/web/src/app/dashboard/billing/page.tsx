@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { getSupabaseClient } from "@/lib/supabase"
 
 interface Plan {
   id: string
@@ -74,18 +73,11 @@ export default function BillingPage() {
       if (!session?.user?.email) return
 
       try {
-        const supabase = getSupabaseClient()
-        if (!supabase) return
+        const res = await fetch("/api/user/subscription")
+        if (!res.ok) return
+        const { status } = await res.json()
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: subscription } = await (supabase as any)
-          .from("user_subscriptions")
-          .select("status")
-          .eq("email", session.user.email)
-          .single()
-
-        if (subscription?.status === "active" || subscription?.status === "trialing") {
-          // Default to 'pro' if there's an active subscription
+        if (status === "active" || status === "trialing") {
           setCurrentPlan("pro")
         } else {
           setCurrentPlan("free")

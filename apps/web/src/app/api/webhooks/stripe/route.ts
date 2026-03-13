@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import * as Sentry from "@sentry/nextjs";
 import { sendPaymentFailedEmail, sendSubscriptionCanceledEmail } from "@/lib/email";
 import { trackEvent } from "@/lib/posthog";
-import { getSupabaseClient } from "@/lib/supabase";
+import { getDb, userSubscriptions, payments, eq } from "@repo/db";
 
 // Lazy initialize Stripe client (only when needed)
 let stripeClient: Stripe | null = null;
@@ -30,12 +30,11 @@ function getStripe() {
  */
 export async function POST(request: NextRequest) {
   const stripe = getStripe();
-  const supabase = getSupabaseClient();
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-  if (!stripe || !supabase || !webhookSecret) {
+  if (!stripe || !webhookSecret) {
     return NextResponse.json(
-      { error: "Stripe or Supabase is not configured" },
+      { error: "Stripe is not configured" },
       { status: 500 }
     );
   }
@@ -63,6 +62,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const db = getDb();
+
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -70,41 +71,41 @@ export async function POST(request: NextRequest) {
 
         if (session.customer && session.subscription) {
           try {
-            // Get customer email from Stripe
             const customer = await stripe.customers.retrieve(
               session.customer as string
             );
             const customerEmail = "deleted" in customer ? null : customer.email;
 
-            // Update user subscription in Supabase
-            // Supabase: cast to any for database operations
-            // Proper types require: supabase gen types or Drizzle ORM (Phase 2)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { error } = await (supabase as any)
-              .from("user_subscriptions")
-              .upsert(
-                {
-                  stripe_customer_id: session.customer as string,
-                  stripe_subscription_id: session.subscription as string,
+            await db
+              .insert(userSubscriptions)
+              .values({
+                stripeCustomerId: session.customer as string,
+                stripeSubscriptionId: session.subscription as string,
+                status: "active",
+                email: customerEmail,
+                updatedAt: new Date(),
+              })
+              .onConflictDoUpdate({
+                target: userSubscriptions.stripeCustomerId,
+                set: {
+                  stripeSubscriptionId: session.subscription as string,
                   status: "active",
                   email: customerEmail,
-                  updated_at: new Date().toISOString(),
+                  updatedAt: new Date(),
                 },
-                { onConflict: "stripe_customer_id" }
-              );
+              });
 
-            if (error) {
-              console.error("Error updating subscription:", error);
-              Sentry.captureException(error, { tags: { webhook: "stripe", event: "checkout.session.completed" } });
-            }
-
-            // Track subscription started event
-            if (customerEmail && typeof session.subscription === 'string') {
-              trackEvent("subscription_started", { email: customerEmail, subscriptionId: session.subscription });
+            if (customerEmail && typeof session.subscription === "string") {
+              trackEvent("subscription_started", {
+                email: customerEmail,
+                subscriptionId: session.subscription,
+              });
             }
           } catch (err) {
             console.error("Error processing checkout session:", err);
-            Sentry.captureException(err, { tags: { webhook: "stripe", event: "checkout.session.completed" } });
+            Sentry.captureException(err, {
+              tags: { webhook: "stripe", event: "checkout.session.completed" },
+            });
           }
         }
         break;
@@ -115,18 +116,12 @@ export async function POST(request: NextRequest) {
         console.log("Subscription updated:", subscription.id);
 
         try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { error } = await (supabase as any)
-            .from("user_subscriptions")
-            .update({
-              status: subscription.status,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("stripe_subscription_id", subscription.id);
-
-          if (error) {
-            console.error("Error updating subscription status:", error);
-          }
+          await db
+            .update(userSubscriptions)
+            .set({ status: subscription.status, updatedAt: new Date() })
+            .where(
+              eq(userSubscriptions.stripeSubscriptionId, subscription.id)
+            );
         } catch (err) {
           console.error("Error processing subscription update:", err);
         }
@@ -138,38 +133,41 @@ export async function POST(request: NextRequest) {
         console.log("Subscription deleted:", subscription.id);
 
         try {
-          // Get customer email
-          const customer = await stripe.customers.retrieve(subscription.customer as string);
+          const customer = await stripe.customers.retrieve(
+            subscription.customer as string
+          );
           const customerEmail = "deleted" in customer ? null : customer.email;
 
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { error } = await (supabase as any)
-            .from("user_subscriptions")
-            .update({
+          await db
+            .update(userSubscriptions)
+            .set({
               status: "canceled",
-              canceled_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
+              canceledAt: new Date(),
+              updatedAt: new Date(),
             })
-            .eq("stripe_subscription_id", subscription.id);
+            .where(
+              eq(userSubscriptions.stripeSubscriptionId, subscription.id)
+            );
 
-          if (error) {
-            console.error("Error canceling subscription:", error);
-            Sentry.captureException(error, { tags: { webhook: "stripe", event: "customer.subscription.deleted" } });
-          }
-
-          // Send cancellation email and track event
           if (customerEmail) {
             try {
               await sendSubscriptionCanceledEmail(customerEmail);
-              trackEvent("subscription_canceled", { email: customerEmail, subscriptionId: subscription.id });
+              trackEvent("subscription_canceled", {
+                email: customerEmail,
+                subscriptionId: subscription.id,
+              });
             } catch (emailErr) {
               console.error("Error sending cancellation email:", emailErr);
-              Sentry.captureException(emailErr, { tags: { webhook: "stripe", action: "send_cancellation_email" } });
+              Sentry.captureException(emailErr, {
+                tags: { webhook: "stripe", action: "send_cancellation_email" },
+              });
             }
           }
         } catch (err) {
           console.error("Error processing subscription deletion:", err);
-          Sentry.captureException(err, { tags: { webhook: "stripe", event: "customer.subscription.deleted" } });
+          Sentry.captureException(err, {
+            tags: { webhook: "stripe", event: "customer.subscription.deleted" },
+          });
         }
         break;
       }
@@ -179,22 +177,14 @@ export async function POST(request: NextRequest) {
         console.log("Invoice paid:", invoice.id);
 
         try {
-          // Record payment in Supabase
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { error } = await (supabase as any)
-            .from("payments")
-            .insert({
-              stripe_invoice_id: invoice.id,
-              stripe_subscription_id: invoice.subscription as string,
-              amount: invoice.amount_paid,
-              currency: invoice.currency,
-              status: "paid",
-              paid_at: new Date().toISOString(),
-            });
-
-          if (error) {
-            console.error("Error recording payment:", error);
-          }
+          await db.insert(payments).values({
+            stripeInvoiceId: invoice.id,
+            stripeSubscriptionId: invoice.subscription as string,
+            amount: invoice.amount_paid,
+            currency: invoice.currency,
+            status: "paid",
+            paidAt: new Date(),
+          });
         } catch (err) {
           console.error("Error processing payment succeeded:", err);
         }
@@ -206,37 +196,37 @@ export async function POST(request: NextRequest) {
         console.log("Invoice payment failed:", invoice.id);
 
         try {
-          // Record failed payment in Supabase
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { error } = await (supabase as any)
-            .from("payments")
-            .insert({
-              stripe_invoice_id: invoice.id,
-              stripe_subscription_id: invoice.subscription as string,
-              amount: invoice.amount_due,
-              currency: invoice.currency,
-              status: "failed",
-              failed_at: new Date().toISOString(),
-            });
+          await db.insert(payments).values({
+            stripeInvoiceId: invoice.id,
+            stripeSubscriptionId: invoice.subscription as string,
+            amount: invoice.amount_due,
+            currency: invoice.currency,
+            status: "failed",
+            failedAt: new Date(),
+          });
 
-          if (error) {
-            console.error("Error recording failed payment:", error);
-            Sentry.captureException(error, { tags: { webhook: "stripe", event: "invoice.payment_failed" } });
-          }
-
-          // Send email notification to user about failed payment
           if (invoice.customer_email) {
             try {
               await sendPaymentFailedEmail(invoice.customer_email);
-              trackEvent("payment_failed", { email: invoice.customer_email, invoiceId: invoice.id });
+              trackEvent("payment_failed", {
+                email: invoice.customer_email,
+                invoiceId: invoice.id,
+              });
             } catch (emailErr) {
               console.error("Error sending payment failed email:", emailErr);
-              Sentry.captureException(emailErr, { tags: { webhook: "stripe", action: "send_payment_failed_email" } });
+              Sentry.captureException(emailErr, {
+                tags: {
+                  webhook: "stripe",
+                  action: "send_payment_failed_email",
+                },
+              });
             }
           }
         } catch (err) {
           console.error("Error processing payment failed:", err);
-          Sentry.captureException(err, { tags: { webhook: "stripe", event: "invoice.payment_failed" } });
+          Sentry.captureException(err, {
+            tags: { webhook: "stripe", event: "invoice.payment_failed" },
+          });
         }
         break;
       }

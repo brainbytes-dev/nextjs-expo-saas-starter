@@ -13,6 +13,14 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  // TanStack Table's useReactTable returns functions that React Compiler cannot
+  // memoize — this is a known library limitation, not a code issue.
+  {
+    files: ["src/components/data-table.tsx"],
+    rules: {
+      "react-hooks/incompatible-library": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

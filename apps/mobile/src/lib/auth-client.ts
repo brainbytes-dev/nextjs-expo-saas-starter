@@ -82,6 +82,18 @@ export async function signUp(
   }
 }
 
+export async function forgotPassword(email: string) {
+  try {
+    await authFetch<{ success: boolean }>("/api/auth/forget-password", {
+      method: "POST",
+      body: JSON.stringify({ email, redirectTo: `${API_URL}/reset-password` }),
+    });
+  } catch (error) {
+    Sentry.captureException(error, { tags: { action: "forgot_password" } });
+    throw error;
+  }
+}
+
 export async function signOut() {
   try {
     await authFetch("/api/auth/sign-out", { method: "POST" });

@@ -11,16 +11,25 @@ import { Button } from "@/components/nativewindui/Button";
 import { Form, FormItem, FormSection } from "@/components/nativewindui/Form";
 import { Text } from "@/components/nativewindui/Text";
 import { TextField } from "@/components/nativewindui/TextField";
+import { forgotPassword } from "@/lib/auth-client";
 
 export default function ForgotPasswordScreen() {
   const insets = useSafeAreaInsets();
   const [email, setEmail] = React.useState("");
   const [submitted, setSubmitted] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
 
-  function onSubmit() {
+  async function onSubmit() {
     if (!email) return;
-    // TODO: call password reset API
-    setSubmitted(true);
+    setIsLoading(true);
+    try {
+      await forgotPassword(email);
+    } catch {
+      // Fail silently — don't reveal if email exists
+    } finally {
+      setIsLoading(false);
+      setSubmitted(true);
+    }
   }
 
   if (submitted) {
@@ -108,14 +117,14 @@ export default function ForgotPasswordScreen() {
       >
         {Platform.OS === "ios" ? (
           <View className="px-12 py-4">
-            <Button size="lg" onPress={onSubmit}>
-              <Text>Submit</Text>
+            <Button size="lg" onPress={onSubmit} disabled={isLoading}>
+              <Text>{isLoading ? "Sending..." : "Submit"}</Text>
             </Button>
           </View>
         ) : (
           <View className="flex-row justify-end py-4 pl-6 pr-8">
-            <Button onPress={onSubmit}>
-              <Text className="text-sm">Submit</Text>
+            <Button onPress={onSubmit} disabled={isLoading}>
+              <Text className="text-sm">{isLoading ? "Sending..." : "Submit"}</Text>
             </Button>
           </View>
         )}

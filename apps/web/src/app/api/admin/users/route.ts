@@ -2,6 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { auth } from "@/lib/auth";
 
+// Better-Auth admin plugin adds listUsers/setRole at runtime.
+// Cast only the admin-specific methods since the base type doesn't include plugins.
+type AdminApi = {
+  listUsers: (opts: {
+    headers: Headers;
+    query?: Record<string, unknown>;
+  }) => Promise<{ users: Array<Record<string, unknown>> }>;
+  setRole: (opts: {
+    headers: Headers;
+    body: { userId: string; role: string };
+  }) => Promise<void>;
+};
+type UserWithRole = { id: string; email: string; role?: string };
+
 export async function GET(request: NextRequest) {
   try {
     if (!auth) {
@@ -9,12 +23,13 @@ export async function GET(request: NextRequest) {
     }
 
     const session = await auth.api.getSession({ headers: request.headers });
-    if (!session?.user || session.user.role !== "admin") {
+    const user = session?.user as UserWithRole | undefined;
+    if (!user || user.role !== "admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Use Better-Auth admin API to list users
-    const users = await auth.api.listUsers({
+    const adminApi = auth.api as unknown as AdminApi;
+    const users = await adminApi.listUsers({
       headers: request.headers,
       query: { limit: 100 },
     });
@@ -33,7 +48,8 @@ export async function PATCH(request: NextRequest) {
     }
 
     const session = await auth.api.getSession({ headers: request.headers });
-    if (!session?.user || session.user.role !== "admin") {
+    const user = session?.user as UserWithRole | undefined;
+    if (!user || user.role !== "admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -44,11 +60,12 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Prevent self-demotion
-    if (userId === session.user.id && role !== "admin") {
+    if (userId === user.id && role !== "admin") {
       return NextResponse.json({ error: "Cannot remove your own admin role" }, { status: 400 });
     }
 
-    await auth.api.setRole({
+    const adminApi = auth.api as unknown as AdminApi;
+    await adminApi.setRole({
       headers: request.headers,
       body: { userId, role },
     });

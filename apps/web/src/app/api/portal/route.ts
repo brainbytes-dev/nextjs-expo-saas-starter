@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { getAuthUser } from "@/lib/supabase";
+import { auth } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 import * as Sentry from "@sentry/nextjs";
+import { getDb, userSubscriptions, eq } from "@repo/db";
 
 // Lazy initialize Stripe client (only when needed)
 let stripeClient: Stripe | null = null;
@@ -21,11 +22,10 @@ function getStripe() {
  * Create a Stripe customer portal session
  * Allows customers to manage their subscriptions and billing
  */
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    // Get user for rate limiting
-    const user = await getAuthUser();
-    if (!user) {
+    const session = await auth.api.getSession({ headers: request.headers });
+    if (!session) {
       return NextResponse.json(
         { error: "User not authenticated" },
         { status: 401 }
@@ -33,7 +33,7 @@ export async function POST() {
     }
 
     // Check rate limit (10 per minute per user)
-    const allowed = await checkRateLimit(`portal:${user.id}`);
+    const allowed = await checkRateLimit(`portal:${session.user.id}`);
     if (!allowed) {
       return NextResponse.json(
         { error: "Too many requests. Please try again later." },
@@ -49,9 +49,15 @@ export async function POST() {
       );
     }
 
-    // TODO: Get Stripe customer ID from user record in database
-    // For now, this is a template - you'll need to store customerId when creating subscriptions
-    const customerId = "cus_XXXXX"; // Get from database
+    // Look up Stripe customer ID from Drizzle
+    const db = getDb();
+    const [sub] = await db
+      .select({ stripeCustomerId: userSubscriptions.stripeCustomerId })
+      .from(userSubscriptions)
+      .where(eq(userSubscriptions.email, session.user.email))
+      .limit(1);
+
+    const customerId = sub?.stripeCustomerId;
 
     if (!customerId) {
       return NextResponse.json(
