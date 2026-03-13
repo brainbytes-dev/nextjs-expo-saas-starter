@@ -1,14 +1,11 @@
-import { View, Text, Pressable, Alert, ActivityIndicator } from "react-native";
 import { useState } from "react";
-import {
-  getOfferings,
-  purchasePackage,
-  restorePurchases,
-} from "@/lib/revenue-cat";
+import { Alert as RNAlert, View } from "react-native";
 
-/**
- * Subscription/Paywall screen — replace with NativewindUI template
- */
+import { Button } from "@/components/nativewindui/Button";
+import { Card } from "@/components/nativewindui/Card";
+import { Text } from "@/components/nativewindui/Text";
+import { purchasePackage, restorePurchases } from "@/lib/revenue-cat";
+
 export default function SubscriptionScreen() {
   const [loading, setLoading] = useState(false);
 
@@ -16,9 +13,12 @@ export default function SubscriptionScreen() {
     setLoading(true);
     try {
       await purchasePackage(packageId);
-      Alert.alert("Success", "Subscription activated!");
+      RNAlert.alert("Success", "Subscription activated!");
     } catch (e) {
-      Alert.alert("Error", e instanceof Error ? e.message : "Purchase failed");
+      RNAlert.alert(
+        "Error",
+        e instanceof Error ? e.message : "Purchase failed"
+      );
     } finally {
       setLoading(false);
     }
@@ -28,49 +28,67 @@ export default function SubscriptionScreen() {
     setLoading(true);
     try {
       await restorePurchases();
-      Alert.alert("Success", "Purchases restored");
+      RNAlert.alert("Success", "Purchases restored");
     } catch (e) {
-      Alert.alert("Error", e instanceof Error ? e.message : "Restore failed");
+      RNAlert.alert(
+        "Error",
+        e instanceof Error ? e.message : "Restore failed"
+      );
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <View style={{ flex: 1, padding: 24, paddingTop: 60 }}>
-      <Text style={{ fontSize: 24, fontWeight: "bold", marginBottom: 8 }}>
-        Upgrade
-      </Text>
-      <Text style={{ color: "#666", marginBottom: 32 }}>
-        Unlock all features with a Pro subscription.
-      </Text>
+    <View className="flex-1 px-4 pt-8 gap-4">
+      <View className="gap-2 pb-4">
+        <Text variant="title1" className="font-bold">
+          Upgrade to Pro
+        </Text>
+        <Text className="text-muted-foreground">
+          Unlock all features with a Pro subscription.
+        </Text>
+      </View>
 
-      <Pressable
-        onPress={() => handlePurchase("$rc_monthly")}
-        disabled={loading}
-        style={{
-          backgroundColor: "#000",
-          padding: 16,
-          borderRadius: 8,
-          alignItems: "center",
-          marginBottom: 12,
-          opacity: loading ? 0.6 : 1,
-        }}
-      >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={{ color: "#fff", fontWeight: "600" }}>Subscribe Monthly</Text>
-        )}
-      </Pressable>
+      <Card className="p-4 gap-2 border-2 border-primary">
+        <Text variant="heading">Monthly</Text>
+        <Text className="text-muted-foreground">
+          Full access to all features, billed monthly.
+        </Text>
+        <Button
+          className="mt-2"
+          onPress={() => handlePurchase("$rc_monthly")}
+          disabled={loading}
+        >
+          <Text>{loading ? "Processing..." : "Subscribe Monthly"}</Text>
+        </Button>
+      </Card>
 
-      <Pressable
+      <Card className="p-4 gap-2">
+        <Text variant="heading">Yearly</Text>
+        <Text className="text-muted-foreground">
+          Save with annual billing.
+        </Text>
+        <Button
+          variant="tonal"
+          className="mt-2"
+          onPress={() => handlePurchase("$rc_annual")}
+          disabled={loading}
+        >
+          <Text>{loading ? "Processing..." : "Subscribe Yearly"}</Text>
+        </Button>
+      </Card>
+
+      <Button
+        variant="plain"
         onPress={handleRestore}
         disabled={loading}
-        style={{ marginTop: 24, alignItems: "center" }}
+        className="mt-4"
       >
-        <Text style={{ color: "#666" }}>Restore Purchases</Text>
-      </Pressable>
+        <Text className="text-muted-foreground text-sm">
+          Restore Purchases
+        </Text>
+      </Button>
     </View>
   );
 }

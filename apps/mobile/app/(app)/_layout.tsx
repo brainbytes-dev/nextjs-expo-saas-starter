@@ -8,7 +8,7 @@ export default function AppLayout() {
   if (isPending) return null;
 
   if (!data) {
-    return <Redirect href="/(auth)/login" />;
+    return <Redirect href="/(auth)" />;
   }
 
   return (

@@ -8,6 +8,9 @@ module.exports = function (api) {
         {
           root: ["./"],
           alias: {
+            "@/components/nativewindui": "../../packages/nativewindui",
+            "@/theme": "./src/theme",
+            "@/lib": "./src/lib",
             "@": "./src",
             "~": "./",
           },
