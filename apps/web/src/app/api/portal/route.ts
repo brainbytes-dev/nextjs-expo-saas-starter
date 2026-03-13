@@ -21,7 +21,7 @@ function getStripe() {
  * Create a Stripe customer portal session
  * Allows customers to manage their subscriptions and billing
  */
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     // Get user for rate limiting
     const user = await getAuthUser();

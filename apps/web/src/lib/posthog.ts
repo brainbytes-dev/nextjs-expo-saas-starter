@@ -32,16 +32,19 @@ export function initPostHogClient() {
 }
 
 export function trackEvent(
-  distinctId: string,
   event: string,
-  properties?: Record<string, any>
+  properties?: Record<string, string | number | boolean>
 ) {
-  const client = getPostHogServer();
-  client.capture({
-    distinctId,
-    event,
-    properties,
-  });
+  try {
+    const client = getPostHogServer();
+    client.capture({
+      distinctId: 'server',
+      event,
+      properties,
+    });
+  } catch (error) {
+    console.error('Error tracking event:', error);
+  }
 }
 
 export { posthog };

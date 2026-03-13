@@ -30,6 +30,11 @@ function getSupabase() {
   return supabaseClient;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getSupabaseTyped(): any {
+  return getSupabase();
+}
+
 /**
  * POST /api/webhooks/stripe
  * Handle Stripe webhook events
@@ -43,7 +48,7 @@ function getSupabase() {
  */
 export async function POST(request: NextRequest) {
   const stripe = getStripe();
-  const supabase = getSupabase();
+  const supabase = getSupabaseTyped();
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   if (!stripe || !supabase || !webhookSecret) {
@@ -90,7 +95,7 @@ export async function POST(request: NextRequest) {
             const customerEmail = "deleted" in customer ? null : customer.email;
 
             // Update user subscription in Supabase
-            const { error } = await (supabase as any)
+            const { error } = await supabase
               .from("user_subscriptions")
               .upsert(
                 {
@@ -109,7 +114,7 @@ export async function POST(request: NextRequest) {
             }
 
             // Track subscription started event
-            if (customerEmail) {
+            if (customerEmail && typeof session.subscription === 'string') {
               trackEvent("subscription_started", { email: customerEmail, subscriptionId: session.subscription });
             }
           } catch (err) {

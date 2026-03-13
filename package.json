@@ -8,6 +8,7 @@
     "typecheck": "turbo run typecheck"
   },
   "devDependencies": {
+    "@types/swagger-ui-react": "^5.18.0",
     "baseline-browser-mapping": "^2.10.0",
     "turbo": "^2.5.0"
   },
