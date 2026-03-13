@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import * as Sentry from "@sentry/nextjs";
+import { sendPaymentFailedEmail, sendSubscriptionCanceledEmail } from "@/lib/email";
+import { trackEvent } from "@/lib/posthog";
 
 // Lazy initialize Stripe client (only when needed)
 let stripeClient: Stripe | null = null;
@@ -84,6 +87,7 @@ export async function POST(request: NextRequest) {
             const customer = await stripe.customers.retrieve(
               session.customer as string
             );
+            const customerEmail = "deleted" in customer ? null : customer.email;
 
             // Update user subscription in Supabase
             const { error } = await (supabase as any)
@@ -93,7 +97,7 @@ export async function POST(request: NextRequest) {
                   stripe_customer_id: session.customer as string,
                   stripe_subscription_id: session.subscription as string,
                   status: "active",
-                  email: "deleted" in customer ? null : customer.email,
+                  email: customerEmail,
                   updated_at: new Date().toISOString(),
                 },
                 { onConflict: "stripe_customer_id" }
@@ -101,9 +105,16 @@ export async function POST(request: NextRequest) {
 
             if (error) {
               console.error("Error updating subscription:", error);
+              Sentry.captureException(error, { tags: { webhook: "stripe", event: "checkout.session.completed" } });
+            }
+
+            // Track subscription started event
+            if (customerEmail) {
+              trackEvent("subscription_started", { email: customerEmail, subscriptionId: session.subscription });
             }
           } catch (err) {
             console.error("Error processing checkout session:", err);
+            Sentry.captureException(err, { tags: { webhook: "stripe", event: "checkout.session.completed" } });
           }
         }
         break;
@@ -136,6 +147,10 @@ export async function POST(request: NextRequest) {
         console.log("Subscription deleted:", subscription.id);
 
         try {
+          // Get customer email
+          const customer = await stripe.customers.retrieve(subscription.customer as string);
+          const customerEmail = "deleted" in customer ? null : customer.email;
+
           const { error } = await (supabase as any)
             .from("user_subscriptions")
             .update({
@@ -147,9 +162,22 @@ export async function POST(request: NextRequest) {
 
           if (error) {
             console.error("Error canceling subscription:", error);
+            Sentry.captureException(error, { tags: { webhook: "stripe", event: "customer.subscription.deleted" } });
+          }
+
+          // Send cancellation email and track event
+          if (customerEmail) {
+            try {
+              await sendSubscriptionCanceledEmail(customerEmail);
+              trackEvent("subscription_canceled", { email: customerEmail, subscriptionId: subscription.id });
+            } catch (emailErr) {
+              console.error("Error sending cancellation email:", emailErr);
+              Sentry.captureException(emailErr, { tags: { webhook: "stripe", action: "send_cancellation_email" } });
+            }
           }
         } catch (err) {
           console.error("Error processing subscription deletion:", err);
+          Sentry.captureException(err, { tags: { webhook: "stripe", event: "customer.subscription.deleted" } });
         }
         break;
       }
@@ -199,11 +227,22 @@ export async function POST(request: NextRequest) {
 
           if (error) {
             console.error("Error recording failed payment:", error);
+            Sentry.captureException(error, { tags: { webhook: "stripe", event: "invoice.payment_failed" } });
           }
 
-          // TODO: Send email notification to user about failed payment
+          // Send email notification to user about failed payment
+          if (invoice.customer_email) {
+            try {
+              await sendPaymentFailedEmail(invoice.customer_email);
+              trackEvent("payment_failed", { email: invoice.customer_email, invoiceId: invoice.id });
+            } catch (emailErr) {
+              console.error("Error sending payment failed email:", emailErr);
+              Sentry.captureException(emailErr, { tags: { webhook: "stripe", action: "send_payment_failed_email" } });
+            }
+          }
         } catch (err) {
           console.error("Error processing payment failed:", err);
+          Sentry.captureException(err, { tags: { webhook: "stripe", event: "invoice.payment_failed" } });
         }
         break;
       }
@@ -214,6 +253,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true });
   } catch (error) {
+    Sentry.captureException(error, { tags: { webhook: "stripe" } });
     console.error("Webhook handler error:", error);
     return NextResponse.json(
       { error: "Webhook handler failed" },

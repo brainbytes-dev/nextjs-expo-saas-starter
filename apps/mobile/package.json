@@ -12,11 +12,15 @@
     "ios": "expo run:ios"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
+    "@sentry/react-native": "^8.4.0",
     "better-auth": "^1.0.0",
     "expo": "latest",
     "expo-router": "latest",
     "expo-status-bar": "latest",
+    "posthog-react-native": "^4.37.2",
     "react": "19.2.3",
+    "react-hook-form": "^7.71.2",
     "react-native": "0.83.2"
   },
   "devDependencies": {

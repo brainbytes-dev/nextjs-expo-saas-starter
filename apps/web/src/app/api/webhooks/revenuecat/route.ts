@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import * as Sentry from "@sentry/nextjs";
+import { sendPaymentFailedEmail } from "@/lib/email";
+import { trackEvent } from "@/lib/posthog";
 
 /**
  * POST /api/webhooks/revenuecat
@@ -104,9 +107,13 @@ export async function POST(request: NextRequest) {
 
           if (error) {
             console.error("Error recording subscription:", error);
+            Sentry.captureException(error, { tags: { webhook: "revenuecat", event: "INITIAL_PURCHASE" } });
+          } else {
+            trackEvent("mobile_subscription_started", { productId: eventData.product_id });
           }
         } catch (err) {
           console.error("Error processing purchase:", err);
+          Sentry.captureException(err, { tags: { webhook: "revenuecat", event: "INITIAL_PURCHASE" } });
         }
         break;
       }
@@ -169,11 +176,22 @@ export async function POST(request: NextRequest) {
 
           if (error) {
             console.error("Error recording billing issue:", error);
+            Sentry.captureException(error, { tags: { webhook: "revenuecat", event: "BILLING_ISSUE" } });
           }
 
-          // TODO: Send email notification to user
+          // Send email notification to user
+          if (eventData.email) {
+            try {
+              await sendPaymentFailedEmail(eventData.email);
+              trackEvent("mobile_payment_failed", { productId: eventData.product_id });
+            } catch (emailErr) {
+              console.error("Error sending payment failed email:", emailErr);
+              Sentry.captureException(emailErr, { tags: { webhook: "revenuecat", action: "send_payment_failed_email" } });
+            }
+          }
         } catch (err) {
           console.error("Error processing billing issue:", err);
+          Sentry.captureException(err, { tags: { webhook: "revenuecat", event: "BILLING_ISSUE" } });
         }
         break;
       }
@@ -231,6 +249,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    Sentry.captureException(error, { tags: { webhook: "revenuecat" } });
     console.error("RevenueCat webhook error:", error);
     return NextResponse.json(
       { error: "Webhook processing failed" },

@@ -4,6 +4,8 @@
  * Falls back to mock client if better-auth/react is not available
  */
 
+import * as Sentry from "@sentry/react-native";
+
 let authClientInstance: any = null;
 
 function getAuthClient() {
@@ -33,13 +35,54 @@ function getAuthClient() {
 
 export const authClient = getAuthClient();
 
+/**
+ * Send welcome email via the web API
+ */
+async function sendWelcomeEmail(name: string, email: string) {
+  try {
+    const apiUrl = process.env.EXPO_PUBLIC_APP_URL || "http://localhost:3003";
+    const response = await fetch(`${apiUrl}/api/email/welcome`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to send welcome email: ${response.statusText}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error("Error sending welcome email:", error);
+    Sentry.captureException(error, { tags: { action: "send_welcome_email" } });
+    // Don't throw - email failure shouldn't break signup
+  }
+}
+
 // Export auth methods
 export async function signIn(email: string, password: string) {
-  return getAuthClient().signIn?.({ email, password });
+  try {
+    return await getAuthClient().signIn?.({ email, password });
+  } catch (error) {
+    Sentry.captureException(error, { tags: { action: "sign_in" } });
+    throw error;
+  }
 }
 
 export async function signUp(email: string, password: string, name?: string) {
-  return getAuthClient().signUp?.({ email, password, name });
+  try {
+    const result = await getAuthClient().signUp?.({ email, password, name });
+
+    // Send welcome email after successful signup
+    if (result && email && name) {
+      await sendWelcomeEmail(name, email);
+    }
+
+    return result;
+  } catch (error) {
+    Sentry.captureException(error, { tags: { action: "sign_up" } });
+    throw error;
+  }
 }
 
 export async function signOut() {

@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -9,64 +8,82 @@ import {
   FieldDescription,
   FieldGroup,
   FieldLabel,
-  FieldSeparator,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { signUp } from "@/lib/auth-client"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import * as Sentry from "@sentry/nextjs"
+import { sendWelcomeEmail } from "@/lib/email"
+
+const signupSchema = z
+  .object({
+    name: z.string().min(2, "Name must be at least 2 characters"),
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  })
+
+type SignupFormData = z.infer<typeof signupSchema>
 
 export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
   const router = useRouter()
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError,
+  } = useForm<SignupFormData>({
+    resolver: zodResolver(signupSchema),
+  })
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match")
-      return
-    }
-
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long")
-      return
-    }
-
-    setIsLoading(true)
-
+  const onSubmit = async (data: SignupFormData) => {
     try {
       await signUp.email(
         {
-          email,
-          password,
-          name,
+          email: data.email,
+          password: data.password,
+          name: data.name,
         },
         {
-          onSuccess: () => {
+          onSuccess: async () => {
+            // Send welcome email
+            try {
+              await sendWelcomeEmail(data.name, data.email)
+            } catch (err) {
+              console.error("Failed to send welcome email:", err)
+              Sentry.captureException(err, { tags: { form: "signup" } })
+            }
             router.push("/dashboard")
           },
           onError: (ctx) => {
-            setError(ctx.error.message || "Sign up failed")
+            setError("email", {
+              message: ctx.error.message || "Sign up failed",
+            })
+            Sentry.captureException(ctx.error, {
+              tags: { form: "signup" },
+            })
           },
         }
       )
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
-    } finally {
-      setIsLoading(false)
+      Sentry.captureException(err, { tags: { form: "signup" } })
+      setError("email", {
+        message: err instanceof Error ? err.message : "An error occurred",
+      })
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className={cn("flex flex-col gap-6", className)} {...props}>
+    <form onSubmit={handleSubmit(onSubmit)} className={cn("flex flex-col gap-6", className)} {...props}>
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
           <h1 className="text-2xl font-bold">Create your account</h1>
@@ -75,9 +92,9 @@ export function SignupForm({
           </p>
         </div>
 
-        {error && (
+        {errors.email && (
           <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
-            {error}
+            {errors.email.message}
           </div>
         )}
 
@@ -87,11 +104,12 @@ export function SignupForm({
             id="name"
             type="text"
             placeholder="John Doe"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            disabled={isLoading}
+            {...register("name")}
+            disabled={isSubmitting}
           />
+          {errors.name && (
+            <p className="text-sm text-red-700">{errors.name.message}</p>
+          )}
         </Field>
         <Field>
           <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -99,45 +117,48 @@ export function SignupForm({
             id="email"
             type="email"
             placeholder="m@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            disabled={isLoading}
+            {...register("email")}
+            disabled={isSubmitting}
           />
           <FieldDescription>
             We&apos;ll use this to contact you. We will not share your email
             with anyone else.
           </FieldDescription>
+          {errors.email && (
+            <p className="text-sm text-red-700">{errors.email.message}</p>
+          )}
         </Field>
         <Field>
           <FieldLabel htmlFor="password">Password</FieldLabel>
           <Input
             id="password"
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            disabled={isLoading}
+            {...register("password")}
+            disabled={isSubmitting}
           />
           <FieldDescription>
             Must be at least 8 characters long.
           </FieldDescription>
+          {errors.password && (
+            <p className="text-sm text-red-700">{errors.password.message}</p>
+          )}
         </Field>
         <Field>
           <FieldLabel htmlFor="confirm-password">Confirm Password</FieldLabel>
           <Input
             id="confirm-password"
             type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            disabled={isLoading}
+            {...register("confirmPassword")}
+            disabled={isSubmitting}
           />
           <FieldDescription>Please confirm your password.</FieldDescription>
+          {errors.confirmPassword && (
+            <p className="text-sm text-red-700">{errors.confirmPassword.message}</p>
+          )}
         </Field>
         <Field>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Creating Account..." : "Create Account"}
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Creating Account..." : "Create Account"}
           </Button>
         </Field>
         <FieldDescription className="text-center">

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { getAuthUser } from "@/lib/supabase";
+import { checkRateLimit } from "@/lib/rate-limit";
+import * as Sentry from "@sentry/nextjs";
 
 // Lazy initialize Stripe client (only when needed)
 let stripeClient: Stripe | null = null;
@@ -21,20 +23,29 @@ function getStripe() {
  */
 export async function POST(request: NextRequest) {
   try {
-    const stripe = getStripe();
-    if (!stripe) {
-      return NextResponse.json(
-        { error: "Stripe is not configured" },
-        { status: 500 }
-      );
-    }
-
-    // Ensure user is authenticated
+    // Get user for rate limiting
     const user = await getAuthUser();
     if (!user) {
       return NextResponse.json(
         { error: "User not authenticated" },
         { status: 401 }
+      );
+    }
+
+    // Check rate limit (10 per minute per user)
+    const allowed = await checkRateLimit(`portal:${user.id}`);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429 }
+      );
+    }
+
+    const stripe = getStripe();
+    if (!stripe) {
+      return NextResponse.json(
+        { error: "Stripe is not configured" },
+        { status: 500 }
       );
     }
 
@@ -56,6 +67,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: portalSession.url });
   } catch (error) {
+    Sentry.captureException(error, {
+      tags: { route: "/api/portal" },
+    });
     console.error("Portal session error:", error);
     return NextResponse.json(
       { error: "Failed to create portal session" },

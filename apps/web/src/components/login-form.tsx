@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -9,50 +8,66 @@ import {
   FieldDescription,
   FieldGroup,
   FieldLabel,
-  FieldSeparator,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { signIn } from "@/lib/auth-client"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import * as Sentry from "@sentry/nextjs"
+
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+})
+
+type LoginFormData = z.infer<typeof loginSchema>
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
   const router = useRouter()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError,
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  })
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    setIsLoading(true)
-
+  const onSubmit = async (data: LoginFormData) => {
     try {
       await signIn.email(
         {
-          email,
-          password,
+          email: data.email,
+          password: data.password,
         },
         {
           onSuccess: () => {
             router.push("/dashboard")
           },
           onError: (ctx) => {
-            setError(ctx.error.message || "Login failed")
+            setError("email", {
+              message: ctx.error.message || "Login failed",
+            })
+            Sentry.captureException(ctx.error, {
+              tags: { form: "login" },
+            })
           },
         }
       )
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
-    } finally {
-      setIsLoading(false)
+      Sentry.captureException(err, { tags: { form: "login" } })
+      setError("email", {
+        message: err instanceof Error ? err.message : "An error occurred",
+      })
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className={cn("flex flex-col gap-6", className)} {...props}>
+    <form onSubmit={handleSubmit(onSubmit)} className={cn("flex flex-col gap-6", className)} {...props}>
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
           <h1 className="text-2xl font-bold">Login to your account</h1>
@@ -61,9 +76,9 @@ export function LoginForm({
           </p>
         </div>
 
-        {error && (
+        {errors.email && (
           <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
-            {error}
+            {errors.email.message}
           </div>
         )}
 
@@ -73,11 +88,12 @@ export function LoginForm({
             id="email"
             type="email"
             placeholder="m@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            disabled={isLoading}
+            {...register("email")}
+            disabled={isSubmitting}
           />
+          {errors.email && (
+            <p className="text-sm text-red-700">{errors.email.message}</p>
+          )}
         </Field>
         <Field>
           <div className="flex items-center">
@@ -92,15 +108,16 @@ export function LoginForm({
           <Input
             id="password"
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            disabled={isLoading}
+            {...register("password")}
+            disabled={isSubmitting}
           />
+          {errors.password && (
+            <p className="text-sm text-red-700">{errors.password.message}</p>
+          )}
         </Field>
         <Field>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Logging in..." : "Login"}
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Logging in..." : "Login"}
           </Button>
         </Field>
         <FieldDescription className="text-center">
