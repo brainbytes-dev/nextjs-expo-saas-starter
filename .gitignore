@@ -21,6 +21,7 @@ apps/mobile/ios/
 .env
 .env.local
 .env.*.local
+apps/mobile/.env.local
 
 # OS
 .DS_Store

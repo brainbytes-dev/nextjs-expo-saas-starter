@@ -90,6 +90,9 @@ importers:
       better-auth:
         specifier: ^1.0.0
         version: 1.5.5(drizzle-kit@0.31.9)(drizzle-orm@0.44.7(@opentelemetry/api@1.9.0)(@types/pg@8.15.6)(@upstash/redis@1.37.0)(kysely@0.28.11)(postgres@3.4.8))(mongodb@7.1.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(vitest@4.1.0(@opentelemetry/api@1.9.0)(@types/node@22.19.15)(happy-dom@20.8.3)(vite@8.0.0(@types/node@22.19.15)(jiti@2.6.1)(terser@5.46.0)(yaml@2.8.2)))
+      burnt:
+        specifier: ^0.13.0
+        version: 0.13.0(expo@55.0.6)(react-dom@19.2.3(react@19.2.3))(react-native@0.83.2(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       clsx:
         specifier: ^2.1.0
         version: 2.1.1
@@ -6895,6 +6898,13 @@ packages:
   buffer@6.0.3:
     resolution: {integrity: sha512-FTiCpNxtwiZZHEZbcbTIcZjERVICn9yq/pDFkTl95/AxzD1naBctN7YO68riM/gLSDY7sdrMby8hofADYuuqOA==}
 
+  burnt@0.13.0:
+    resolution: {integrity: sha512-LjlQa7CLkGWUdz08YUIaGCJ8BLXib31/ztKqowgwqd7UH283A/kmdCj+1PYAQwDQEMPNmvSUfFHrjXbcwZibFQ==}
+    peerDependencies:
+      expo: '*'
+      react: '*'
+      react-native: '*'
+
   bytes@3.1.2:
     resolution: {integrity: sha512-/Nf7TyzTx6S3yRJObOAV7956r8cr2+Oj8AC5dt8wSP3BQAoeX58NoHyCU8P8zGkNXStjTSi6fzO6F0pBdcYbEg==}
     engines: {node: '>= 0.8'}
@@ -10650,6 +10660,10 @@ packages:
 
   setprototypeof@1.2.0:
     resolution: {integrity: sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==}
+
+  sf-symbols-typescript@1.0.0:
+    resolution: {integrity: sha512-DkS7q3nN68dEMb4E18HFPDAvyrjDZK9YAQQF2QxeFu9gp2xRDXFMF8qLJ1EmQ/qeEGQmop4lmMM1WtYJTIcCMw==}
+    engines: {node: '>=10'}
 
   sf-symbols-typescript@2.2.0:
     resolution: {integrity: sha512-TPbeg0b7ylrswdGCji8FRGFAKuqbpQlLbL8SOle3j1iHSs5Ob5mhvMAxWN2UItOjgALAB5Zp3fmMfj8mbWvXKw==}
@@ -20853,6 +20867,16 @@ snapshots:
       base64-js: 1.5.1
       ieee754: 1.2.1
 
+  burnt@0.13.0(expo@55.0.6)(react-dom@19.2.3(react@19.2.3))(react-native@0.83.2(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3):
+    dependencies:
+      expo: 55.0.6(@babel/core@7.29.0)(@expo/dom-webview@55.0.3)(@expo/metro-runtime@55.0.6)(expo-router@55.0.5)(react-dom@19.2.3(react@19.2.3))(react-native@0.83.2(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
+      react: 19.2.3
+      react-native: 0.83.2(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3)
+      sf-symbols-typescript: 1.0.0
+      sonner: 2.0.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+    transitivePeerDependencies:
+      - react-dom
+
   bytes@3.1.2: {}
 
   call-bind-apply-helpers@1.0.2:
@@ -25815,6 +25839,8 @@ snapshots:
       es-object-atoms: 1.1.1
 
   setprototypeof@1.2.0: {}
+
+  sf-symbols-typescript@1.0.0: {}
 
   sf-symbols-typescript@2.2.0: {}
 
