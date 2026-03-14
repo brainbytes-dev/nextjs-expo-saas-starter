@@ -21,6 +21,9 @@ function initAuth(): AuthInstance {
     baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3003",
     basePath: "/api/auth",
     secret: process.env.BETTER_AUTH_SECRET || "dev-secret-key",
+    // Allow requests with missing/null Origin (React Native doesn't send one).
+    // TODO: restrict to specific origins in production.
+    trustedOrigins: ["*"],
     plugins: [
       nextCookies(),
       admin(),
