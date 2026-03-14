@@ -13,7 +13,7 @@ import {
 
 export { useSession } from "./session-store";
 
-const API_URL = process.env.EXPO_PUBLIC_APP_URL || "http://localhost:3000";
+const API_URL = process.env.EXPO_PUBLIC_APP_URL || "http://localhost:3003";
 
 async function authFetch<T = unknown>(
   path: string,
