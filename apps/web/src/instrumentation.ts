@@ -18,7 +18,7 @@ export async function register() {
     const { OTLPTraceExporter } = await import(
       "@opentelemetry/exporter-trace-otlp-http"
     );
-    const { Resource } = await import("@opentelemetry/resources");
+    const { resourceFromAttributes } = await import("@opentelemetry/resources");
     const {
       ATTR_SERVICE_NAME,
       ATTR_SERVICE_VERSION,
@@ -35,7 +35,7 @@ export async function register() {
     });
 
     const sdk = new NodeSDK({
-      resource: new Resource({
+      resource: resourceFromAttributes({
         [ATTR_SERVICE_NAME]: "saas-web",
         [ATTR_SERVICE_VERSION]: process.env.npm_package_version || "0.1.0",
       }),

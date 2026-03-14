@@ -17,7 +17,7 @@
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
     "nativewind": "^4.1.23",
-    "react": "19.1.0",
+    "react": "19.2.4",
     "react-native": "0.81.0",
     "typescript": "^5"
   },

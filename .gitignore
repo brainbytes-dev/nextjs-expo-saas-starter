@@ -29,3 +29,5 @@ Thumbs.db
 
 # TypeScript
 *.tsbuildinfo
+.claude/worktrees/
+templates-mobile/

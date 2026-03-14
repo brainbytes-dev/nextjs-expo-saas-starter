@@ -15,8 +15,8 @@
   "devDependencies": {
     "@playwright/test": "^1.58.2",
     "@types/swagger-ui-react": "^5.18.0",
-    "baseline-browser-mapping": "^2.10.0",
-    "turbo": "^2.5.0"
+    "baseline-browser-mapping": "^2.10.8",
+    "turbo": "^2.8.17"
   },
   "packageManager": "pnpm@10.32.1",
   "engines": {
@@ -30,12 +30,12 @@
     "@testing-library/react": "^16.3.2",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.37.0",
-    "@vitejs/plugin-react": "^6.0.0",
+    "@vitejs/plugin-react": "^6.0.1",
     "expo-splash-screen": "^55.0.10",
-    "happy-dom": "^20.8.3",
-    "posthog-js": "^1.360.1",
-    "posthog-node": "^5.28.1",
-    "posthog-react-native": "^4.37.2",
+    "happy-dom": "^20.8.4",
+    "posthog-js": "^1.360.2",
+    "posthog-node": "^5.28.2",
+    "posthog-react-native": "^4.37.3",
     "react-hook-form": "^7.71.2",
     "resend": "^6.9.3",
     "swagger-ui-react": "^5.32.0",

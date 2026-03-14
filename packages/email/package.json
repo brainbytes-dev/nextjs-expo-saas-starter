@@ -14,14 +14,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@react-email/components": "^0.0.36",
-    "@react-email/preview-server": "^4.3.2",
-    "react": "19.2.3"
+    "@react-email/components": "^1.0.9",
+    "@react-email/preview-server": "^5.2.9",
+    "react": "19.2.4"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
     "@types/react": "^19",
-    "react-email": "^4.0.0",
+    "react-email": "^5.2.9",
     "typescript": "^5"
   }
 }
