@@ -13,15 +13,19 @@ function getResend(): Resend {
   return resend;
 }
 
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 export async function sendWelcomeEmail(name: string, email: string) {
   try {
     const result = await getResend().emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'noreply@example.com',
       to: email,
-      subject: `Welcome ${name}!`,
+      subject: `Welcome ${escapeHtml(name)}!`,
       html: `
         <h1>Welcome to our platform!</h1>
-        <p>Hi ${name},</p>
+        <p>Hi ${escapeHtml(name)},</p>
         <p>Thanks for signing up. We're excited to have you on board.</p>
         <p>Get started by logging into your dashboard.</p>
       `,

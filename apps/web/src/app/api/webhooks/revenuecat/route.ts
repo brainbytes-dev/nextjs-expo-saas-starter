@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { sendPaymentFailedEmail } from "@/lib/email";
@@ -34,7 +35,11 @@ function verifyWebhookSignature(request: NextRequest): boolean {
   }
 
   const token = authHeader.replace(/^Bearer\s+/i, "");
-  return token === secret;
+  try {
+    return timingSafeEqual(Buffer.from(token), Buffer.from(secret));
+  } catch {
+    return false;
+  }
 }
 
 export async function POST(request: NextRequest) {

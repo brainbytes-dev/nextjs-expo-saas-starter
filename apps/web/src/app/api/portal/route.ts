@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { auth } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 import * as Sentry from "@sentry/nextjs";
-import { getDb, userSubscriptions, eq } from "@repo/db";
+import { getDb, userSubscriptions, eq, and } from "@repo/db";
 
 // Lazy initialize Stripe client (only when needed)
 let stripeClient: Stripe | null = null;
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     const [sub] = await db
       .select({ stripeCustomerId: userSubscriptions.stripeCustomerId })
       .from(userSubscriptions)
-      .where(eq(userSubscriptions.email, session.user.email))
+      .where(and(eq(userSubscriptions.email, session.user.email), eq(userSubscriptions.userId, session.user.id)))
       .limit(1);
 
     const customerId = sub?.stripeCustomerId;

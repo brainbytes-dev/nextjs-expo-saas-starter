@@ -27,8 +27,9 @@ vi.mock("@repo/db", () => ({
   getDb: () => ({
     select: mockSelect,
   }),
-  userSubscriptions: { stripeCustomerId: "stripeCustomerId", email: "email" },
+  userSubscriptions: { stripeCustomerId: "stripeCustomerId", email: "email", userId: "userId" },
   eq: vi.fn(),
+  and: vi.fn(),
 }));
 
 vi.mock("@sentry/nextjs", () => ({ captureException: vi.fn() }));
