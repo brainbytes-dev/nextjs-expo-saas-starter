@@ -10,7 +10,7 @@
     "./subscription-canceled": "./src/subscription-canceled.tsx"
   },
   "scripts": {
-    "dev": "email dev --dir src",
+    "dev": "email dev --dir src --port 3333",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
