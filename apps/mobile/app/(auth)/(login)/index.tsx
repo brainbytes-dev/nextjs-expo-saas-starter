@@ -1,3 +1,4 @@
+import * as Burnt from "burnt";
 import * as Haptics from "expo-haptics";
 import { Link, Stack, router } from "expo-router";
 import * as React from "react";
@@ -44,8 +45,15 @@ export default function LoginScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
       router.replace("/(app)");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Login failed");
+      const message = e instanceof Error ? e.message : "Login failed";
+      setError(message);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid);
+      Burnt.toast({
+        title: "Login failed",
+        message,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       setLoading(false);
     }

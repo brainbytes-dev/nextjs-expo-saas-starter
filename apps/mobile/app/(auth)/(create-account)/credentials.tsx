@@ -1,3 +1,4 @@
+import * as Burnt from "burnt";
 import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
 import * as React from "react";
@@ -56,8 +57,15 @@ export default function CredentialsScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
       router.replace("/(app)");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Signup failed");
+      const message = e instanceof Error ? e.message : "Signup failed";
+      setError(message);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid);
+      Burnt.toast({
+        title: "Signup failed",
+        message,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       setLoading(false);
     }

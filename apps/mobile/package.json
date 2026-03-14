@@ -17,6 +17,7 @@
     "@repo/nativewindui": "workspace:*",
     "@sentry/react-native": "~7.11.0",
     "better-auth": "^1.0.0",
+    "burnt": "^0.13.0",
     "clsx": "^2.1.0",
     "expo": "latest",
     "expo-haptics": "~14.1.0",
