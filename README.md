@@ -57,6 +57,33 @@
 | Testing | Vitest + happy-dom | — |
 | CI/CD | GitHub Actions → Vercel | GitHub Actions → EAS Build |
 
+## How does it compare?
+
+> No other open-source SaaS starter ships a complete web + mobile monorepo with dual payment processing.
+
+| | This template | create-t3-turbo | Open SaaS (Wasp) | Saasfly | ShipFast | Supastarter | Makerkit |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **Price** | Free | Free | Free | Free | $199+ | $299+ | $299 |
+| **Mobile app (Expo)** | Yes | Yes | — | — | — | — | — |
+| **Mobile IAP (RevenueCat)** | Yes | — | — | — | — | — | — |
+| **Web payments (Stripe)** | Yes | — | Yes | Yes | Yes | Yes | Yes |
+| **Auth with RBAC** | Better-Auth | NextAuth | Email/OAuth | NextAuth | NextAuth | Multi | Multi |
+| **Background jobs** | Inngest | — | Wasp Jobs | — | — | Partial | Partial |
+| **OpenTelemetry tracing** | Yes | — | — | — | — | — | — |
+| **Feature flags** | PostHog | — | — | — | — | — | — |
+| **Canary rollouts** | Edge Config | — | — | — | — | — | — |
+| **Rate limiting** | Upstash | — | — | — | — | — | — |
+| **Email templates** | React Email | — | — | — | Partial | Yes | Yes |
+| **Error tracking** | Sentry | — | — | — | — | — | — |
+| **Analytics** | PostHog | — | Plausible | — | — | — | — |
+| **CI/CD** | GH Actions | — | — | — | — | — | — |
+
+**Key differentiators:**
+- **Web + Mobile in one repo** — the only open-source template with a full Expo app (auth flows, tab navigation, subscription paywall) alongside a Next.js dashboard
+- **Dual payment rails** — Stripe for web + RevenueCat for iOS/Android IAP, both with webhook handlers
+- **Production observability** — Sentry + OpenTelemetry + PostHog + Edge Config canary rollouts, all pre-wired
+- **Event-driven architecture** — Inngest functions for welcome emails, payment failures, and scheduled cleanup with built-in retries
+
 ## Project structure
 
 ```
