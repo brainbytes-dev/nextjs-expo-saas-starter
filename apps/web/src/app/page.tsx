@@ -281,7 +281,7 @@ export default function LandingPage() {
         </header>
 
         {/* ══ HERO ═════════════════════════════════════════ */}
-        <section className="relative min-h-screen flex flex-col justify-center overflow-hidden">
+        <section className="relative min-h-[calc(100vh-56px)] flex flex-col justify-center overflow-hidden">
 
           {/* Crosshair grid */}
           <div className="absolute inset-0 pointer-events-none" style={{
@@ -335,7 +335,7 @@ export default function LandingPage() {
           />
 
           {/* Content */}
-          <div className="relative z-10 mx-auto w-full max-w-7xl px-6 py-28">
+          <div className="relative z-10 mx-auto w-full max-w-7xl px-6 py-12">
             <div className="grid lg:grid-cols-[1fr_auto] gap-16 items-center">
 
               {/* Left: Headline */}
@@ -357,7 +357,7 @@ export default function LandingPage() {
                     { text: "WO IST.", cls: "hero-word-4", accent: true },
                   ].map(({ text, cls, accent }) => (
                     <div key={text} className="overflow-hidden leading-[0.88]">
-                      <div className={`font-bold tracking-tight ${cls}`} style={{ fontSize: "clamp(3.2rem, 9.5vw, 8rem)" }}>
+                      <div className={`font-bold tracking-tight ${cls}`} style={{ fontSize: "clamp(2.5rem, 7vw, 6rem)" }}>
                         {accent ? <span className="text-primary">{text}</span> : text}
                       </div>
                     </div>
