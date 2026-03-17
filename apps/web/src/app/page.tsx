@@ -139,32 +139,39 @@ function CustomCursor() {
 
 /* ─── Scroll Progress + Back-to-top ─────────────────────────── */
 function ScrollUI() {
-  const [progress, setProgress] = useState(0)
-  const [show, setShow]         = useState(false)
+  const barRef    = useRef<HTMLDivElement>(null)
+  const ringRef2  = useRef<SVGCircleElement>(null)
+  const btnRef    = useRef<HTMLButtonElement>(null)
+  const [show, setShow] = useState(false)
+
+  const R    = 22
+  const circ = 2 * Math.PI * R
 
   useEffect(() => {
     const onScroll = () => {
       const total = document.documentElement.scrollHeight - window.innerHeight
       const p = total > 0 ? (window.scrollY / total) * 100 : 0
-      setProgress(p)
+
+      // Direct DOM writes — no React re-render, perfectly smooth
+      if (barRef.current)   barRef.current.style.width = `${p}%`
+      if (ringRef2.current) ringRef2.current.style.strokeDashoffset = String(circ * (1 - p / 100))
+
       setShow(window.scrollY > 280)
     }
     window.addEventListener("scroll", onScroll, { passive: true })
     return () => window.removeEventListener("scroll", onScroll)
-  }, [])
-
-  const R = 22
-  const circ = 2 * Math.PI * R
+  }, [circ])
 
   return (
     <>
-      {/* Top bar */}
+      {/* Top bar — no CSS transition, driven directly by scroll */}
       <div className="fixed top-0 left-0 right-0 z-[100] h-[2px] bg-border">
-        <div className="h-full bg-primary transition-[width] duration-75" style={{ width: `${progress}%` }} />
+        <div ref={barRef} className="h-full bg-primary" style={{ width: "0%" }} />
       </div>
 
       {/* Scroll-to-top */}
       <button
+        ref={btnRef}
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         aria-label="Zum Seitenanfang"
         className={`fixed bottom-8 right-8 z-50 size-[56px] rounded-full bg-background border border-border flex items-center justify-center group transition-all duration-500 hover:border-primary ${show ? "translate-y-0 opacity-100" : "translate-y-16 opacity-0 pointer-events-none"}`}
@@ -172,14 +179,14 @@ function ScrollUI() {
         <svg className="absolute inset-0 size-full -rotate-90" viewBox="0 0 56 56">
           <circle cx="28" cy="28" r={R} fill="none" stroke="var(--border)" strokeWidth="1.5" />
           <circle
+            ref={ringRef2}
             cx="28" cy="28" r={R}
             fill="none"
             stroke="var(--primary)"
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeDasharray={circ}
-            strokeDashoffset={circ * (1 - progress / 100)}
-            style={{ transition: "stroke-dashoffset 0.1s linear" }}
+            strokeDashoffset={circ}
           />
         </svg>
         <IconBuildingWarehouse className="size-5 text-muted-foreground group-hover:text-primary transition-colors relative z-10" />
