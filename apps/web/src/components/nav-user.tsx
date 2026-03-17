@@ -4,10 +4,11 @@ import {
   IconCreditCard,
   IconDotsVertical,
   IconLogout,
-  IconNotification,
   IconUserCircle,
 } from "@tabler/icons-react"
+import { useRouter } from "next/navigation"
 
+import { signOut } from "@/lib/auth-client"
 import {
   Avatar,
   AvatarFallback,
@@ -39,6 +40,7 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const router = useRouter()
 
   return (
     <SidebarMenu>
@@ -84,21 +86,23 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/dashboard/settings")}>
                 <IconUserCircle />
-                Account
+                Settings
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/dashboard/billing")}>
                 <IconCreditCard />
                 Billing
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconNotification />
-                Notifications
-              </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                signOut({
+                  fetchOptions: { onSuccess: () => router.push("/") },
+                })
+              }
+            >
               <IconLogout />
               Log out
             </DropdownMenuItem>
