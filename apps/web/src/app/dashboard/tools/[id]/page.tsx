@@ -202,22 +202,22 @@ const conditionConfig: Record<
   good: {
     label: "Gut",
     className:
-      "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+      "bg-secondary/10 text-secondary",
   },
   damaged: {
     label: "Beschädigt",
     className:
-      "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
+      "bg-primary/10 text-primary",
   },
   repair: {
     label: "Reparatur",
     className:
-      "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+      "bg-destructive/10 text-destructive",
   },
   decommissioned: {
     label: "Ausgemustert",
     className:
-      "bg-gray-100 text-gray-600 dark:bg-gray-800/30 dark:text-gray-400",
+      "bg-muted text-muted-foreground",
   },
 }
 
@@ -227,15 +227,15 @@ const bookingTypeConfig: Record<
 > = {
   checkout: {
     label: "Ausgecheckt",
-    className: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+    className: "bg-primary/10 text-primary",
   },
   checkin: {
     label: "Eingecheckt",
-    className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+    className: "bg-secondary/10 text-secondary",
   },
   transfer: {
     label: "Transfer",
-    className: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+    className: "bg-muted text-muted-foreground",
   },
 }
 
@@ -245,15 +245,15 @@ const taskStatusConfig: Record<
 > = {
   open: {
     label: "Offen",
-    className: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+    className: "bg-primary/10 text-primary",
   },
   in_progress: {
     label: "In Bearbeitung",
-    className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+    className: "bg-primary/10 text-primary",
   },
   completed: {
     label: "Erledigt",
-    className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+    className: "bg-secondary/10 text-secondary",
   },
 }
 
@@ -340,16 +340,16 @@ export default function ToolDetailPage() {
                 <div className="flex items-center gap-2">
                   <span
                     className={`inline-block size-2.5 rounded-full ${
-                      tool.isHome ? "bg-emerald-500" : "bg-red-500"
+                      tool.isHome ? "bg-secondary" : "bg-destructive"
                     }`}
                   />
                   <span className="text-sm font-medium">
                     {tool.isHome ? (
-                      <span className="text-emerald-700 dark:text-emerald-400">
+                      <span className="text-secondary">
                         {t("isHome")} &mdash; {tool.homeLocation}
                       </span>
                     ) : (
-                      <span className="text-red-700 dark:text-red-400">
+                      <span className="text-destructive">
                         Ausgecheckt &mdash; {tool.assignedTo}
                       </span>
                     )}
@@ -362,7 +362,7 @@ export default function ToolDetailPage() {
                   </p>
                 )}
                 {isMaintenanceOverdue && (
-                  <p className="flex items-center gap-1 text-sm font-medium text-red-600">
+                  <p className="flex items-center gap-1 text-sm font-medium text-destructive">
                     <IconAlertTriangle className="size-3.5" />
                     Wartung überfällig ({formatDate(tool.nextMaintenance)})
                   </p>
@@ -375,7 +375,7 @@ export default function ToolDetailPage() {
               {tool.isHome ? (
                 <Button
                   size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                   onClick={() => setCheckoutOpen(true)}
                 >
                   <IconLogout className="size-5" />
@@ -384,7 +384,7 @@ export default function ToolDetailPage() {
               ) : (
                 <Button
                   size="lg"
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                  className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
                   onClick={() => setCheckinOpen(true)}
                 >
                   <IconLogin className="size-5" />
@@ -525,10 +525,10 @@ export default function ToolDetailPage() {
                         <div
                           className={`size-3 rounded-full ${
                             booking.type === "checkin"
-                              ? "bg-emerald-500"
+                              ? "bg-secondary"
                               : booking.type === "checkout"
-                                ? "bg-blue-500"
-                                : "bg-purple-500"
+                                ? "bg-primary"
+                                : "bg-muted-foreground"
                           }`}
                         />
                         <div className="bg-border mt-1 w-px flex-1" />
@@ -647,14 +647,14 @@ export default function ToolDetailPage() {
                 <IconCalendar
                   className={`mb-2 size-6 ${
                     isMaintenanceOverdue
-                      ? "text-red-500"
+                      ? "text-destructive"
                       : "text-muted-foreground"
                   }`}
                 />
                 <p className="text-muted-foreground text-xs">Nächste Wartung</p>
                 <p
                   className={`text-lg font-semibold ${
-                    isMaintenanceOverdue ? "text-red-600" : ""
+                    isMaintenanceOverdue ? "text-destructive" : ""
                   }`}
                 >
                   {formatDate(tool.nextMaintenance)}
@@ -759,7 +759,7 @@ export default function ToolDetailPage() {
               {tc("cancel")}
             </Button>
             <Button
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
               onClick={() => setCheckoutOpen(false)}
             >
               <IconLogout className="size-4" />
@@ -813,7 +813,7 @@ export default function ToolDetailPage() {
               {tc("cancel")}
             </Button>
             <Button
-              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
               onClick={() => setCheckinOpen(false)}
             >
               <IconLogin className="size-4" />

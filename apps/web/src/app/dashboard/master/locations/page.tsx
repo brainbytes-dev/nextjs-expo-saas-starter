@@ -63,13 +63,13 @@ const TYPE_LABELS: Record<string, string> = {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  warehouse: "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
-  vehicle: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
-  site: "bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300",
-  station: "bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300",
-  practice: "bg-pink-50 text-pink-700 dark:bg-pink-950 dark:text-pink-300",
-  operating_room: "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300",
-  user: "bg-gray-50 text-gray-700 dark:bg-gray-950 dark:text-gray-300",
+  warehouse: "bg-primary/10 text-primary",
+  vehicle: "bg-secondary/10 text-secondary",
+  site: "bg-primary/10 text-primary",
+  station: "bg-muted text-muted-foreground",
+  practice: "bg-secondary/10 text-secondary",
+  operating_room: "bg-destructive/10 text-destructive",
+  user: "bg-muted text-muted-foreground",
 }
 
 const placeholderData: LocationItem[] = [

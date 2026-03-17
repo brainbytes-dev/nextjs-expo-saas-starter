@@ -56,38 +56,38 @@ import {
 const LOCATION_TYPES = {
   warehouse: {
     icon: IconBuildingWarehouse,
-    color: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
-    badgeBg: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800",
+    color: "bg-primary/10 text-primary",
+    badgeBg: "bg-primary/10 text-primary border-border",
   },
   vehicle: {
     icon: IconTruck,
-    color: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
-    badgeBg: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800",
+    color: "bg-primary/10 text-primary",
+    badgeBg: "bg-primary/10 text-primary border-border",
   },
   site: {
     icon: IconBuildingFactory,
-    color: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300",
-    badgeBg: "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-800",
+    color: "bg-primary/10 text-primary",
+    badgeBg: "bg-primary/10 text-primary border-border",
   },
   station: {
     icon: IconAmbulance,
-    color: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
-    badgeBg: "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/40 dark:text-red-300 dark:border-red-800",
+    color: "bg-destructive/10 text-destructive",
+    badgeBg: "bg-destructive/10 text-destructive border-destructive/30",
   },
   practice: {
     icon: IconStethoscope,
-    color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
-    badgeBg: "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-800",
+    color: "bg-secondary/10 text-secondary",
+    badgeBg: "bg-secondary/10 text-secondary border-secondary/30",
   },
   operating_room: {
     icon: IconHeartbeat,
-    color: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
-    badgeBg: "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-800",
+    color: "bg-muted text-muted-foreground",
+    badgeBg: "bg-muted text-muted-foreground border-border",
   },
   user: {
     icon: IconUser,
-    color: "bg-slate-100 text-slate-700 dark:bg-slate-900/40 dark:text-slate-300",
-    badgeBg: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-900/40 dark:text-slate-300 dark:border-slate-800",
+    color: "bg-muted text-muted-foreground",
+    badgeBg: "bg-muted text-muted-foreground border-border",
   },
 } as const
 
@@ -172,10 +172,10 @@ const MOCK_KEYS: KeyItem[] = [
 // ─── Condition badge helper ──────────────────────────────────────────
 function conditionBadge(condition: string) {
   const map: Record<string, { label: string; className: string }> = {
-    good: { label: "Gut", className: "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-800" },
-    damaged: { label: "Beschädigt", className: "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/40 dark:text-yellow-300 dark:border-yellow-800" },
-    repair: { label: "In Reparatur", className: "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-800" },
-    decommissioned: { label: "Ausgemustert", className: "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/40 dark:text-red-300 dark:border-red-800" },
+    good: { label: "Gut", className: "bg-secondary/10 text-secondary border-secondary/30" },
+    damaged: { label: "Beschädigt", className: "bg-primary/10 text-primary border-border" },
+    repair: { label: "In Reparatur", className: "bg-primary/10 text-primary border-border" },
+    decommissioned: { label: "Ausgemustert", className: "bg-destructive/10 text-destructive border-destructive/30" },
   }
   const info = map[condition] ?? { label: condition, className: "" }
   return <Badge variant="outline" className={info.className}>{info.label}</Badge>
@@ -485,11 +485,11 @@ function QuickBookingSheet({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="in">
-                  <IconPlus className="size-4 text-green-600" />
+                  <IconPlus className="size-4 text-secondary" />
                   Einbuchen (Zugang)
                 </SelectItem>
                 <SelectItem value="out">
-                  <IconMinus className="size-4 text-red-600" />
+                  <IconMinus className="size-4 text-destructive" />
                   Ausbuchen (Abgang)
                 </SelectItem>
               </SelectContent>

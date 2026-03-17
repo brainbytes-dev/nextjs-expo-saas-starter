@@ -161,16 +161,16 @@ const MOCK_TASKS: Task[] = [
 ]
 
 const STATUS_CONFIG: Record<TaskStatus, { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
-  open: { label: "Offen", icon: IconCircle, color: "text-slate-500 bg-slate-100" },
-  inProgress: { label: "In Bearbeitung", icon: IconClock, color: "text-blue-600 bg-blue-50" },
-  done: { label: "Erledigt", icon: IconCircleCheck, color: "text-emerald-600 bg-emerald-50" },
-  cancelled: { label: "Abgebrochen", icon: IconCircleX, color: "text-slate-400 bg-slate-50" },
+  open: { label: "Offen", icon: IconCircle, color: "text-muted-foreground bg-muted" },
+  inProgress: { label: "In Bearbeitung", icon: IconClock, color: "text-primary bg-primary/10" },
+  done: { label: "Erledigt", icon: IconCircleCheck, color: "text-secondary bg-secondary/10" },
+  cancelled: { label: "Abgebrochen", icon: IconCircleX, color: "text-muted-foreground bg-muted" },
 }
 
 const PRIORITY_CONFIG: Record<TaskPriority, { label: string; color: string }> = {
-  low: { label: "Niedrig", color: "text-slate-500" },
-  medium: { label: "Mittel", color: "text-amber-600" },
-  high: { label: "Hoch", color: "text-red-600" },
+  low: { label: "Niedrig", color: "text-muted-foreground" },
+  medium: { label: "Mittel", color: "text-primary" },
+  high: { label: "Hoch", color: "text-destructive" },
 }
 
 const LINKED_TYPE_ICONS: Record<NonNullable<LinkedType>, React.ComponentType<{ className?: string }>> = {
@@ -222,12 +222,12 @@ export default function TasksPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{t("title")}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t("title")}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {counts.open} offen · {counts.inProgress} in Bearbeitung
             {counts.overdue > 0 && ` · `}
             {counts.overdue > 0 && (
-              <span className="text-red-600 font-medium">{counts.overdue} überfällig</span>
+              <span className="text-destructive font-medium">{counts.overdue} überfällig</span>
             )}
           </p>
         </div>
@@ -246,7 +246,7 @@ export default function TasksPage() {
           return (
             <Card
               key={s}
-              className={`border-0 cursor-pointer transition-all hover:shadow-md ${statusFilter === s ? "ring-2 ring-blue-500" : ""}`}
+              className={`border-0 cursor-pointer transition-all hover:shadow-md ${statusFilter === s ? "ring-2 ring-primary" : ""}`}
               onClick={() => setStatusFilter(statusFilter === s ? "all" : s)}
             >
               <CardContent className="p-4 flex items-center gap-3">
@@ -255,7 +255,7 @@ export default function TasksPage() {
                 </span>
                 <div>
                   <p className="text-xs text-muted-foreground">{cfg.label}</p>
-                  <p className="text-2xl font-bold text-slate-900 leading-tight">{count}</p>
+                  <p className="text-2xl font-bold text-foreground leading-tight">{count}</p>
                 </div>
               </CardContent>
             </Card>
@@ -311,7 +311,7 @@ export default function TasksPage() {
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="hover:bg-transparent border-b border-slate-100">
+                <TableRow className="hover:bg-transparent border-b border-border">
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[140px]">{t("status")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[80px]">{t("priority")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("details")}</TableHead>
@@ -332,7 +332,7 @@ export default function TasksPage() {
                   return (
                     <TableRow
                       key={task.id}
-                      className={`group hover:bg-slate-50/80 border-b border-slate-50 ${task.status === "done" || task.status === "cancelled" ? "opacity-60" : ""}`}
+                      className={`group hover:bg-muted/80 border-b border-border ${task.status === "done" || task.status === "cancelled" ? "opacity-60" : ""}`}
                     >
                       <TableCell>
                         <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md ${statusCfg.color}`}>
@@ -347,7 +347,7 @@ export default function TasksPage() {
                         </span>
                       </TableCell>
                       <TableCell>
-                        <p className="text-sm text-slate-800 line-clamp-1">{task.details}</p>
+                        <p className="text-sm text-foreground line-clamp-1">{task.details}</p>
                         {task.itemName && (
                           <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
                             {LinkedIcon && <LinkedIcon className="size-3" />}
@@ -360,10 +360,10 @@ export default function TasksPage() {
                           {t(`topics.${task.topic}`)}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-sm text-slate-700">{task.responsible}</TableCell>
+                      <TableCell className="text-sm text-foreground">{task.responsible}</TableCell>
                       <TableCell>
                         {task.dueDate ? (
-                          <span className={`text-sm font-medium ${overdue ? "text-red-600" : "text-slate-700"}`}>
+                          <span className={`text-sm font-medium ${overdue ? "text-destructive" : "text-foreground"}`}>
                             {overdue && <IconAlertCircle className="inline size-3.5 mr-0.5" />}
                             {formatDate(task.dueDate)}
                           </span>
@@ -385,7 +385,7 @@ export default function TasksPage() {
                             <DropdownMenuItem className="gap-2">
                               <IconEdit className="size-4" /> {tc("edit")}
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-2 text-red-600 focus:text-red-600">
+                            <DropdownMenuItem className="gap-2 text-destructive focus:text-destructive">
                               <IconTrash className="size-4" /> {tc("delete")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>

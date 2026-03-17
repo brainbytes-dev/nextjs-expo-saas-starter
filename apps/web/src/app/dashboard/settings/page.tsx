@@ -104,7 +104,7 @@ export default function SettingsPage() {
       </div>
 
       {error && (
-        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
           {error}
         </div>
       )}
@@ -162,7 +162,7 @@ export default function SettingsPage() {
               {isLoading ? "Saving..." : "Save Changes"}
             </Button>
             {isSaved && (
-              <p className="text-sm text-green-600">Profile updated successfully</p>
+              <p className="text-sm text-secondary">Profile updated successfully</p>
             )}
           </form>
         </CardContent>
@@ -220,7 +220,7 @@ export default function SettingsPage() {
               {isLoading ? "Updating..." : "Update Password"}
             </Button>
             {isSaved && (
-              <p className="text-sm text-green-600">Password updated successfully</p>
+              <p className="text-sm text-secondary">Password updated successfully</p>
             )}
           </form>
         </CardContent>
@@ -280,13 +280,13 @@ export default function SettingsPage() {
       <Separator />
 
       {/* Danger Zone */}
-      <Card className="border-red-200 bg-red-50">
+      <Card className="border-destructive/30 bg-destructive/10">
         <CardHeader>
-          <CardTitle className="text-red-700">Danger Zone</CardTitle>
+          <CardTitle className="text-destructive">Danger Zone</CardTitle>
           <CardDescription>Actions that cannot be undone</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-red-700">
+          <p className="text-sm text-destructive">
             Deleting your account will permanently remove all your data. This action cannot be undone.
           </p>
           <Button variant="destructive" disabled>

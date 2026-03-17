@@ -135,10 +135,10 @@ const MOCK_ORDERS: Order[] = [
 ]
 
 const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string }> = {
-  ordered: { label: "Bestellt", color: "bg-blue-50 text-blue-700" },
-  partial: { label: "Teil-Lieferung", color: "bg-amber-50 text-amber-700" },
-  delivered: { label: "Geliefert", color: "bg-emerald-50 text-emerald-700" },
-  cancelled: { label: "Storniert", color: "bg-slate-100 text-slate-500" },
+  ordered: { label: "Bestellt", color: "bg-primary/10 text-primary" },
+  partial: { label: "Teil-Lieferung", color: "bg-primary/10 text-primary" },
+  delivered: { label: "Geliefert", color: "bg-secondary/10 text-secondary" },
+  cancelled: { label: "Storniert", color: "bg-muted text-muted-foreground" },
 }
 
 function formatCHF(val: number) {
@@ -188,7 +188,7 @@ export default function OrdersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{t("openPositions")}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t("openPositions")}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {MOCK_ORDERS.filter(o => o.status !== "delivered" && o.status !== "cancelled").length} offene Bestellungen · {formatCHF(MOCK_ORDERS.filter(o => o.status === "ordered" || o.status === "partial").reduce((s, o) => s + o.total, 0))}
           </p>
@@ -207,11 +207,11 @@ export default function OrdersPage() {
               onClick={() => setStatusFilter(s)}
               className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border transition-all cursor-pointer
                 ${statusFilter === s
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"}`}
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-background text-muted-foreground border-border hover:border-border/80"}`}
             >
               {label}
-              <span className={`inline-flex items-center justify-center size-4 rounded-full text-[10px] ${statusFilter === s ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"}`}>
+              <span className={`inline-flex items-center justify-center size-4 rounded-full text-[10px] ${statusFilter === s ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
                 {count}
               </span>
             </button>
@@ -259,7 +259,7 @@ export default function OrdersPage() {
               <Card key={order.id} className="border-0 shadow-sm overflow-hidden">
                 {/* Order header */}
                 <div
-                  className="flex items-center gap-4 p-4 cursor-pointer hover:bg-slate-50/80 transition-colors"
+                  className="flex items-center gap-4 p-4 cursor-pointer hover:bg-muted/80 transition-colors"
                   onClick={() => toggleExpand(order.id)}
                 >
                   <div className="flex-shrink-0">
@@ -271,12 +271,12 @@ export default function OrdersPage() {
 
                   <div className="flex-1 grid grid-cols-5 gap-4 items-center">
                     <div>
-                      <p className="text-sm font-semibold text-slate-900">{order.orderNumber}</p>
+                      <p className="text-sm font-semibold text-foreground">{order.orderNumber}</p>
                       <p className="text-xs text-muted-foreground">{formatDate(order.orderDate)}</p>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <IconTruck className="size-3.5 text-muted-foreground/60" />
-                      <span className="text-sm text-slate-700">{order.supplierName}</span>
+                      <span className="text-sm text-foreground">{order.supplierName}</span>
                     </div>
                     <div>
                       <span className={`inline-flex items-center text-xs font-medium px-2 py-1 rounded-md ${statusCfg.color}`}>
@@ -287,7 +287,7 @@ export default function OrdersPage() {
                       {order.deliveryNote ? (
                         <div>
                           <p className="text-xs text-muted-foreground">Lieferschein</p>
-                          <p className="text-sm font-mono text-slate-700">{order.deliveryNote}</p>
+                          <p className="text-sm font-mono text-foreground">{order.deliveryNote}</p>
                         </div>
                       ) : (
                         <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5" onClick={(e) => e.stopPropagation()}>
@@ -297,7 +297,7 @@ export default function OrdersPage() {
                       )}
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-semibold text-slate-900">{formatCHF(order.total)}</p>
+                      <p className="text-sm font-semibold text-foreground">{formatCHF(order.total)}</p>
                       <p className="text-xs text-muted-foreground">{order.positions.length} Pos.</p>
                     </div>
                   </div>
@@ -312,7 +312,7 @@ export default function OrdersPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem className="gap-2"><IconEye className="size-4" /> Details</DropdownMenuItem>
                         <DropdownMenuItem className="gap-2"><IconUpload className="size-4" /> Dokument hochladen</DropdownMenuItem>
-                        <DropdownMenuItem className="gap-2 text-red-600 focus:text-red-600"><IconTrash className="size-4" /> Stornieren</DropdownMenuItem>
+                        <DropdownMenuItem className="gap-2 text-destructive focus:text-destructive"><IconTrash className="size-4" /> Stornieren</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -320,10 +320,10 @@ export default function OrdersPage() {
 
                 {/* Positions (expanded) */}
                 {isExpanded && (
-                  <div className="border-t border-slate-100">
+                  <div className="border-t border-border">
                     <Table>
                       <TableHeader>
-                        <TableRow className="hover:bg-transparent bg-slate-50/50">
+                        <TableRow className="hover:bg-transparent bg-muted/50">
                           <TableHead className="text-xs font-medium text-muted-foreground pl-12">Artikel</TableHead>
                           <TableHead className="text-xs font-medium text-muted-foreground w-[120px]">Bestellnr.</TableHead>
                           <TableHead className="text-xs font-medium text-muted-foreground w-[130px] text-right">Bestellt</TableHead>
@@ -337,40 +337,40 @@ export default function OrdersPage() {
                         {order.positions.map((pos) => {
                           const isDelivered = pos.deliveredQuantity >= pos.orderedQuantity
                           return (
-                            <TableRow key={pos.id} className="hover:bg-slate-50/50 border-b border-slate-50">
+                            <TableRow key={pos.id} className="hover:bg-muted/50 border-b border-border">
                               <TableCell className="pl-12">
                                 <div className="flex items-center gap-2">
                                   <IconPackage className="size-3.5 text-muted-foreground/60" />
                                   <div>
-                                    <p className="text-sm text-slate-800">{pos.materialName}</p>
+                                    <p className="text-sm text-foreground">{pos.materialName}</p>
                                     <p className="text-xs text-muted-foreground font-mono">{pos.materialNumber}</p>
                                   </div>
                                 </div>
                               </TableCell>
                               <TableCell className="font-mono text-xs text-muted-foreground">{pos.articleNumber}</TableCell>
-                              <TableCell className="text-right text-sm text-slate-700">
+                              <TableCell className="text-right text-sm text-foreground">
                                 {pos.orderedQuantity} {pos.orderUnit}
                               </TableCell>
                               <TableCell className="text-right">
                                 <div className="flex items-center justify-end gap-1.5">
                                   {isDelivered
-                                    ? <IconCheck className="size-3.5 text-emerald-600" />
+                                    ? <IconCheck className="size-3.5 text-secondary" />
                                     : null
                                   }
-                                  <span className={`text-sm font-medium ${isDelivered ? "text-emerald-600" : pos.deliveredQuantity > 0 ? "text-amber-600" : "text-muted-foreground"}`}>
+                                  <span className={`text-sm font-medium ${isDelivered ? "text-secondary" : pos.deliveredQuantity > 0 ? "text-primary" : "text-muted-foreground"}`}>
                                     {pos.deliveredQuantity} {pos.orderUnit}
                                   </span>
                                 </div>
                               </TableCell>
-                              <TableCell className="text-right text-sm text-slate-700">
+                              <TableCell className="text-right text-sm text-foreground">
                                 {formatCHF(pos.purchasePrice)}
                               </TableCell>
-                              <TableCell className="text-right text-sm font-medium text-slate-900">
+                              <TableCell className="text-right text-sm font-medium text-foreground">
                                 {formatCHF(pos.purchasePrice * pos.orderedQuantity)}
                               </TableCell>
                               <TableCell>
                                 {!isDelivered && (
-                                  <Button variant="outline" size="sm" className="h-7 text-xs gap-1 text-emerald-600 border-emerald-200 hover:bg-emerald-50">
+                                  <Button variant="outline" size="sm" className="h-7 text-xs gap-1 text-secondary border-secondary/30 hover:bg-secondary/10">
                                     <IconCheck className="size-3" />
                                     Buchen
                                   </Button>

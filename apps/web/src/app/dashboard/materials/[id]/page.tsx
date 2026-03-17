@@ -132,11 +132,11 @@ function isExpired(dateStr: string | null): boolean {
 function taskStatusColor(status: string) {
   switch (status) {
     case "completed":
-      return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+      return "bg-secondary/10 text-secondary"
     case "in_progress":
-      return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+      return "bg-primary/10 text-primary"
     default:
-      return "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"
+      return "bg-muted text-muted-foreground"
   }
 }
 
@@ -469,7 +469,7 @@ export default function MaterialDetailPage() {
             <p
               className={`mt-1 text-2xl font-bold ${
                 material.reorderLevel > 0 && totalStock < material.reorderLevel
-                  ? "text-red-600 dark:text-red-400"
+                  ? "text-destructive"
                   : "text-foreground"
               }`}
             >
@@ -790,17 +790,17 @@ export default function MaterialDetailPage() {
                               <IconAlertTriangle
                                 className={
                                   expired
-                                    ? "size-4 text-red-500"
-                                    : "size-4 text-amber-500"
+                                    ? "size-4 text-destructive"
+                                    : "size-4 text-primary"
                                 }
                               />
                             )}
                             <span
                               className={
                                 expired
-                                  ? "text-sm font-medium text-red-600 dark:text-red-400"
+                                  ? "text-sm font-medium text-destructive"
                                   : expiring
-                                    ? "text-sm font-medium text-amber-600 dark:text-amber-400"
+                                    ? "text-sm font-medium text-primary"
                                     : "text-sm"
                               }
                             >

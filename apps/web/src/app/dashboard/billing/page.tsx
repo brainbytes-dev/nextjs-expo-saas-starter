@@ -143,7 +143,7 @@ export default function BillingPage() {
           )}
 
           {error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
               {error}
             </div>
           )}
@@ -190,7 +190,7 @@ export default function BillingPage() {
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-center gap-2 text-sm">
                       <svg
-                        className="h-4 w-4 text-green-600"
+                        className="h-4 w-4 text-secondary"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"

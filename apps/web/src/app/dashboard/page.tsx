@@ -189,9 +189,9 @@ function AlertCard({
 // ── Activity type badge ──────────────────────────────────────────────
 function TypeBadge({ type }: { type: "material" | "tool" | "key" }) {
   const config = {
-    material: { label: "Material", className: "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300" },
-    tool: { label: "Werkzeug", className: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" },
-    key: { label: "Schlüssel", className: "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300" },
+    material: { label: "Material", className: "bg-primary/10 text-primary" },
+    tool: { label: "Werkzeug", className: "bg-secondary/10 text-secondary" },
+    key: { label: "Schlüssel", className: "bg-primary/10 text-primary" },
   }
   const c = config[type]
   return <Badge variant="outline" className={c.className}>{c.label}</Badge>
@@ -257,29 +257,29 @@ export default function DashboardPage() {
           <>
             <KpiCard
               icon={IconPackage}
-              iconBg="bg-blue-100 dark:bg-blue-900/40"
-              iconColor="text-blue-600 dark:text-blue-400"
+              iconBg="bg-primary/10"
+              iconColor="text-primary"
               value={stats.materials.toLocaleString("de-CH")}
               label={t("materials")}
             />
             <KpiCard
               icon={IconTool}
-              iconBg="bg-emerald-100 dark:bg-emerald-900/40"
-              iconColor="text-emerald-600 dark:text-emerald-400"
+              iconBg="bg-secondary/10"
+              iconColor="text-secondary"
               value={stats.tools.toLocaleString("de-CH")}
               label={t("tools")}
             />
             <KpiCard
               icon={IconKey}
-              iconBg="bg-amber-100 dark:bg-amber-900/40"
-              iconColor="text-amber-600 dark:text-amber-400"
+              iconBg="bg-primary/10"
+              iconColor="text-primary"
               value={stats.keys.toLocaleString("de-CH")}
               label={t("keys")}
             />
             <KpiCard
               icon={IconUsers}
-              iconBg="bg-purple-100 dark:bg-purple-900/40"
-              iconColor="text-purple-600 dark:text-purple-400"
+              iconBg="bg-muted"
+              iconColor="text-muted-foreground"
               value={stats.users}
               label={t("users")}
               suffix={`/ ${stats.maxUsers}`}
@@ -306,25 +306,25 @@ export default function DashboardPage() {
           <>
             <AlertCard
               icon={IconAlertTriangle}
-              borderColor="border-l-red-500"
-              iconColor="text-red-600 dark:text-red-400"
-              bgColor="bg-red-50 dark:bg-red-950/40"
+              borderColor="border-l-destructive"
+              iconColor="text-destructive"
+              bgColor="bg-destructive/10"
               label={t("lowStock")}
               count={stats.lowStockCount}
             />
             <AlertCard
               icon={IconClock}
-              borderColor="border-l-orange-500"
-              iconColor="text-orange-600 dark:text-orange-400"
-              bgColor="bg-orange-50 dark:bg-orange-950/40"
+              borderColor="border-l-primary"
+              iconColor="text-primary"
+              bgColor="bg-primary/10"
               label={t("expiringItems")}
               count={stats.expiringCount}
             />
             <AlertCard
               icon={IconTrendingUp}
-              borderColor="border-l-yellow-500"
-              iconColor="text-yellow-600 dark:text-yellow-400"
-              bgColor="bg-yellow-50 dark:bg-yellow-950/40"
+              borderColor="border-l-primary"
+              iconColor="text-primary"
+              bgColor="bg-primary/10"
               label={t("overdueTools")}
               count={stats.overdueToolsCount}
             />
@@ -437,7 +437,7 @@ export default function DashboardPage() {
                       <TableCell className="text-muted-foreground">{a.user}</TableCell>
                       <TableCell className="text-muted-foreground">{a.location}</TableCell>
                       <TableCell className="text-right tabular-nums font-medium">
-                        <span className={a.quantity < 0 ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"}>
+                        <span className={a.quantity < 0 ? "text-destructive" : "text-secondary"}>
                           {a.quantity > 0 ? `+${a.quantity}` : a.quantity}
                         </span>
                       </TableCell>

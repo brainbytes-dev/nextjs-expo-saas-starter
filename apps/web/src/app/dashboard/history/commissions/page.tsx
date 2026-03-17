@@ -51,7 +51,7 @@ export default function HistoryCommissionsPage() {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{t("title")}</p>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{t("commissions")}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t("commissions")}</h1>
         </div>
         <Button variant="outline" className="gap-2 text-sm">
           <IconDownload className="size-4" /> Export CSV
@@ -70,7 +70,7 @@ export default function HistoryCommissionsPage() {
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="hover:bg-transparent border-b border-slate-100">
+                <TableRow className="hover:bg-transparent border-b border-border">
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[130px]">Nummer</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Kommission</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[140px]">Kunde</TableHead>
@@ -82,29 +82,29 @@ export default function HistoryCommissionsPage() {
               </TableHeader>
               <TableBody>
                 {filtered.map(c => (
-                  <TableRow key={c.id} className="hover:bg-slate-50/80 border-b border-slate-50">
-                    <TableCell className="font-mono text-sm font-medium text-slate-700">{c.commissionNumber}</TableCell>
+                  <TableRow key={c.id} className="hover:bg-muted/80 border-b border-border">
+                    <TableCell className="font-mono text-sm font-medium text-foreground">{c.commissionNumber}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <IconClipboardList className="size-3.5 text-muted-foreground/60" />
-                        <span className="text-sm font-medium text-slate-800">{c.commissionName}</span>
+                        <span className="text-sm font-medium text-foreground">{c.commissionName}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm text-slate-700">{c.customer ?? "—"}</TableCell>
+                    <TableCell className="text-sm text-foreground">{c.customer ?? "—"}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1.5">
                         <IconMapPin className="size-3.5 text-muted-foreground/60" />
-                        <span className="text-sm text-slate-700">{c.targetLocation}</span>
+                        <span className="text-sm text-foreground">{c.targetLocation}</span>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1.5">
                         <IconUser className="size-3.5 text-muted-foreground/60" />
-                        <span className="text-sm text-slate-700">{c.responsible}</span>
+                        <span className="text-sm text-foreground">{c.responsible}</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
-                      <span className="inline-flex items-center justify-center gap-1 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">
+                      <span className="inline-flex items-center justify-center gap-1 text-xs font-medium text-secondary bg-secondary/10 px-2 py-1 rounded-md">
                         <IconCheck className="size-3" />{c.totalEntries}
                       </span>
                     </TableCell>

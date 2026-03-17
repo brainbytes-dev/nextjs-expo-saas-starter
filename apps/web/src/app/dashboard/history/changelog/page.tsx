@@ -51,12 +51,12 @@ const MOCK: ChangelogEntry[] = [
 ]
 
 const ENTITY_CFG: Record<EntityType, { icon: React.ComponentType<{ className?: string }>; label: string; color: string }> = {
-  tool: { icon: IconTool, label: "Werkzeug", color: "text-blue-600 bg-blue-50" },
-  material: { icon: IconPackage, label: "Material", color: "text-emerald-600 bg-emerald-50" },
-  location: { icon: IconMapPin, label: "Lagerort", color: "text-purple-600 bg-purple-50" },
-  supplier: { icon: IconUser, label: "Lieferant", color: "text-amber-600 bg-amber-50" },
-  key: { icon: IconKey, label: "Schlüssel", color: "text-orange-600 bg-orange-50" },
-  commission: { icon: IconClipboardList, label: "Kommission", color: "text-slate-600 bg-slate-100" },
+  tool: { icon: IconTool, label: "Werkzeug", color: "text-primary bg-primary/10" },
+  material: { icon: IconPackage, label: "Material", color: "text-secondary bg-secondary/10" },
+  location: { icon: IconMapPin, label: "Lagerort", color: "text-muted-foreground bg-muted" },
+  supplier: { icon: IconUser, label: "Lieferant", color: "text-primary bg-primary/10" },
+  key: { icon: IconKey, label: "Schlüssel", color: "text-primary bg-primary/10" },
+  commission: { icon: IconClipboardList, label: "Kommission", color: "text-muted-foreground bg-muted" },
 }
 
 export default function HistoryChangelogPage() {
@@ -76,7 +76,7 @@ export default function HistoryChangelogPage() {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{t("title")}</p>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{t("changelog")}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t("changelog")}</h1>
         </div>
         <Button variant="outline" className="gap-2 text-sm">
           <IconDownload className="size-4" /> Export CSV
@@ -111,7 +111,7 @@ export default function HistoryChangelogPage() {
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="hover:bg-transparent border-b border-slate-100">
+                <TableRow className="hover:bg-transparent border-b border-border">
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[150px]">{t("date")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[110px]">Typ</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Artikel</TableHead>
@@ -125,7 +125,7 @@ export default function HistoryChangelogPage() {
                   const cfg = ENTITY_CFG[c.entityType]
                   const Icon = cfg.icon
                   return (
-                    <TableRow key={c.id} className="hover:bg-slate-50/80 border-b border-slate-50">
+                    <TableRow key={c.id} className="hover:bg-muted/80 border-b border-border">
                       <TableCell className="text-xs font-mono text-muted-foreground">{c.date}</TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md ${cfg.color}`}>
@@ -134,12 +134,12 @@ export default function HistoryChangelogPage() {
                       </TableCell>
                       <TableCell>
                         <div>
-                          <p className="text-sm font-medium text-slate-800">{c.entityName}</p>
+                          <p className="text-sm font-medium text-foreground">{c.entityName}</p>
                           <p className="text-xs text-muted-foreground font-mono">{c.entityNumber}</p>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm font-medium text-slate-700">{c.field}</span>
+                        <span className="text-sm font-medium text-foreground">{c.field}</span>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2 text-sm">
@@ -154,10 +154,10 @@ export default function HistoryChangelogPage() {
                               <IconArrowRight className="size-3.5 text-muted-foreground/50 flex-shrink-0" />
                             </>
                           )}
-                          <span className="font-medium text-slate-800">{c.newValue}</span>
+                          <span className="font-medium text-foreground">{c.newValue}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm text-slate-700">{c.changedBy}</TableCell>
+                      <TableCell className="text-sm text-foreground">{c.changedBy}</TableCell>
                     </TableRow>
                   )
                 })}

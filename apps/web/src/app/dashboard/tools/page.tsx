@@ -158,19 +158,19 @@ const conditionConfig: Record<
 > = {
   good: {
     label: "Gut",
-    className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+    className: "bg-secondary/10 text-secondary",
   },
   damaged: {
     label: "Beschädigt",
-    className: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
+    className: "bg-primary/10 text-primary",
   },
   repair: {
     label: "Reparatur",
-    className: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+    className: "bg-destructive/10 text-destructive",
   },
   decommissioned: {
     label: "Ausgemustert",
-    className: "bg-gray-100 text-gray-600 dark:bg-gray-800/30 dark:text-gray-400",
+    className: "bg-muted text-muted-foreground",
   },
 }
 
@@ -385,11 +385,11 @@ export default function ToolsPage() {
                       {/* Is Home */}
                       <TableCell className="text-center">
                         {tool.isHome ? (
-                          <span className="inline-flex items-center gap-1 text-emerald-600">
+                          <span className="inline-flex items-center gap-1 text-secondary">
                             <IconCheck className="size-4" />
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-red-500">
+                          <span className="inline-flex items-center gap-1 text-destructive">
                             <IconX className="size-4" />
                           </span>
                         )}
@@ -416,7 +416,7 @@ export default function ToolsPage() {
                           className={
                             tool.nextMaintenance &&
                             new Date(tool.nextMaintenance) < new Date()
-                              ? "font-semibold text-red-600"
+                              ? "font-semibold text-destructive"
                               : "text-muted-foreground"
                           }
                         >

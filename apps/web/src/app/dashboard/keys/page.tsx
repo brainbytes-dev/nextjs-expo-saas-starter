@@ -158,11 +158,11 @@ const KEY_TYPE_ICONS: Record<KeyType, React.ComponentType<{ className?: string }
 }
 
 const KEY_TYPE_COLORS: Record<KeyType, string> = {
-  building: "bg-blue-100 text-blue-700",
-  vehicle: "bg-purple-100 text-purple-700",
-  safe: "bg-amber-100 text-amber-700",
-  cabinet: "bg-orange-100 text-orange-700",
-  other: "bg-slate-100 text-slate-700",
+  building: "bg-primary/10 text-primary",
+  vehicle: "bg-muted text-muted-foreground",
+  safe: "bg-primary/10 text-primary",
+  cabinet: "bg-primary/10 text-primary",
+  other: "bg-muted text-muted-foreground",
 }
 
 // ── Page ───────────────────────────────────────────────────────────────
@@ -202,7 +202,7 @@ export default function KeysPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{t("title")}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t("title")}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {MOCK_KEYS.length} Schlüssel · {stats.away} vergeben
           </p>
@@ -216,11 +216,11 @@ export default function KeysPage() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: "Gesamt", value: stats.total, color: "text-slate-700" },
-          { label: "Zuhause", value: stats.home, color: "text-emerald-600" },
-          { label: "Vergeben", value: stats.away, color: "text-amber-600" },
+          { label: "Gesamt", value: stats.total, color: "text-foreground" },
+          { label: "Zuhause", value: stats.home, color: "text-secondary" },
+          { label: "Vergeben", value: stats.away, color: "text-primary" },
         ].map(({ label, value, color }) => (
-          <Card key={label} className="border-0 bg-slate-50">
+          <Card key={label} className="border-0 bg-muted">
             <CardContent className="p-4">
               <p className="text-xs text-muted-foreground uppercase tracking-wider">{label}</p>
               <p className={`text-3xl font-bold mt-1 ${color}`}>{value}</p>
@@ -289,7 +289,7 @@ export default function KeysPage() {
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="hover:bg-transparent border-b border-slate-100">
+                <TableRow className="hover:bg-transparent border-b border-border">
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[100px]">{t("number")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("name")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("keyType")}</TableHead>
@@ -304,13 +304,13 @@ export default function KeysPage() {
                 {filtered.map((key) => {
                   const TypeIcon = KEY_TYPE_ICONS[key.keyType]
                   return (
-                    <TableRow key={key.id} className="group hover:bg-slate-50/80 border-b border-slate-50">
+                    <TableRow key={key.id} className="group hover:bg-muted/80 border-b border-border">
                       <TableCell className="font-mono text-sm text-muted-foreground">
                         {key.number ?? "—"}
                       </TableCell>
                       <TableCell>
                         <div>
-                          <p className="font-medium text-slate-900">{key.name}</p>
+                          <p className="font-medium text-foreground">{key.name}</p>
                           {key.address && (
                             <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-[240px]">{key.address}</p>
                           )}
@@ -322,13 +322,13 @@ export default function KeysPage() {
                           {t(`types.${key.keyType}`)}
                         </span>
                       </TableCell>
-                      <TableCell className="text-sm text-slate-600">
+                      <TableCell className="text-sm text-foreground">
                         {key.homeLocation ?? "—"}
                       </TableCell>
                       <TableCell>
                         {key.assignedTo ? (
                           <div>
-                            <p className="text-sm font-medium text-slate-800">{key.assignedTo}</p>
+                            <p className="text-sm font-medium text-foreground">{key.assignedTo}</p>
                             {key.assignedLocation && (
                               <p className="text-xs text-muted-foreground">{key.assignedLocation}</p>
                             )}
@@ -342,12 +342,12 @@ export default function KeysPage() {
                       </TableCell>
                       <TableCell className="text-center">
                         {key.isHome ? (
-                          <span className="inline-flex items-center justify-center size-6 rounded-full bg-emerald-100">
-                            <IconCheck className="size-3.5 text-emerald-600" />
+                          <span className="inline-flex items-center justify-center size-6 rounded-full bg-secondary/10">
+                            <IconCheck className="size-3.5 text-secondary" />
                           </span>
                         ) : (
-                          <span className="inline-flex items-center justify-center size-6 rounded-full bg-amber-100">
-                            <IconX className="size-3.5 text-amber-600" />
+                          <span className="inline-flex items-center justify-center size-6 rounded-full bg-primary/10">
+                            <IconX className="size-3.5 text-primary" />
                           </span>
                         )}
                       </TableCell>
@@ -365,7 +365,7 @@ export default function KeysPage() {
                             <DropdownMenuItem className="gap-2">
                               <IconEdit className="size-4" /> {tc("edit")}
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-2 text-red-600 focus:text-red-600">
+                            <DropdownMenuItem className="gap-2 text-destructive focus:text-destructive">
                               <IconTrash className="size-4" /> {tc("delete")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>

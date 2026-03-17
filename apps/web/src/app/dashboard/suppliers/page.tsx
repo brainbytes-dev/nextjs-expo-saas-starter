@@ -146,7 +146,7 @@ export default function SuppliersPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{t("title")}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t("title")}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {MOCK_SOURCES.length} Bezugsquellen · {cartItems.size} im Warenkorb
           </p>
@@ -210,7 +210,7 @@ export default function SuppliersPage() {
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="hover:bg-transparent border-b border-slate-100">
+                <TableRow className="hover:bg-transparent border-b border-border">
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[32px]" />
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("materialName")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[120px]">{t("supplier")}</TableHead>
@@ -236,7 +236,7 @@ export default function SuppliersPage() {
                     return (
                       <TableRow
                         key={source.id}
-                        className={`group border-b border-slate-50 hover:bg-slate-50/80 ${!isFirst ? "bg-slate-50/30" : ""}`}
+                        className={`group border-b border-border hover:bg-muted/80 ${!isFirst ? "bg-muted/30" : ""}`}
                       >
                         <TableCell className="w-[32px]">
                           {isFirst && hasMultiple && (
@@ -258,7 +258,7 @@ export default function SuppliersPage() {
                             <div className="flex items-center gap-2">
                               <IconPackage className="size-4 text-muted-foreground/60 flex-shrink-0" />
                               <div>
-                                <p className="font-medium text-slate-900">{materialName}</p>
+                                <p className="font-medium text-foreground">{materialName}</p>
                                 <p className="text-xs text-muted-foreground font-mono">{materialNumber}</p>
                               </div>
                               {hasMultiple && (
@@ -272,13 +272,13 @@ export default function SuppliersPage() {
                         <TableCell>
                           <div className="flex items-center gap-1.5">
                             <IconTruck className="size-3.5 text-muted-foreground/60" />
-                            <span className="text-sm text-slate-700">{source.supplierName}</span>
+                            <span className="text-sm text-foreground">{source.supplierName}</span>
                           </div>
                         </TableCell>
                         <TableCell className="font-mono text-sm text-muted-foreground">{source.articleNumber}</TableCell>
-                        <TableCell className="text-right font-medium text-sm text-slate-800">{formatCHF(source.purchasePrice)}</TableCell>
+                        <TableCell className="text-right font-medium text-sm text-foreground">{formatCHF(source.purchasePrice)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{formatDate(source.priceDate)}</TableCell>
-                        <TableCell className="text-right font-mono text-sm text-slate-700">{source.quantityPerOrder}</TableCell>
+                        <TableCell className="text-right font-mono text-sm text-foreground">{source.quantityPerOrder}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{source.orderUnit}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
@@ -299,7 +299,7 @@ export default function SuppliersPage() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem className="gap-2"><IconEdit className="size-4" /> {tc("edit")}</DropdownMenuItem>
-                                <DropdownMenuItem className="gap-2 text-red-600 focus:text-red-600"><IconTrash className="size-4" /> {tc("delete")}</DropdownMenuItem>
+                                <DropdownMenuItem className="gap-2 text-destructive focus:text-destructive"><IconTrash className="size-4" /> {tc("delete")}</DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>

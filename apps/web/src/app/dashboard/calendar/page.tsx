@@ -30,25 +30,25 @@ interface CalendarEvent {
 
 // ── Mock Data ──────────────────────────────────────────────────────────
 const MOCK_EVENTS: CalendarEvent[] = [
-  { id: "1", type: "toolBooking", title: "Hilti TE 70-ATC", subtitle: "Thomas Müller → Baustelle Oerlikon", date: "2025-03-17", endDate: "2025-03-21", color: "bg-blue-500" },
-  { id: "2", type: "toolBooking", title: "Bosch GBH 5-40 DE", subtitle: "Anna Weber → Baustelle Winterthur", date: "2025-03-18", endDate: "2025-03-19", color: "bg-blue-500" },
-  { id: "3", type: "task", title: "Wartung Hilti TE 70", subtitle: "Thomas Müller — Hoch", date: "2025-03-25", color: "bg-amber-500" },
-  { id: "4", type: "task", title: "Reparatur Bosch GBH", subtitle: "Anna Weber — In Bearbeitung", date: "2025-03-20", color: "bg-amber-500" },
-  { id: "5", type: "order", title: "Bestellung Hilti AG", subtitle: "BO-2025-041", date: "2025-03-22", color: "bg-emerald-500" },
-  { id: "6", type: "commission", title: "Kommission K-2025-007", subtitle: "Baustelle Nord → Lieferung", date: "2025-03-28", color: "bg-purple-500" },
-  { id: "7", type: "toolBooking", title: "Kompressor Atlas Copco", subtitle: "Peter Keller → Lager B", date: "2025-03-24", endDate: "2025-03-26", color: "bg-blue-500" },
-  { id: "8", type: "task", title: "Inspektion Sicherheitsventil", subtitle: "Sandra Huber — Mittel", date: "2025-03-19", color: "bg-amber-500" },
-  { id: "9", type: "order", title: "Bestellung Würth Schweiz", subtitle: "BO-2025-042 — Geliefert", date: "2025-03-14", color: "bg-emerald-500" },
-  { id: "10", type: "toolBooking", title: "Winkelschleifer Makita", subtitle: "Peter Keller → Baustelle Süd", date: "2025-03-10", endDate: "2025-03-12", color: "bg-blue-500" },
-  { id: "11", type: "commission", title: "Kommission K-2025-006", subtitle: "Elektroinstallation Oerlikon", date: "2025-03-15", color: "bg-purple-500" },
-  { id: "12", type: "task", title: "Beschaffung Kabelrohr 20mm", subtitle: "Peter Keller — Offen", date: "2025-03-30", color: "bg-amber-500" },
+  { id: "1", type: "toolBooking", title: "Hilti TE 70-ATC", subtitle: "Thomas Müller → Baustelle Oerlikon", date: "2025-03-17", endDate: "2025-03-21", color: "bg-primary" },
+  { id: "2", type: "toolBooking", title: "Bosch GBH 5-40 DE", subtitle: "Anna Weber → Baustelle Winterthur", date: "2025-03-18", endDate: "2025-03-19", color: "bg-primary" },
+  { id: "3", type: "task", title: "Wartung Hilti TE 70", subtitle: "Thomas Müller — Hoch", date: "2025-03-25", color: "bg-primary" },
+  { id: "4", type: "task", title: "Reparatur Bosch GBH", subtitle: "Anna Weber — In Bearbeitung", date: "2025-03-20", color: "bg-primary" },
+  { id: "5", type: "order", title: "Bestellung Hilti AG", subtitle: "BO-2025-041", date: "2025-03-22", color: "bg-secondary" },
+  { id: "6", type: "commission", title: "Kommission K-2025-007", subtitle: "Baustelle Nord → Lieferung", date: "2025-03-28", color: "bg-muted-foreground" },
+  { id: "7", type: "toolBooking", title: "Kompressor Atlas Copco", subtitle: "Peter Keller → Lager B", date: "2025-03-24", endDate: "2025-03-26", color: "bg-primary" },
+  { id: "8", type: "task", title: "Inspektion Sicherheitsventil", subtitle: "Sandra Huber — Mittel", date: "2025-03-19", color: "bg-primary" },
+  { id: "9", type: "order", title: "Bestellung Würth Schweiz", subtitle: "BO-2025-042 — Geliefert", date: "2025-03-14", color: "bg-secondary" },
+  { id: "10", type: "toolBooking", title: "Winkelschleifer Makita", subtitle: "Peter Keller → Baustelle Süd", date: "2025-03-10", endDate: "2025-03-12", color: "bg-primary" },
+  { id: "11", type: "commission", title: "Kommission K-2025-006", subtitle: "Elektroinstallation Oerlikon", date: "2025-03-15", color: "bg-muted-foreground" },
+  { id: "12", type: "task", title: "Beschaffung Kabelrohr 20mm", subtitle: "Peter Keller — Offen", date: "2025-03-30", color: "bg-primary" },
 ]
 
 const EVENT_TYPE_CONFIG: Record<EventType, { icon: React.ComponentType<{ className?: string }>; label: string; bg: string; text: string }> = {
-  toolBooking: { icon: IconTool, label: "Werkzeug Buchungen", bg: "bg-blue-50", text: "text-blue-700" },
-  task: { icon: IconChecklist, label: "Aufgaben", bg: "bg-amber-50", text: "text-amber-700" },
-  order: { icon: IconFileInvoice, label: "Bestellungen", bg: "bg-emerald-50", text: "text-emerald-700" },
-  commission: { icon: IconClipboardList, label: "Kommissionen", bg: "bg-purple-50", text: "text-purple-700" },
+  toolBooking: { icon: IconTool, label: "Werkzeug Buchungen", bg: "bg-primary/10", text: "text-primary" },
+  task: { icon: IconChecklist, label: "Aufgaben", bg: "bg-primary/10", text: "text-primary" },
+  order: { icon: IconFileInvoice, label: "Bestellungen", bg: "bg-secondary/10", text: "text-secondary" },
+  commission: { icon: IconClipboardList, label: "Kommissionen", bg: "bg-muted", text: "text-muted-foreground" },
 }
 
 const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
@@ -125,7 +125,7 @@ export default function CalendarPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{t("title")}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t("title")}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Übersicht aller Buchungen, Aufgaben und Bestellungen
           </p>
@@ -140,7 +140,7 @@ export default function CalendarPage() {
                 key={type}
                 onClick={() => toggleType(type)}
                 className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border transition-all cursor-pointer
-                  ${active ? `${cfg.bg} ${cfg.text} border-transparent` : "bg-white text-muted-foreground border-slate-200 opacity-50"}`}
+                  ${active ? `${cfg.bg} ${cfg.text} border-transparent` : "bg-background text-muted-foreground border-border opacity-50"}`}
               >
                 <Icon className="size-3.5" />
                 {cfg.label}
@@ -155,11 +155,11 @@ export default function CalendarPage() {
         <Card className="border-0 shadow-sm flex-1">
           <CardContent className="p-0">
             {/* Month navigation */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <Button variant="ghost" size="icon" onClick={prevMonth}>
                 <IconChevronLeft className="size-4" />
               </Button>
-              <h2 className="text-base font-semibold text-slate-900">
+              <h2 className="text-base font-semibold text-foreground">
                 {MONTHS[currentMonth]} {currentYear}
               </h2>
               <Button variant="ghost" size="icon" onClick={nextMonth}>
@@ -168,7 +168,7 @@ export default function CalendarPage() {
             </div>
 
             {/* Weekday headers */}
-            <div className="grid grid-cols-7 border-b border-slate-100">
+            <div className="grid grid-cols-7 border-b border-border">
               {WEEKDAYS.map(day => (
                 <div key={day} className="py-2.5 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   {day}
@@ -180,7 +180,7 @@ export default function CalendarPage() {
             <div className="grid grid-cols-7">
               {cells.map((day, i) => {
                 if (day === null) {
-                  return <div key={`empty-${i}`} className="min-h-[96px] border-b border-r border-slate-50" />
+                  return <div key={`empty-${i}`} className="min-h-[96px] border-b border-r border-border" />
                 }
                 const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
                 const dayEvents = eventsForDate.get(dateStr) ?? []
@@ -192,14 +192,14 @@ export default function CalendarPage() {
                   <div
                     key={dateStr}
                     onClick={() => setSelectedDay(isSelected ? null : dateStr)}
-                    className={`min-h-[96px] p-2 border-b border-r border-slate-50 cursor-pointer transition-colors
-                      ${isWeekend ? "bg-slate-50/50" : ""}
-                      ${isSelected ? "bg-blue-50 ring-2 ring-inset ring-blue-200" : "hover:bg-slate-50"}
+                    className={`min-h-[96px] p-2 border-b border-r border-border cursor-pointer transition-colors
+                      ${isWeekend ? "bg-muted/50" : ""}
+                      ${isSelected ? "bg-primary/10 ring-2 ring-inset ring-primary/30" : "hover:bg-muted"}
                     `}
                   >
                     <div className="flex justify-end mb-1">
                       <span className={`inline-flex items-center justify-center size-6 text-xs font-medium rounded-full
-                        ${isToday ? "bg-blue-600 text-white" : "text-slate-600"}`}>
+                        ${isToday ? "bg-primary text-primary-foreground" : "text-foreground"}`}>
                         {day}
                       </span>
                     </div>
@@ -225,7 +225,7 @@ export default function CalendarPage() {
           {selectedDay ? (
             <Card className="border-0 shadow-sm">
               <CardContent className="p-4">
-                <h3 className="text-sm font-semibold text-slate-900 mb-3">
+                <h3 className="text-sm font-semibold text-foreground mb-3">
                   {new Date(selectedDay + "T00:00:00").toLocaleDateString("de-CH", { weekday: "long", day: "numeric", month: "long" })}
                 </h3>
                 {selectedEvents.length === 0 ? (
@@ -266,7 +266,7 @@ export default function CalendarPage() {
                 </div>
 
                 {/* Upcoming events */}
-                <div className="mt-2 border-t border-slate-100 pt-4">
+                <div className="mt-2 border-t border-border pt-4">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Demnächst</p>
                   {MOCK_EVENTS
                     .filter(ev => activeTypes.has(ev.type) && ev.date >= todayStr)
@@ -276,12 +276,12 @@ export default function CalendarPage() {
                       const cfg = EVENT_TYPE_CONFIG[ev.type]
                       const Icon = cfg.icon
                       return (
-                        <div key={ev.id} className="flex gap-2.5 py-2 border-b border-slate-50 last:border-0">
+                        <div key={ev.id} className="flex gap-2.5 py-2 border-b border-border last:border-0">
                           <span className={`inline-flex items-center justify-center size-7 rounded-lg flex-shrink-0 ${cfg.bg}`}>
                             <Icon className={`size-3.5 ${cfg.text}`} />
                           </span>
                           <div className="min-w-0">
-                            <p className="text-xs font-medium text-slate-800 truncate">{ev.title}</p>
+                            <p className="text-xs font-medium text-foreground truncate">{ev.title}</p>
                             <p className="text-[10px] text-muted-foreground">
                               {new Date(ev.date + "T00:00:00").toLocaleDateString("de-CH", { day: "numeric", month: "short" })}
                             </p>

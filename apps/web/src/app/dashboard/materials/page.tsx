@@ -331,8 +331,8 @@ export default function MaterialsPage() {
             <span
               className={
                 isBelowReorder
-                  ? "font-semibold text-red-600 dark:text-red-400"
-                  : "font-medium text-emerald-600 dark:text-emerald-400"
+                  ? "font-semibold text-destructive"
+                  : "font-medium text-secondary"
               }
             >
               {stock} {row.original.unit}
@@ -364,17 +364,17 @@ export default function MaterialsPage() {
                 <IconAlertTriangle
                   className={
                     expired
-                      ? "size-4 text-red-500"
-                      : "size-4 text-amber-500"
+                      ? "size-4 text-destructive"
+                      : "size-4 text-primary"
                   }
                 />
               )}
               <span
                 className={
                   expired
-                    ? "text-sm font-medium text-red-600 dark:text-red-400"
+                    ? "text-sm font-medium text-destructive"
                     : expiring
-                      ? "text-sm font-medium text-amber-600 dark:text-amber-400"
+                      ? "text-sm font-medium text-primary"
                       : "text-sm text-muted-foreground"
                 }
               >

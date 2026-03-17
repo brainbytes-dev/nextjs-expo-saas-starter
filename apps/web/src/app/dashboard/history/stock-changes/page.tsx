@@ -58,10 +58,10 @@ const MOCK: StockChange[] = [
 ]
 
 const TYPE_CONFIG: Record<ChangeType, { label: string; icon: React.ComponentType<{ className?: string }>; color: string; qtyColor: string }> = {
-  in: { label: "Eingang", icon: IconArrowDown, color: "text-emerald-600 bg-emerald-50", qtyColor: "text-emerald-600" },
-  out: { label: "Ausgang", icon: IconArrowUp, color: "text-red-500 bg-red-50", qtyColor: "text-red-600" },
-  transfer: { label: "Umbuchung", icon: IconArrowsExchange, color: "text-blue-600 bg-blue-50", qtyColor: "text-blue-600" },
-  correction: { label: "Korrektur", icon: IconArrowsExchange, color: "text-amber-600 bg-amber-50", qtyColor: "text-amber-600" },
+  in: { label: "Eingang", icon: IconArrowDown, color: "text-secondary bg-secondary/10", qtyColor: "text-secondary" },
+  out: { label: "Ausgang", icon: IconArrowUp, color: "text-destructive bg-destructive/10", qtyColor: "text-destructive" },
+  transfer: { label: "Umbuchung", icon: IconArrowsExchange, color: "text-primary bg-primary/10", qtyColor: "text-primary" },
+  correction: { label: "Korrektur", icon: IconArrowsExchange, color: "text-primary bg-primary/10", qtyColor: "text-primary" },
 }
 
 export default function HistoryStockChangesPage() {
@@ -81,7 +81,7 @@ export default function HistoryStockChangesPage() {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{t("title")}</p>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{t("stockChanges")}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t("stockChanges")}</h1>
         </div>
         <Button variant="outline" className="gap-2 text-sm">
           <IconDownload className="size-4" /> Export CSV
@@ -114,7 +114,7 @@ export default function HistoryStockChangesPage() {
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="hover:bg-transparent border-b border-slate-100">
+                <TableRow className="hover:bg-transparent border-b border-border">
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[150px]">{t("date")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("item")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[120px]">Typ</TableHead>
@@ -130,13 +130,13 @@ export default function HistoryStockChangesPage() {
                   const cfg = TYPE_CONFIG[c.type]
                   const TypeIcon = cfg.icon
                   return (
-                    <TableRow key={c.id} className="hover:bg-slate-50/80 border-b border-slate-50">
+                    <TableRow key={c.id} className="hover:bg-muted/80 border-b border-border">
                       <TableCell className="text-xs font-mono text-muted-foreground">{c.date}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <IconPackage className="size-3.5 text-muted-foreground/60" />
                           <div>
-                            <p className="text-sm text-slate-800">{c.materialName}</p>
+                            <p className="text-sm text-foreground">{c.materialName}</p>
                             <p className="text-xs text-muted-foreground font-mono">{c.materialNumber}{c.batchNumber ? ` · ${c.batchNumber}` : ""}</p>
                           </div>
                         </div>
@@ -151,7 +151,7 @@ export default function HistoryStockChangesPage() {
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{c.fromLocation ?? "—"}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{c.toLocation ?? "—"}</TableCell>
-                      <TableCell className="text-sm text-slate-700">{c.user}</TableCell>
+                      <TableCell className="text-sm text-foreground">{c.user}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{c.reason ?? "—"}</TableCell>
                     </TableRow>
                   )

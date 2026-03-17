@@ -128,7 +128,7 @@ export default function CartPage() {
     return (
       <div className="flex flex-col gap-6 p-6">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{t("title")}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t("title")}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">0 Artikel</p>
         </div>
         <Card className="border-0 shadow-sm">
@@ -153,12 +153,12 @@ export default function CartPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{t("title")}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t("title")}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {items.length} Artikel · {bySupplier.length} Lieferanten · <span className="font-medium text-slate-700">{formatCHF(grandTotal)}</span>
+            {items.length} Artikel · {bySupplier.length} Lieferanten · <span className="font-medium text-foreground">{formatCHF(grandTotal)}</span>
           </p>
         </div>
-        <Button variant="outline" size="sm" className="gap-2 text-red-600 hover:text-red-600 hover:bg-red-50" onClick={clearCart}>
+        <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={clearCart}>
           <IconTrash className="size-4" />
           {t("clearCart")}
         </Button>
@@ -186,7 +186,7 @@ export default function CartPage() {
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="hover:bg-transparent border-b border-slate-100">
+                  <TableRow className="hover:bg-transparent border-b border-border">
                     <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("materialName")}</TableHead>
                     <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[140px]">{t("supplier")}</TableHead>
                     <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[120px]">{tc("details")}</TableHead>
@@ -198,12 +198,12 @@ export default function CartPage() {
                 </TableHeader>
                 <TableBody>
                   {filtered.map((item) => (
-                    <TableRow key={item.id} className="group hover:bg-slate-50/80 border-b border-slate-50">
+                    <TableRow key={item.id} className="group hover:bg-muted/80 border-b border-border">
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <IconPackage className="size-4 text-muted-foreground/60 flex-shrink-0" />
                           <div>
-                            <p className="font-medium text-slate-900 text-sm">{item.materialName}</p>
+                            <p className="font-medium text-foreground text-sm">{item.materialName}</p>
                             <p className="text-xs text-muted-foreground font-mono">{item.number}</p>
                           </div>
                         </div>
@@ -211,11 +211,11 @@ export default function CartPage() {
                       <TableCell>
                         <div className="flex items-center gap-1.5">
                           <IconTruck className="size-3.5 text-muted-foreground/60" />
-                          <span className="text-sm text-slate-700">{item.supplierName}</span>
+                          <span className="text-sm text-foreground">{item.supplierName}</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-xs font-mono text-muted-foreground">{item.articleNumber}</TableCell>
-                      <TableCell className="text-right text-sm text-slate-700">
+                      <TableCell className="text-right text-sm text-foreground">
                         {formatCHF(item.purchasePrice)}<span className="text-muted-foreground text-xs">/{item.orderUnit}</span>
                       </TableCell>
                       <TableCell>
@@ -235,14 +235,14 @@ export default function CartPage() {
                           </Button>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right font-semibold text-sm text-slate-900">
+                      <TableCell className="text-right font-semibold text-sm text-foreground">
                         {formatCHF(item.purchasePrice * item.quantity)}
                       </TableCell>
                       <TableCell>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="size-8 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="size-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={() => removeItem(item.id)}
                         >
                           <IconTrash className="size-4" />
@@ -260,7 +260,7 @@ export default function CartPage() {
         <div className="w-72 flex-shrink-0 flex flex-col gap-4">
           <Card className="border-0 shadow-sm">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+              <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <IconFileInvoice className="size-4 text-muted-foreground" />
                 Bestellübersicht
               </CardTitle>
@@ -268,21 +268,21 @@ export default function CartPage() {
             <CardContent className="pt-0">
               <div className="flex flex-col gap-3">
                 {bySupplier.map(({ name, items: supplierItems, total }) => (
-                  <div key={name} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                  <div key={name} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                     <div>
-                      <p className="text-sm font-medium text-slate-800">{name}</p>
+                      <p className="text-sm font-medium text-foreground">{name}</p>
                       <p className="text-xs text-muted-foreground">{supplierItems.length} Artikel</p>
                     </div>
-                    <p className="text-sm font-semibold text-slate-900">{formatCHF(total)}</p>
+                    <p className="text-sm font-semibold text-foreground">{formatCHF(total)}</p>
                   </div>
                 ))}
                 <div className="pt-2 flex items-center justify-between">
-                  <p className="text-sm font-semibold text-slate-900">Gesamt</p>
-                  <p className="text-lg font-bold text-slate-900">{formatCHF(grandTotal)}</p>
+                  <p className="text-sm font-semibold text-foreground">Gesamt</p>
+                  <p className="text-lg font-bold text-foreground">{formatCHF(grandTotal)}</p>
                 </div>
-                <div className="flex items-start gap-2 bg-amber-50 rounded-lg p-3">
-                  <IconAlertCircle className="size-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-amber-700">{bySupplier.length} separate Bestellungen werden erzeugt (je Lieferant eine).</p>
+                <div className="flex items-start gap-2 bg-primary/10 rounded-lg p-3">
+                  <IconAlertCircle className="size-4 text-primary flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-primary">{bySupplier.length} separate Bestellungen werden erzeugt (je Lieferant eine).</p>
                 </div>
                 <Button className="w-full gap-2" onClick={handleGenerateOrder} disabled={generatingOrder}>
                   <IconFileInvoice className="size-4" />

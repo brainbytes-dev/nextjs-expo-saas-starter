@@ -61,7 +61,7 @@ export default function HistoryOrderItemsPage() {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{t("title")}</p>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{t("orderItems")}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t("orderItems")}</h1>
         </div>
         <Button variant="outline" className="gap-2 text-sm">
           <IconDownload className="size-4" /> Export CSV
@@ -91,7 +91,7 @@ export default function HistoryOrderItemsPage() {
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="hover:bg-transparent border-b border-slate-100">
+                <TableRow className="hover:bg-transparent border-b border-border">
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[130px]">{t("orderNumber")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[100px]">{t("date")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("item")}</TableHead>
@@ -105,14 +105,14 @@ export default function HistoryOrderItemsPage() {
               </TableHeader>
               <TableBody>
                 {filtered.map(item => (
-                  <TableRow key={item.id} className="hover:bg-slate-50/80 border-b border-slate-50">
-                    <TableCell className="font-mono text-xs text-slate-700">{item.orderNumber}</TableCell>
+                  <TableRow key={item.id} className="hover:bg-muted/80 border-b border-border">
+                    <TableCell className="font-mono text-xs text-foreground">{item.orderNumber}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">{fmt(item.orderDate)}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <IconPackage className="size-3.5 text-muted-foreground/60" />
                         <div>
-                          <p className="text-sm text-slate-800">{item.materialName}</p>
+                          <p className="text-sm text-foreground">{item.materialName}</p>
                           <p className="text-xs text-muted-foreground font-mono">{item.materialNumber} · {item.articleNumber}</p>
                         </div>
                       </div>
@@ -120,19 +120,19 @@ export default function HistoryOrderItemsPage() {
                     <TableCell>
                       <div className="flex items-center gap-1.5">
                         <IconTruck className="size-3.5 text-muted-foreground/60" />
-                        <span className="text-sm text-slate-700">{item.supplierName}</span>
+                        <span className="text-sm text-foreground">{item.supplierName}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right text-sm font-mono text-slate-700">{item.orderedQty} {item.unit}</TableCell>
-                    <TableCell className={`text-right text-sm font-mono font-medium ${item.deliveredQty >= item.orderedQty ? "text-emerald-600" : item.deliveredQty > 0 ? "text-amber-600" : "text-muted-foreground"}`}>
+                    <TableCell className="text-right text-sm font-mono text-foreground">{item.orderedQty} {item.unit}</TableCell>
+                    <TableCell className={`text-right text-sm font-mono font-medium ${item.deliveredQty >= item.orderedQty ? "text-secondary" : item.deliveredQty > 0 ? "text-primary" : "text-muted-foreground"}`}>
                       {item.deliveredQty} {item.unit}
                     </TableCell>
-                    <TableCell className="text-right text-sm text-slate-700">CHF {item.price.toFixed(2)}</TableCell>
-                    <TableCell className="text-right text-sm font-semibold text-slate-900">CHF {(item.price * item.orderedQty).toFixed(2)}</TableCell>
+                    <TableCell className="text-right text-sm text-foreground">CHF {item.price.toFixed(2)}</TableCell>
+                    <TableCell className="text-right text-sm font-semibold text-foreground">CHF {(item.price * item.orderedQty).toFixed(2)}</TableCell>
                     <TableCell className="text-center">
                       {item.delivered
-                        ? <IconCheck className="size-4 text-emerald-600 inline" />
-                        : <IconX className="size-4 text-slate-300 inline" />}
+                        ? <IconCheck className="size-4 text-secondary inline" />
+                        : <IconX className="size-4 text-muted-foreground inline" />}
                     </TableCell>
                   </TableRow>
                 ))}

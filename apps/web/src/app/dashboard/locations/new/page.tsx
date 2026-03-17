@@ -29,13 +29,13 @@ import {
 
 // ─── Type config ─────────────────────────────────────────────────────
 const LOCATION_TYPES = [
-  { value: "warehouse", icon: IconBuildingWarehouse, color: "text-blue-600" },
-  { value: "vehicle", icon: IconTruck, color: "text-amber-600" },
-  { value: "site", icon: IconBuildingFactory, color: "text-orange-600" },
-  { value: "station", icon: IconAmbulance, color: "text-red-600" },
-  { value: "practice", icon: IconStethoscope, color: "text-emerald-600" },
-  { value: "operating_room", icon: IconHeartbeat, color: "text-purple-600" },
-  { value: "user", icon: IconUser, color: "text-slate-600" },
+  { value: "warehouse", icon: IconBuildingWarehouse, color: "text-primary" },
+  { value: "vehicle", icon: IconTruck, color: "text-primary" },
+  { value: "site", icon: IconBuildingFactory, color: "text-primary" },
+  { value: "station", icon: IconAmbulance, color: "text-destructive" },
+  { value: "practice", icon: IconStethoscope, color: "text-secondary" },
+  { value: "operating_room", icon: IconHeartbeat, color: "text-muted-foreground" },
+  { value: "user", icon: IconUser, color: "text-muted-foreground" },
 ] as const
 
 type LocationTypeValue = (typeof LOCATION_TYPES)[number]["value"]

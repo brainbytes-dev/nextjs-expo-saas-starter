@@ -56,9 +56,9 @@ const MOCK: HistoryOrder[] = [
 ]
 
 const STATUS: Record<OrderStatus, { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
-  delivered: { label: "Geliefert", icon: IconCheck, color: "text-emerald-600 bg-emerald-50" },
-  cancelled: { label: "Storniert", icon: IconX, color: "text-slate-500 bg-slate-100" },
-  ordered: { label: "Bestellt", icon: IconAlertCircle, color: "text-blue-600 bg-blue-50" },
+  delivered: { label: "Geliefert", icon: IconCheck, color: "text-secondary bg-secondary/10" },
+  cancelled: { label: "Storniert", icon: IconX, color: "text-muted-foreground bg-muted" },
+  ordered: { label: "Bestellt", icon: IconAlertCircle, color: "text-primary bg-primary/10" },
 }
 
 function fmt(iso: string) {
@@ -83,7 +83,7 @@ export default function HistoryOrdersPage() {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{t("title")}</p>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{t("orders")}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t("orders")}</h1>
         </div>
         <Button variant="outline" className="gap-2 text-sm">
           <IconDownload className="size-4" /> Export CSV
@@ -114,7 +114,7 @@ export default function HistoryOrdersPage() {
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="hover:bg-transparent border-b border-slate-100">
+                <TableRow className="hover:bg-transparent border-b border-border">
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("orderNumber")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[110px]">{t("date")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("supplier")}</TableHead>
@@ -130,13 +130,13 @@ export default function HistoryOrdersPage() {
                   const s = STATUS[o.status]
                   const Icon = s.icon
                   return (
-                    <TableRow key={o.id} className="hover:bg-slate-50/80 border-b border-slate-50">
-                      <TableCell className="font-mono text-sm font-medium text-slate-800">{o.orderNumber}</TableCell>
+                    <TableRow key={o.id} className="hover:bg-muted/80 border-b border-border">
+                      <TableCell className="font-mono text-sm font-medium text-foreground">{o.orderNumber}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{fmt(o.orderDate)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5">
                           <IconTruck className="size-3.5 text-muted-foreground/60" />
-                          <span className="text-sm text-slate-700">{o.supplierName}</span>
+                          <span className="text-sm text-foreground">{o.supplierName}</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{o.deliveryDate ? fmt(o.deliveryDate) : "—"}</TableCell>
@@ -145,8 +145,8 @@ export default function HistoryOrdersPage() {
                           <Icon className="size-3" />{s.label}
                         </span>
                       </TableCell>
-                      <TableCell className="text-center text-sm text-slate-700">{o.positionCount}</TableCell>
-                      <TableCell className="text-right font-medium text-sm text-slate-900">{fmtCHF(o.total)}</TableCell>
+                      <TableCell className="text-center text-sm text-foreground">{o.positionCount}</TableCell>
+                      <TableCell className="text-right font-medium text-sm text-foreground">{fmtCHF(o.total)}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{o.createdBy}</TableCell>
                     </TableRow>
                   )

@@ -76,9 +76,9 @@ const MOCK_COMMISSIONS: Commission[] = [
 ]
 
 const STATUS_CONFIG: Record<CommissionStatus, { label: string; color: string }> = {
-  open: { label: "Offen", color: "bg-slate-100 text-slate-600" },
-  inProgress: { label: "In Bearbeitung", color: "bg-blue-50 text-blue-700" },
-  completed: { label: "Abgeschlossen", color: "bg-emerald-50 text-emerald-700" },
+  open: { label: "Offen", color: "bg-muted text-muted-foreground" },
+  inProgress: { label: "In Bearbeitung", color: "bg-primary/10 text-primary" },
+  completed: { label: "Abgeschlossen", color: "bg-secondary/10 text-secondary" },
 }
 
 function formatDate(iso: string) {
@@ -90,8 +90,8 @@ function ProgressBar({ total, open }: { total: number; open: number }) {
   const pct = total > 0 ? Math.round((done / total) * 100) : 0
   return (
     <div className="flex items-center gap-2 min-w-[100px]">
-      <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-        <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
+      <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+        <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${pct}%` }} />
       </div>
       <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">{done}/{total}</span>
     </div>
@@ -128,7 +128,7 @@ export default function CommissionsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{t("title")}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t("title")}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {MOCK_COMMISSIONS.length} Kommissionen · {totalOpen} von {totalEntries} Einträgen offen
           </p>
@@ -147,12 +147,12 @@ export default function CommissionsPage() {
           return (
             <Card
               key={s}
-              className={`border-0 cursor-pointer transition-all hover:shadow-md ${statusFilter === s ? "ring-2 ring-blue-500" : ""}`}
+              className={`border-0 cursor-pointer transition-all hover:shadow-md ${statusFilter === s ? "ring-2 ring-primary" : ""}`}
               onClick={() => setStatusFilter(statusFilter === s ? "all" : s)}
             >
               <CardContent className="p-4">
                 <p className="text-xs text-muted-foreground">{cfg.label}</p>
-                <p className="text-3xl font-bold text-slate-900 mt-1">{count}</p>
+                <p className="text-3xl font-bold text-foreground mt-1">{count}</p>
               </CardContent>
             </Card>
           )
@@ -194,7 +194,7 @@ export default function CommissionsPage() {
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="hover:bg-transparent border-b border-slate-100">
+                <TableRow className="hover:bg-transparent border-b border-border">
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[120px]">{t("number")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("name")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[110px]">Status</TableHead>
@@ -209,17 +209,17 @@ export default function CommissionsPage() {
                 {filtered.map((commission) => {
                   const statusCfg = STATUS_CONFIG[commission.status]
                   return (
-                    <TableRow key={commission.id} className="group hover:bg-slate-50/80 border-b border-slate-50">
+                    <TableRow key={commission.id} className="group hover:bg-muted/80 border-b border-border">
                       <TableCell>
                         <div>
-                          <p className="font-mono text-sm font-medium text-slate-800">{commission.number}</p>
+                          <p className="font-mono text-sm font-medium text-foreground">{commission.number}</p>
                           {commission.manualNumber && (
                             <p className="text-xs text-muted-foreground">{commission.manualNumber}</p>
                           )}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <p className="font-medium text-slate-900 text-sm">{commission.name}</p>
+                        <p className="font-medium text-foreground text-sm">{commission.name}</p>
                         <p className="text-xs text-muted-foreground">{formatDate(commission.createdAt)}</p>
                       </TableCell>
                       <TableCell>
@@ -230,14 +230,14 @@ export default function CommissionsPage() {
                       <TableCell>
                         <div className="flex items-center gap-1.5">
                           <IconMapPin className="size-3.5 text-muted-foreground/60 flex-shrink-0" />
-                          <span className="text-sm text-slate-700 truncate">{commission.targetLocation}</span>
+                          <span className="text-sm text-foreground truncate">{commission.targetLocation}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm text-slate-700">{commission.customer ?? "—"}</TableCell>
+                      <TableCell className="text-sm text-foreground">{commission.customer ?? "—"}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5">
                           <IconUser className="size-3.5 text-muted-foreground/60 flex-shrink-0" />
-                          <span className="text-sm text-slate-700">{commission.responsible}</span>
+                          <span className="text-sm text-foreground">{commission.responsible}</span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -253,7 +253,7 @@ export default function CommissionsPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem className="gap-2"><IconEye className="size-4" /> {t("showDetails")}</DropdownMenuItem>
                             <DropdownMenuItem className="gap-2"><IconEdit className="size-4" /> {tc("edit")}</DropdownMenuItem>
-                            <DropdownMenuItem className="gap-2 text-red-600 focus:text-red-600"><IconTrash className="size-4" /> {tc("delete")}</DropdownMenuItem>
+                            <DropdownMenuItem className="gap-2 text-destructive focus:text-destructive"><IconTrash className="size-4" /> {tc("delete")}</DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>

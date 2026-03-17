@@ -56,9 +56,9 @@ const MOCK: ToolBooking[] = [
 ]
 
 const STATUS_CFG: Record<BookingStatus, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
-  returned: { label: "Zurückgegeben", color: "text-emerald-600 bg-emerald-50", icon: IconCheck },
-  overdue: { label: "Überfällig", color: "text-red-600 bg-red-50", icon: IconAlertCircle },
-  checkedOut: { label: "Ausgecheckt", color: "text-blue-600 bg-blue-50", icon: IconTool },
+  returned: { label: "Zurückgegeben", color: "text-secondary bg-secondary/10", icon: IconCheck },
+  overdue: { label: "Überfällig", color: "text-destructive bg-destructive/10", icon: IconAlertCircle },
+  checkedOut: { label: "Ausgecheckt", color: "text-primary bg-primary/10", icon: IconTool },
 }
 
 function fmt(iso: string) {
@@ -82,7 +82,7 @@ export default function HistoryToolBookingsPage() {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{t("title")}</p>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{t("toolBookings")}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t("toolBookings")}</h1>
         </div>
         <Button variant="outline" className="gap-2 text-sm">
           <IconDownload className="size-4" /> Export CSV
@@ -114,7 +114,7 @@ export default function HistoryToolBookingsPage() {
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="hover:bg-transparent border-b border-slate-100">
+                <TableRow className="hover:bg-transparent border-b border-border">
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Werkzeug</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[120px]">Status</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[130px]">{t("assignedTo")}</TableHead>
@@ -129,12 +129,12 @@ export default function HistoryToolBookingsPage() {
                   const cfg = STATUS_CFG[b.status]
                   const Icon = cfg.icon
                   return (
-                    <TableRow key={b.id} className="hover:bg-slate-50/80 border-b border-slate-50">
+                    <TableRow key={b.id} className="hover:bg-muted/80 border-b border-border">
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <IconTool className="size-3.5 text-muted-foreground/60" />
                           <div>
-                            <p className="text-sm font-medium text-slate-800">{b.toolName}</p>
+                            <p className="text-sm font-medium text-foreground">{b.toolName}</p>
                             <p className="text-xs text-muted-foreground font-mono">{b.toolNumber}</p>
                           </div>
                         </div>
@@ -147,18 +147,18 @@ export default function HistoryToolBookingsPage() {
                       <TableCell>
                         <div className="flex items-center gap-1.5">
                           <IconUser className="size-3.5 text-muted-foreground/60" />
-                          <span className="text-sm text-slate-700">{b.assignedTo}</span>
+                          <span className="text-sm text-foreground">{b.assignedTo}</span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5">
                           <IconMapPin className="size-3.5 text-muted-foreground/60" />
-                          <span className="text-sm text-slate-700">{b.location}</span>
+                          <span className="text-sm text-foreground">{b.location}</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{fmt(b.checkOutDate)}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{b.returnedDate ? fmt(b.returnedDate) : "—"}</TableCell>
-                      <TableCell className={`text-right font-mono font-semibold text-sm ${b.status === "overdue" ? "text-red-600" : "text-slate-700"}`}>
+                      <TableCell className={`text-right font-mono font-semibold text-sm ${b.status === "overdue" ? "text-destructive" : "text-foreground"}`}>
                         {b.daysOut}d
                       </TableCell>
                     </TableRow>
