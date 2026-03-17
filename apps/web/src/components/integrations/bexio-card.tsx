@@ -14,6 +14,7 @@ import {
   IconAlertTriangle,
   IconLoader2,
 } from "@tabler/icons-react"
+import { BrandLogo } from "@/components/integrations/brand-logo"
 
 type SyncResult = {
   synced: number
@@ -101,14 +102,8 @@ export function BexioCard() {
       <CardHeader className="pb-3 pt-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            {/* bexio wordmark badge */}
-            <div
-              className="size-10 shrink-0 rounded-lg flex items-center justify-center text-white font-bold text-sm font-mono select-none"
-              style={{ background: "#FF6900" }}
-              aria-label="bexio logo"
-            >
-              bx
-            </div>
+            {/* bexio logo */}
+            <BrandLogo name="bexio" fallbackColor="#FF6900" fallbackShort="bx" />
             <div>
               <CardTitle className="text-sm font-semibold leading-none">bexio</CardTitle>
               <CardDescription className="text-xs mt-0.5">

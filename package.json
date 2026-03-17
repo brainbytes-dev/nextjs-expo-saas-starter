@@ -1,5 +1,6 @@
 {
-  "name": "repo",
+  "name": "logistikapp",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "setup": "bash scripts/setup.sh",

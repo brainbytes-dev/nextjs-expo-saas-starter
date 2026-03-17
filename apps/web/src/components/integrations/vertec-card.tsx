@@ -20,6 +20,7 @@ import {
   IconLoader2,
   IconAlertCircle,
 } from "@tabler/icons-react"
+import { BrandLogo } from "@/components/integrations/brand-logo"
 
 type SyncResult = {
   synced: number
@@ -102,14 +103,8 @@ export function VertecCard() {
       <CardHeader className="pb-3 pt-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            {/* Vertec logo badge */}
-            <div
-              className="size-10 shrink-0 rounded-lg flex items-center justify-center text-white font-bold text-sm font-mono select-none"
-              style={{ background: "#E4312B" }}
-              aria-label="Vertec logo"
-            >
-              vt
-            </div>
+            {/* Vertec logo */}
+            <BrandLogo name="Vertec" fallbackColor="#E4312B" fallbackShort="vt" />
             <div>
               <CardTitle className="text-sm font-semibold leading-none">Vertec</CardTitle>
               <CardDescription className="text-xs mt-0.5">

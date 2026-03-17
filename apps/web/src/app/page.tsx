@@ -15,7 +15,9 @@ import {
   IconTruck,
   IconCheck,
   IconArrowUpRight,
+  IconPlugConnected,
 } from "@tabler/icons-react"
+import { BrandLogo } from "@/components/integrations/brand-logo"
 
 /* ─── Global styles injected at runtime ─────────────────────── */
 const STYLES = `
@@ -246,6 +248,26 @@ const TRUST_SPECS = [
   ["UPTIME SLA",      "99.9 %"],
 ]
 
+const LIVE_INTEGRATIONS = [
+  { name: "bexio",   desc: "Buchhaltung & ERP",         color: "#E4312B", short: "bx",  badge: "CH #1" },
+  { name: "Abacus",  desc: "AbaNinja / Abacus ERP",     color: "#003087", short: "ac",  badge: "Verfügbar" },
+  { name: "Vertec",  desc: "CRM & Projektplanung",       color: "#FF6900", short: "vt",  badge: "Verfügbar" },
+  { name: "Zebra",   desc: "ZPL Etikettendruck",         color: "#1a1a1a", short: "zbr", badge: "Verfügbar" },
+]
+
+const UPCOMING_INTEGRATIONS = [
+  { name: "SAP Business One", color: "#008FD3", short: "sap" },
+  { name: "Microsoft Teams",  color: "#6264A7", short: "ms"  },
+  { name: "WhatsApp",         color: "#25D366", short: "wa"  },
+  { name: "Procore",          color: "#F37021", short: "pc"  },
+  { name: "Geotab",           color: "#E31837", short: "gt"  },
+  { name: "Zapier",           color: "#FF4A00", short: "zp"  },
+  { name: "Make",             color: "#6D00CC", short: "mk"  },
+  { name: "QuickBooks",       color: "#2CA01C", short: "qb"  },
+  { name: "Azure AD / Entra", color: "#0078D4", short: "az"  },
+  { name: "REST API",         color: "#1a1a1a", short: "api" },
+]
+
 /* ─── Cost Calculator ───────────────────────────────────────── */
 function CostCalculator() {
   const [employees, setEmployees] = useState(5)
@@ -343,10 +365,11 @@ export default function LandingPage() {
           <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
             <Logo />
             <nav className="hidden md:flex items-center gap-8 font-mono text-[11px] tracking-[0.15em] uppercase text-muted-foreground">
-              <a href="#features"   className="hover:text-foreground transition-colors">Funktionen</a>
-              <a href="#calculator" className="hover:text-foreground transition-colors">Rechner</a>
-              <a href="#pricing"    className="hover:text-foreground transition-colors">Preise</a>
-              <a href="#trust"      className="hover:text-foreground transition-colors">Sicherheit</a>
+              <a href="#features"      className="hover:text-foreground transition-colors">Funktionen</a>
+              <a href="#calculator"   className="hover:text-foreground transition-colors">Rechner</a>
+              <a href="#integrations" className="hover:text-foreground transition-colors">Integrationen</a>
+              <a href="#pricing"      className="hover:text-foreground transition-colors">Preise</a>
+              <a href="#trust"        className="hover:text-foreground transition-colors">Sicherheit</a>
             </nav>
             <div className="flex items-center gap-1.5">
               <ModeToggle />
@@ -651,6 +674,80 @@ export default function LandingPage() {
 
             {/* Right: Calculator */}
             <CostCalculator />
+          </div>
+        </section>
+
+        {/* ══ INTEGRATIONS ═════════════════════════════════════ */}
+        <section id="integrations" className="border-y border-border bg-muted/20 py-24">
+          <div className="mx-auto max-w-7xl px-6">
+
+            {/* Header */}
+            <div className="mb-14 flex items-end justify-between border-b border-border pb-6">
+              <div>
+                <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">// 03 — Integrationen</div>
+                <h2 className="text-3xl lg:text-4xl font-bold leading-tight">
+                  Nahtlos in Ihre<br />
+                  <span className="text-primary">bestehende Umgebung.</span>
+                </h2>
+              </div>
+              <div className="hidden md:flex flex-col items-end font-mono text-[10px] tracking-widest text-muted-foreground">
+                <div className="text-primary">4 VERFÜGBAR</div>
+                <div>22+ GEPLANT</div>
+              </div>
+            </div>
+
+            {/* Live integrations */}
+            <div className="mb-12">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="size-1.5 rounded-full bg-primary animate-pulse" />
+                <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground">Jetzt verfügbar</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {LIVE_INTEGRATIONS.map(integration => (
+                  <div key={integration.name} className="relative border border-border rounded-lg p-5 bg-background group hover:border-primary/50 transition-colors duration-200">
+                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-primary rounded-t-lg" />
+                    <div className="flex items-start gap-3 mb-3">
+                      <BrandLogo name={integration.name} fallbackColor={integration.color} fallbackShort={integration.short} size={36} />
+                      <div>
+                        <div className="text-sm font-semibold leading-none mb-0.5">{integration.name}</div>
+                        <div className="text-xs text-muted-foreground leading-snug">{integration.desc}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="size-1.5 rounded-full bg-primary" />
+                      <span className="font-mono text-[9px] tracking-widest uppercase text-primary">{integration.badge}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Upcoming integrations */}
+            <div className="mb-10">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="size-1.5 rounded-full bg-border" />
+                <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground">In Entwicklung</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-2">
+                {UPCOMING_INTEGRATIONS.map(integration => (
+                  <div key={integration.name} className="opacity-50 border border-border rounded-lg p-3 bg-background flex flex-col items-center gap-2 text-center">
+                    <BrandLogo name={integration.name} fallbackColor={integration.color} fallbackShort={integration.short} size={32} />
+                    <span className="font-mono text-[9px] text-muted-foreground leading-tight">{integration.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* CTA */}
+            <div className="flex items-center gap-4">
+              <Link href="/dashboard/settings/integrations">
+                <Button variant="outline" className="font-mono text-[11px] tracking-widest uppercase gap-2">
+                  <IconPlugConnected className="size-3.5" />
+                  Alle Integrationen ansehen
+                </Button>
+              </Link>
+              <span className="font-mono text-[10px] text-muted-foreground">22+ Integrationen · Buchhaltung, ERP, Fleet, Spital</span>
+            </div>
           </div>
         </section>
 

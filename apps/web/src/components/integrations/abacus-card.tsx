@@ -14,6 +14,7 @@ import {
   IconAlertTriangle,
   IconLoader2,
 } from "@tabler/icons-react"
+import { BrandLogo } from "@/components/integrations/brand-logo"
 
 type SyncResult = {
   synced: number
@@ -101,14 +102,8 @@ export function AbacusCard() {
       <CardHeader className="pb-3 pt-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            {/* Abacus wordmark badge */}
-            <div
-              className="size-10 shrink-0 rounded-lg flex items-center justify-center text-white font-bold text-sm font-mono select-none"
-              style={{ background: "#003087" }}
-              aria-label="Abacus logo"
-            >
-              ab
-            </div>
+            {/* Abacus logo */}
+            <BrandLogo name="Abacus / AbaNinja" fallbackColor="#003087" fallbackShort="ab" />
             <div>
               <CardTitle className="text-sm font-semibold leading-none">Abacus / AbaNinja</CardTitle>
               <CardDescription className="text-xs mt-0.5">

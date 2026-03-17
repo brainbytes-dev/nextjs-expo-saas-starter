@@ -3,6 +3,7 @@ import { BexioCard } from "@/components/integrations/bexio-card"
 import { AbacusCard } from "@/components/integrations/abacus-card"
 import { VertecCard } from "@/components/integrations/vertec-card"
 import { ZebraCard } from "@/components/integrations/zebra-card"
+import { BrandLogo } from "@/components/integrations/brand-logo"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 
@@ -115,12 +116,7 @@ function IntegrationPlaceholder({
     >
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex items-center gap-3">
-          <div
-            className="size-10 shrink-0 rounded-lg flex items-center justify-center text-white font-bold text-[11px] font-mono"
-            style={{ background: color }}
-          >
-            {short}
-          </div>
+          <BrandLogo name={name} fallbackColor={color} fallbackShort={short} />
           <div>
             <div className="text-sm font-medium leading-none">{name}</div>
             <div className="text-xs text-muted-foreground mt-0.5 leading-snug">{desc}</div>

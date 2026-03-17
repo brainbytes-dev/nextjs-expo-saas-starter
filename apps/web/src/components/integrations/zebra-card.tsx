@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { IconCheck } from "@tabler/icons-react"
+import { BrandLogo } from "@/components/integrations/brand-logo"
 
 export function ZebraCard() {
   return (
@@ -9,7 +10,7 @@ export function ZebraCard() {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="size-10 rounded-lg bg-[#474747] flex items-center justify-center text-white font-bold text-sm font-mono">zb</div>
+            <BrandLogo name="Zebra" fallbackColor="#474747" fallbackShort="zb" />
             <div>
               <CardTitle className="text-base">Zebra Labels</CardTitle>
               <CardDescription className="text-xs">ZPL-Etikettendruck für Lager &amp; Werkzeuge</CardDescription>

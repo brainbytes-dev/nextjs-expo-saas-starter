@@ -189,7 +189,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <a href="/dashboard">
                 <LogoMark size={20} />
-                <span className="text-base font-semibold">Logistik<span className="text-blue-600">App</span></span>
+                <span className="text-base font-semibold">Logistik<span className="text-primary">App</span></span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

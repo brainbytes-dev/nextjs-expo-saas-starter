@@ -36,14 +36,43 @@
 
 ## Commit Messages
 
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
+Follow [Conventional Commits](https://www.conventionalcommits.org/) — releases and `CHANGELOG.md` are generated automatically from these:
 
 ```
-feat: add user avatar upload
-fix: prevent double checkout submission
+feat(web): add bexio OAuth2 integration
+fix(api): prevent stock-change with empty quantity
+perf(db): add index on materials.organization_id
 docs: update API route table in CLAUDE.md
-chore: bump dependencies
+chore(deps): bump drizzle-orm to 0.40.0
 ```
+
+### Types → Changelog section
+
+| Type       | Changelog           | Version bump    |
+|------------|---------------------|-----------------|
+| `feat`     | ✨ Features          | minor (0.x.0)   |
+| `fix`      | 🐛 Bug Fixes         | patch (0.0.x)   |
+| `perf`     | ⚡ Performance        | patch           |
+| `refactor` | ♻️ Refactoring       | hidden          |
+| `docs`     | 📚 Documentation     | hidden          |
+| `chore`    | 🔧 Maintenance       | hidden          |
+
+### Breaking changes
+
+Append `!` to trigger a **major** bump and document it:
+```
+feat(api)!: rename stock-changes endpoint
+
+BREAKING CHANGE: update all clients to /api/stock-entries
+```
+
+## Release Process
+
+Releases are fully automated via [release-please](https://github.com/googleapis/release-please):
+
+1. Merge conventional commits to `main`
+2. release-please opens a PR: **"chore(main): release X.Y.Z"**
+3. Review and merge → GitHub Release + updated `CHANGELOG.md` are created automatically
 
 ## Need Help?
 
