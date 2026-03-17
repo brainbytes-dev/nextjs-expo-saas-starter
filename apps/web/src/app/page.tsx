@@ -557,17 +557,17 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ══ SWISS TRUST (always dark) ════════════════════════ */}
-        <section id="trust" className="py-24" style={{ background: "oklch(0.14 0.005 264)" }}>
+        {/* ══ SWISS TRUST ════════════════════════════════════════ */}
+        <section id="trust" className="py-24 bg-muted dark:bg-[oklch(0.14_0.005_264)]">
           <div className="mx-auto max-w-7xl px-6">
             <div className="grid lg:grid-cols-2 gap-20 items-center">
               <div>
-                <div className="font-mono text-[10px] tracking-[0.2em] uppercase mb-4" style={{ color: "rgba(255,255,255,0.35)" }}>// 03 — Datensouveränität</div>
-                <h2 className="text-3xl lg:text-4xl font-bold mb-6 leading-tight" style={{ color: "rgba(255,255,255,0.92)" }}>
+                <div className="font-mono text-[10px] tracking-[0.2em] uppercase mb-4 text-muted-foreground">// 03 — Datensouveränität</div>
+                <h2 className="text-3xl lg:text-4xl font-bold mb-6 leading-tight text-foreground">
                   Ihre Daten<br />
                   gehören <span className="text-primary">Ihnen.</span>
                 </h2>
-                <p className="font-mono text-sm leading-relaxed max-w-md" style={{ color: "rgba(255,255,255,0.50)" }}>
+                <p className="font-mono text-sm leading-relaxed max-w-md text-muted-foreground">
                   LogistikApp speichert ausnahmslos alle Daten auf Servern in der Schweiz.
                   Vollständig konform mit dem revidierten Datenschutzgesetz (nDSG).
                 </p>
@@ -576,13 +576,10 @@ export default function LandingPage() {
               {/* Spec sheet */}
               <div className="font-mono space-y-0">
                 {TRUST_SPECS.map(([key, val]) => (
-                  <div key={key} className="flex items-center py-3.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                    <span className="text-[10px] tracking-[0.18em] w-44 shrink-0" style={{ color: "rgba(255,255,255,0.30)" }}>{key}</span>
-                    <div
-                      className="flex-1 mx-4 h-px"
-                      style={{ background: "repeating-linear-gradient(90deg, rgba(255,255,255,0.10) 0, rgba(255,255,255,0.10) 3px, transparent 3px, transparent 8px)" }}
-                    />
-                    <span className="text-[11px] font-bold tracking-wider" style={{ color: "rgba(255,255,255,0.88)" }}>{val}</span>
+                  <div key={key} className="flex items-center py-3.5 border-b border-border">
+                    <span className="text-[10px] tracking-[0.18em] w-44 shrink-0 text-muted-foreground">{key}</span>
+                    <div className="flex-1 mx-4 h-px bg-border" />
+                    <span className="text-[11px] font-bold tracking-wider text-foreground">{val}</span>
                   </div>
                 ))}
               </div>
