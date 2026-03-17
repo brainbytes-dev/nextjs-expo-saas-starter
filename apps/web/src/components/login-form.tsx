@@ -15,6 +15,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import * as Sentry from "@sentry/nextjs"
+import { DEMO_MODE } from "@/lib/demo-mode"
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -36,6 +37,17 @@ export function LoginForm({
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   })
+
+  const handleDemoLogin = async () => {
+    await signIn.email(
+      { email: "demo@example.com", password: "demo" },
+      {
+        onSuccess: () => {
+          router.push("/dashboard")
+        },
+      }
+    )
+  }
 
   const onSubmit = async (data: LoginFormData) => {
     try {
@@ -120,6 +132,21 @@ export function LoginForm({
             {isSubmitting ? "Logging in..." : "Login"}
           </Button>
         </Field>
+        {DEMO_MODE && (
+          <Field>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">Or</span>
+              </div>
+            </div>
+            <Button type="button" variant="outline" onClick={handleDemoLogin}>
+              Try Demo
+            </Button>
+          </Field>
+        )}
         <FieldDescription className="text-center">
           Don&apos;t have an account?{" "}
           <a href="/signup" className="underline underline-offset-4">

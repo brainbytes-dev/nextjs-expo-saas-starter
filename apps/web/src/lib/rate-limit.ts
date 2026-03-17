@@ -1,5 +1,6 @@
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
+import { DEMO_MODE } from '@/lib/demo-mode';
 
 let ratelimit: Ratelimit | null = null;
 
@@ -22,6 +23,7 @@ function getRatelimit(): Ratelimit {
 }
 
 export async function checkRateLimit(identifier: string): Promise<boolean> {
+  if (DEMO_MODE) return true;
   try {
     const limiter = getRatelimit();
     const result = await limiter.limit(identifier);
@@ -34,6 +36,7 @@ export async function checkRateLimit(identifier: string): Promise<boolean> {
 }
 
 export async function getRateLimitInfo(identifier: string) {
+  if (DEMO_MODE) return { success: true, remaining: 10, reset: 0 };
   try {
     const limiter = getRatelimit();
     const result = await limiter.limit(identifier);

@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 import * as Sentry from "@sentry/nextjs";
 import { getDb, userSubscriptions, eq, and } from "@repo/db";
+import { DEMO_MODE } from "@/lib/demo-mode";
 
 // Lazy initialize Stripe client (only when needed)
 let stripeClient: Stripe | null = null;
@@ -21,6 +22,10 @@ function getStripe() {
  * Allows customers to manage their subscriptions and billing
  */
 export async function POST(request: NextRequest) {
+  if (DEMO_MODE) {
+    return NextResponse.json({ url: "/?demo=portal-disabled" });
+  }
+
   try {
     const session = await auth.api.getSession({ headers: request.headers });
     if (!session) {

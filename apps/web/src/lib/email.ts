@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { DEMO_MODE } from '@/lib/demo-mode';
 
 let resend: Resend | null = null;
 
@@ -18,6 +19,10 @@ function escapeHtml(str: string): string {
 }
 
 export async function sendWelcomeEmail(name: string, email: string) {
+  if (DEMO_MODE) {
+    console.log(`[DEMO] Would send welcome email to ${email}`);
+    return { data: { id: 'demo-email-id' }, error: null };
+  }
   try {
     const result = await getResend().emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'noreply@example.com',
@@ -38,6 +43,10 @@ export async function sendWelcomeEmail(name: string, email: string) {
 }
 
 export async function sendPaymentFailedEmail(email: string) {
+  if (DEMO_MODE) {
+    console.log(`[DEMO] Would send payment failed email to ${email}`);
+    return { data: { id: 'demo-email-id' }, error: null };
+  }
   try {
     const result = await getResend().emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'noreply@example.com',
@@ -59,6 +68,10 @@ export async function sendPaymentFailedEmail(email: string) {
 }
 
 export async function sendSubscriptionCanceledEmail(email: string) {
+  if (DEMO_MODE) {
+    console.log(`[DEMO] Would send subscription canceled email to ${email}`);
+    return { data: { id: 'demo-email-id' }, error: null };
+  }
   try {
     const result = await getResend().emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'noreply@example.com',

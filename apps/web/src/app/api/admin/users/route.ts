@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { auth } from "@/lib/auth";
+import { DEMO_MODE } from "@/lib/demo-mode";
 
 // Better-Auth admin plugin adds listUsers/setRole at runtime.
 // Cast only the admin-specific methods since the base type doesn't include plugins.
@@ -17,6 +18,10 @@ type AdminApi = {
 type UserWithRole = { id: string; email: string; role?: string };
 
 export async function GET(request: NextRequest) {
+  if (DEMO_MODE) {
+    return NextResponse.json({ users: [] });
+  }
+
   try {
     if (!auth) {
       return NextResponse.json({ error: "Auth not configured" }, { status: 500 });
@@ -42,6 +47,10 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
+  if (DEMO_MODE) {
+    return NextResponse.json({ success: true });
+  }
+
   try {
     if (!auth) {
       return NextResponse.json({ error: "Auth not configured" }, { status: 500 });

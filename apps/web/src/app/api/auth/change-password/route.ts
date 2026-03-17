@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { auth } from "@/lib/auth";
+import { DEMO_MODE } from "@/lib/demo-mode";
 
 export async function POST(request: NextRequest) {
+  if (DEMO_MODE) {
+    return NextResponse.json({ success: true, message: "Password updated successfully" });
+  }
   try {
     const session = await auth.api.getSession({ headers: request.headers });
 

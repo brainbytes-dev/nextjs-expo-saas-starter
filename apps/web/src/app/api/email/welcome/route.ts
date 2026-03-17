@@ -3,10 +3,15 @@ import { sendWelcomeEmail } from '@/lib/email';
 import { auth } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rate-limit';
 import * as Sentry from '@sentry/nextjs';
+import { DEMO_MODE } from '@/lib/demo-mode';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: NextRequest) {
+  if (DEMO_MODE) {
+    return NextResponse.json({ success: true });
+  }
+
   try {
     // Require authenticated session
     const session = await auth.api.getSession({ headers: req.headers });

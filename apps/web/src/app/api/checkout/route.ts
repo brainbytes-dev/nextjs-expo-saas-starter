@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { auth } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 import * as Sentry from "@sentry/nextjs";
+import { DEMO_MODE } from "@/lib/demo-mode";
 
 // Lazy initialize Stripe client (only when needed)
 let stripeClient: Stripe | null = null;
@@ -26,6 +27,10 @@ function getStripe() {
  * }
  */
 export async function POST(request: NextRequest) {
+  if (DEMO_MODE) {
+    return NextResponse.json({ url: "/?demo=checkout-disabled" });
+  }
+
   try {
     const authSession = await auth.api.getSession({ headers: request.headers });
     const user = authSession?.user;
