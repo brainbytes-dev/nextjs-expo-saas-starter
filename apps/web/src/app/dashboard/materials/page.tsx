@@ -26,6 +26,7 @@ import {
   IconChevronDown,
   IconSelector,
   IconDownload,
+  IconUpload,
 } from "@tabler/icons-react"
 
 import { Button } from "@/components/ui/button"
@@ -617,6 +618,15 @@ export default function MaterialsPage() {
           <Button variant="outline" size="sm" onClick={handleExport}>
             <IconDownload className="size-4" />
             CSV
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => router.push("/dashboard/materials/import")}
+          >
+            <IconUpload className="size-4" />
+            Import
           </Button>
           <Button onClick={() => router.push("/dashboard/materials/new")}>
             <IconPlus className="size-4" />

@@ -246,6 +246,80 @@ const TRUST_SPECS = [
   ["UPTIME SLA",      "99.9 %"],
 ]
 
+/* ─── Cost Calculator ───────────────────────────────────────── */
+function CostCalculator() {
+  const [employees, setEmployees] = useState(5)
+  const [minutesPerDay, setMinutesPerDay] = useState(20)
+  const [hourlyRate, setHourlyRate] = useState(65)
+
+  // Annual cost: employees * minutesPerDay/60 * hourlyRate * 220 working days
+  const annualCost = Math.round(employees * (minutesPerDay / 60) * hourlyRate * 220)
+  const formattedCost = new Intl.NumberFormat("de-CH", { style: "currency", currency: "CHF", maximumFractionDigits: 0 }).format(annualCost)
+
+  const sliders = [
+    { label: "Mitarbeitende suchen täglich", value: employees, min: 1, max: 50, step: 1, unit: "Personen", onChange: (v: number) => setEmployees(v) },
+    { label: "Suchzeit pro Person täglich", value: minutesPerDay, min: 5, max: 120, step: 5, unit: "Minuten", onChange: (v: number) => setMinutesPerDay(v) },
+    { label: "Ø Stundenlohn", value: hourlyRate, min: 30, max: 150, step: 5, unit: "CHF/h", onChange: (v: number) => setHourlyRate(v) },
+  ]
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-8 space-y-8">
+      {/* Sliders */}
+      <div className="space-y-6">
+        {sliders.map(({ label, value, min, max, step, unit, onChange }) => (
+          <div key={label}>
+            <div className="flex items-center justify-between mb-2">
+              <label className="font-mono text-[11px] tracking-[0.1em] uppercase text-muted-foreground">{label}</label>
+              <span className="font-mono text-sm font-bold text-foreground">
+                {value} <span className="text-muted-foreground font-normal text-[11px]">{unit}</span>
+              </span>
+            </div>
+            <input
+              type="range"
+              min={min}
+              max={max}
+              step={step}
+              value={value}
+              onChange={e => onChange(Number(e.target.value))}
+              className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-primary"
+              style={{
+                background: `linear-gradient(to right, var(--primary) 0%, var(--primary) ${((value - min) / (max - min)) * 100}%, var(--border) ${((value - min) / (max - min)) * 100}%, var(--border) 100%)`
+              }}
+            />
+            <div className="flex justify-between mt-1">
+              <span className="font-mono text-[9px] text-muted-foreground/50">{min}</span>
+              <span className="font-mono text-[9px] text-muted-foreground/50">{max}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Result */}
+      <div className="rounded-lg border border-primary/20 bg-primary/5 p-6 text-center">
+        <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">
+          Dein jährlicher Verlust durch Suchzeiten
+        </p>
+        <div className="text-4xl font-bold text-primary font-mono">
+          {formattedCost}
+        </div>
+        <p className="font-mono text-[10px] text-muted-foreground mt-2">
+          {employees} Pers. × {minutesPerDay} Min/Tag × CHF {hourlyRate}/h × 220 Arbeitstage
+        </p>
+      </div>
+
+      {/* CTA */}
+      <div className="text-center">
+        <Link href="/signup">
+          <Button className="font-mono text-[11px] tracking-widest uppercase gap-2">
+            Jetzt kostenlos einsparen →
+          </Button>
+        </Link>
+        <p className="font-mono text-[10px] text-muted-foreground mt-2">14 Tage kostenlos · Keine Kreditkarte</p>
+      </div>
+    </div>
+  )
+}
+
 /* ─── Page ───────────────────────────────────────────────────── */
 export default function LandingPage() {
   const [navSolid, setNavSolid] = useState(false)
@@ -269,9 +343,10 @@ export default function LandingPage() {
           <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
             <Logo />
             <nav className="hidden md:flex items-center gap-8 font-mono text-[11px] tracking-[0.15em] uppercase text-muted-foreground">
-              <a href="#features" className="hover:text-foreground transition-colors">Funktionen</a>
-              <a href="#pricing"  className="hover:text-foreground transition-colors">Preise</a>
-              <a href="#trust"    className="hover:text-foreground transition-colors">Sicherheit</a>
+              <a href="#features"   className="hover:text-foreground transition-colors">Funktionen</a>
+              <a href="#calculator" className="hover:text-foreground transition-colors">Rechner</a>
+              <a href="#pricing"    className="hover:text-foreground transition-colors">Preise</a>
+              <a href="#trust"      className="hover:text-foreground transition-colors">Sicherheit</a>
             </nav>
             <div className="flex items-center gap-1.5">
               <ModeToggle />
@@ -554,6 +629,28 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* ══ CALCULATOR ══════════════════════════════════════════ */}
+        <section id="calculator" className="mx-auto w-full max-w-7xl px-6 py-24">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Left: Copy */}
+            <div>
+              <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-4">
+                // 02b — Versteckte Kosten
+              </div>
+              <h2 className="text-3xl lg:text-4xl font-bold mb-6 leading-tight">
+                Was kostet dich<br />dein <span className="text-primary">Chaos?</span>
+              </h2>
+              <p className="font-mono text-sm text-muted-foreground leading-relaxed max-w-md">
+                Verlorene Werkzeuge, Suchzeiten, Doppelbestellungen — diese Kosten erscheinen nie auf einer Rechnung.
+                Berechne deinen jährlichen Verlust.
+              </p>
+            </div>
+
+            {/* Right: Calculator */}
+            <CostCalculator />
           </div>
         </section>
 

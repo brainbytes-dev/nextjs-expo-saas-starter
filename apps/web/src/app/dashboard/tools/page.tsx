@@ -46,6 +46,7 @@ import {
   IconEdit,
   IconTrash,
   IconDownload,
+  IconUpload,
   IconChevronUp,
   IconChevronDown,
   IconSelector,
@@ -330,6 +331,15 @@ export default function ToolsPage() {
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" onClick={handleExportCsv} title="CSV exportieren">
             <IconDownload className="size-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => router.push("/dashboard/tools/import")}
+          >
+            <IconUpload className="size-4" />
+            Import
           </Button>
           <Button onClick={() => router.push("/dashboard/tools/new")}>
             <IconPlus className="size-4" />

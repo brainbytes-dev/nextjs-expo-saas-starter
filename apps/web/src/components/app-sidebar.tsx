@@ -16,6 +16,7 @@ import {
   IconKey,
   IconMapPin,
   IconPackage,
+  IconPlugConnected,
   IconSettings,
   IconShoppingCart,
   IconTool,
@@ -163,6 +164,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: t("settings"),
         url: "/dashboard/settings",
         icon: IconSettings,
+      },
+      {
+        title: t("integrations"),
+        url: "/dashboard/settings/integrations",
+        icon: IconPlugConnected,
       },
       {
         title: t("help"),

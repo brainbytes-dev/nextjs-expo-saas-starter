@@ -14,6 +14,7 @@ import {
   IconDeviceFloppy,
   IconExternalLink,
 } from "@tabler/icons-react"
+import { QrCodeDisplay } from "@/components/qr-code"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -512,6 +513,7 @@ export default function MaterialDetailPage() {
           <TabsTrigger value="locations">{t("tabs.locations")}</TabsTrigger>
           <TabsTrigger value="suppliers">{t("tabs.suppliers")}</TabsTrigger>
           <TabsTrigger value="tasks">{t("tabs.tasks")}</TabsTrigger>
+          <TabsTrigger value="qr">QR-Code</TabsTrigger>
         </TabsList>
 
         {/* ─── General Tab ─────────────────────────────────────────── */}
@@ -904,6 +906,24 @@ export default function MaterialDetailPage() {
               </Table>
             )}
           </Card>
+        </TabsContent>
+
+        {/* ─── QR-Code Tab ─────────────────────────────────────────── */}
+        <TabsContent value="qr">
+          <div className="flex flex-col items-center gap-6 py-8">
+            <p className="text-sm text-muted-foreground font-mono text-center max-w-sm">
+              Dieser QR-Code verlinkt direkt auf die Materialseite. Ausdrucken und am Lagerort anbringen.
+            </p>
+            <QrCodeDisplay
+              value={
+                typeof window !== "undefined"
+                  ? `${window.location.origin}/dashboard/materials/${material.id}`
+                  : `/dashboard/materials/${material.id}`
+              }
+              label={`${material.number ?? ""} · ${material.name}`}
+              size={200}
+            />
+          </div>
         </TabsContent>
       </Tabs>
 

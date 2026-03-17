@@ -46,6 +46,7 @@ import {
   IconClipboardCheck,
   IconAlertTriangle,
 } from "@tabler/icons-react"
+import { QrCodeDisplay } from "@/components/qr-code"
 
 // ── Types ──────────────────────────────────────────────────────────────
 type ToolCondition = "good" | "damaged" | "repair" | "decommissioned"
@@ -403,6 +404,7 @@ export default function ToolDetailPage() {
           <TabsTrigger value="bookings">{t("tabs.bookingHistory")}</TabsTrigger>
           <TabsTrigger value="tasks">{t("tabs.tasks")}</TabsTrigger>
           <TabsTrigger value="maintenance">Wartung</TabsTrigger>
+          <TabsTrigger value="qr">QR-Code</TabsTrigger>
         </TabsList>
 
         {/* ── General Tab ────────────────────────────────────────── */}
@@ -708,6 +710,24 @@ export default function ToolDetailPage() {
               </Table>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* ── QR-Code Tab ────────────────────────────────────────── */}
+        <TabsContent value="qr" className="mt-4">
+          <div className="flex flex-col items-center gap-6 py-8">
+            <p className="text-sm text-muted-foreground font-mono text-center max-w-sm">
+              QR-Code für schnelles Ein-/Auschecken. Am Werkzeug anbringen oder im Werkzeugkasten befestigen.
+            </p>
+            <QrCodeDisplay
+              value={
+                typeof window !== "undefined"
+                  ? `${window.location.origin}/dashboard/tools/${tool.id}`
+                  : `/dashboard/tools/${tool.id}`
+              }
+              label={`${tool.number ?? ""} · ${tool.name}`}
+              size={200}
+            />
+          </div>
         </TabsContent>
       </Tabs>
 
