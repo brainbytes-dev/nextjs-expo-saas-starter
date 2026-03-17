@@ -1,24 +1,32 @@
-import { NextRequest, NextResponse } from "next/server";
 import { DEMO_MODE } from "@/lib/demo-mode";
 
-function demoHandler() {
-  return NextResponse.json(
-    { error: "Auth API is disabled in demo mode" },
-    { status: 404 }
-  );
-}
+let handlers: {
+  GET: (req: Request) => Promise<Response>;
+  POST: (req: Request) => Promise<Response>;
+} | null = null;
 
-// In demo mode, return stubs so the auth backend (which needs DB) is never initialized.
-// In real mode, delegate to Better-Auth as usual.
-let handlers: { POST: (req: NextRequest) => unknown; GET: (req: NextRequest) => unknown };
-
-if (DEMO_MODE) {
-  handlers = { POST: demoHandler, GET: demoHandler };
-} else {
-  // Dynamic import to avoid pulling in DB dependencies in demo mode
+if (!DEMO_MODE) {
   const { auth } = await import("@/lib/auth");
   const { toNextJsHandler } = await import("better-auth/next-js");
   handlers = toNextJsHandler(auth);
 }
 
-export const { POST, GET } = handlers;
+export const GET = async (request: Request): Promise<Response> => {
+  if (!handlers) {
+    return Response.json(
+      { error: "Auth API is disabled in demo mode" },
+      { status: 404 }
+    );
+  }
+  return handlers.GET(request);
+};
+
+export const POST = async (request: Request): Promise<Response> => {
+  if (!handlers) {
+    return Response.json(
+      { error: "Auth API is disabled in demo mode" },
+      { status: 404 }
+    );
+  }
+  return handlers.POST(request);
+};
