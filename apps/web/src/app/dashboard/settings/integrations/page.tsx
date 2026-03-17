@@ -1,5 +1,8 @@
 import { Suspense } from "react"
 import { BexioCard } from "@/components/integrations/bexio-card"
+import { AbacusCard } from "@/components/integrations/abacus-card"
+import { VertecCard } from "@/components/integrations/vertec-card"
+import { ZebraCard } from "@/components/integrations/zebra-card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 
@@ -10,8 +13,6 @@ const CATEGORIES = [
     label: "Buchhaltung & ERP",
     desc: "Materialverbrauch direkt in Rechnungen und Offerten",
     integrations: [
-      { name: "Abacus",        desc: "Schweizer ERP — AbaSales, AbaProject, AbaBau", color: "#003087", short: "ab", badge: "Beliebt" },
-      { name: "Vertec",        desc: "Projekt- & Leistungserfassung für Servicebetriebe", color: "#E4312B", short: "vt" },
       { name: "SAP Business One", desc: "ERP für mittlere und grosse Unternehmen",     color: "#008FD3", short: "sap" },
       { name: "QuickBooks",    desc: "Buchhaltung für internationale KMU",              color: "#2CA01C", short: "qb" },
     ],
@@ -71,7 +72,6 @@ const CATEGORIES = [
     label: "Hardware & Scanner",
     desc: "Physische Etiketten und Scanner direkt einbinden",
     integrations: [
-      { name: "Zebra",         desc: "Industrieetiketten (ZPL) — Standard in Lagern & Spitälern", color: "#474747", short: "zb" },
       { name: "Brother",       desc: "Desktop-Etikettendrucker für kleine Lager",      color: "#003087", short: "br" },
       { name: "RFID / NFC",    desc: "Berührungsloses Tracking für grosse Bestände",    color: "#2D9CDB", short: "rf", badge: "Enterprise" },
     ],
@@ -162,6 +162,11 @@ export default function IntegrationsPage() {
           <Suspense fallback={<BexioCardSkeleton />}>
             <BexioCard />
           </Suspense>
+          <Suspense fallback={<BexioCardSkeleton />}>
+            <AbacusCard />
+          </Suspense>
+          <VertecCard />
+          <ZebraCard />
         </div>
       </section>
 

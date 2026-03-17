@@ -15,6 +15,7 @@ import {
   IconExternalLink,
 } from "@tabler/icons-react"
 import { QrCodeDisplay } from "@/components/qr-code"
+import { ZebraLabelButton } from "@/components/zebra-label-button"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -922,6 +923,14 @@ export default function MaterialDetailPage() {
               }
               label={`${material.number ?? ""} · ${material.name}`}
               size={200}
+            />
+            <ZebraLabelButton
+              data={{
+                name: material.name,
+                number: material.number,
+                qrValue: typeof window !== "undefined" ? `${window.location.origin}/dashboard/materials/${material.id}` : `/dashboard/materials/${material.id}`,
+                location: material.mainLocation?.name,
+              }}
             />
           </div>
         </TabsContent>

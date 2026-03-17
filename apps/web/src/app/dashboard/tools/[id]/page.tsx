@@ -47,6 +47,7 @@ import {
   IconAlertTriangle,
 } from "@tabler/icons-react"
 import { QrCodeDisplay } from "@/components/qr-code"
+import { ZebraLabelButton } from "@/components/zebra-label-button"
 
 // ── Types ──────────────────────────────────────────────────────────────
 type ToolCondition = "good" | "damaged" | "repair" | "decommissioned"
@@ -726,6 +727,14 @@ export default function ToolDetailPage() {
               }
               label={`${tool.number ?? ""} · ${tool.name}`}
               size={200}
+            />
+            <ZebraLabelButton
+              data={{
+                name: tool.name,
+                number: tool.number,
+                qrValue: typeof window !== "undefined" ? `${window.location.origin}/dashboard/tools/${tool.id}` : `/dashboard/tools/${tool.id}`,
+                extra: tool.condition,
+              }}
             />
           </div>
         </TabsContent>
