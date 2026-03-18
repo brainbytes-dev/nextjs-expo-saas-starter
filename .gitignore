@@ -31,3 +31,5 @@ Thumbs.db
 *.tsbuildinfo
 .claude/worktrees/
 templates-mobile/
+apps/docs/.next/
+apps/docs/node_modules/

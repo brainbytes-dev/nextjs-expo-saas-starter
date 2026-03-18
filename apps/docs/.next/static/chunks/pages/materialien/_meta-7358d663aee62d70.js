@@ -1,1 +1,0 @@
-(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[1236],{2722:(_,e,n)=>{(window.__NEXT_P=window.__NEXT_P||[]).push(["/materialien/_meta",function(){return n(3905)}])},3905:(_,e,n)=>{"use strict";n.r(e),n.d(e,{__N_SSG:()=>u,default:()=>t});var u=!0;let t=()=>null}},_=>{_.O(0,[636,6593,8792],()=>_(_.s=2722)),_N_E=_.O()}]);
