@@ -1,7 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
-import {
-  useColorScheme as useNativeWindColorScheme,
-} from "nativewind";
+import { useCallback, useEffect, useState } from "react";
+import { useColorScheme as useNativeWindColorScheme } from "nativewind";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { COLORS } from "@/theme/colors";
 
@@ -9,80 +7,72 @@ export type ThemePreference = "system" | "light" | "dark";
 
 const STORAGE_KEY = "theme_preference";
 
-let currentPreference: ThemePreference = "system";
+// Module-level state so loadThemePreference can run before hooks mount
+let storedPreference: ThemePreference = "system";
 let loaded = false;
 
-type ThemeListener = (pref: ThemePreference) => void;
-const listeners = new Set<ThemeListener>();
-
-function notify() {
-  for (const listener of listeners) {
-    listener(currentPreference);
-  }
-}
+type Listener = () => void;
+const listeners = new Set<Listener>();
 
 /**
- * Hydrate theme preference from AsyncStorage.
- * Call once at app startup in root _layout.tsx.
+ * Call once at app startup. Reads the persisted preference so the hook
+ * can apply it on first mount.
  */
-export async function loadThemePreference(): Promise<ThemePreference> {
-  if (loaded) return currentPreference;
+export async function loadThemePreference(): Promise<void> {
+  if (loaded) return;
   try {
-    const stored = await AsyncStorage.getItem(STORAGE_KEY);
-    if (stored === "light" || stored === "dark" || stored === "system") {
-      currentPreference = stored;
+    const val = await AsyncStorage.getItem(STORAGE_KEY);
+    if (val === "light" || val === "dark" || val === "system") {
+      storedPreference = val;
     }
   } catch {}
   loaded = true;
-  notify();
-  return currentPreference;
+  for (const l of listeners) l();
 }
 
 /**
- * Persist a new theme preference. The actual NativeWind toggle
- * happens inside the useColorScheme() hook via nativewind's setColorScheme.
- */
-export async function setThemePreference(pref: ThemePreference): Promise<void> {
-  currentPreference = pref;
-  notify();
-  try {
-    await AsyncStorage.setItem(STORAGE_KEY, pref);
-  } catch {}
-}
-
-/**
- * React hook — wraps nativewind's useColorScheme with persistence.
+ * React hook — wraps NativeWind's useColorScheme with persistence.
  */
 export function useColorScheme() {
   const nw = useNativeWindColorScheme();
-  const [themePreference, setLocal] = useState<ThemePreference>(currentPreference);
+  const [themePreference, setThemePref] = useState<ThemePreference>(storedPreference);
+  const [applied, setApplied] = useState(false);
 
+  // When stored preference loads, apply to NativeWind once
   useEffect(() => {
-    const listener: ThemeListener = (pref) => setLocal(pref);
-    listeners.add(listener);
-    if (!loaded) loadThemePreference();
-    return () => { listeners.delete(listener); };
-  }, []);
-
-  // Apply NativeWind color scheme whenever preference changes
-  useEffect(() => {
-    if (themePreference === "system") {
-      nw.setColorScheme("system");
-    } else {
-      nw.setColorScheme(themePreference);
+    function applyStored() {
+      setThemePref(storedPreference);
+      nw.setColorScheme(storedPreference);
+      setApplied(true);
     }
-  }, [themePreference]);
 
-  const colorScheme = nw.colorScheme ?? "light";
-
-  const setColorScheme = useCallback(async (pref: ThemePreference) => {
-    await setThemePreference(pref);
+    if (loaded) {
+      applyStored();
+    } else {
+      const listener = () => applyStored();
+      listeners.add(listener);
+      return () => { listeners.delete(listener); };
+    }
   }, []);
+
+  const effectiveScheme = nw.colorScheme === "dark" ? "dark" : "light";
+
+  const setColorScheme = useCallback(
+    async (pref: ThemePreference) => {
+      storedPreference = pref;
+      setThemePref(pref);
+      nw.setColorScheme(pref);
+      try {
+        await AsyncStorage.setItem(STORAGE_KEY, pref);
+      } catch {}
+    },
+    [nw.setColorScheme]
+  );
 
   return {
-    colorScheme,
-    isDarkColorScheme: colorScheme === "dark",
-    colors: COLORS[colorScheme],
+    colorScheme: effectiveScheme,
+    isDarkColorScheme: effectiveScheme === "dark",
+    colors: COLORS[effectiveScheme],
     themePreference,
     setColorScheme,
   };
