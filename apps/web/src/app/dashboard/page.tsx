@@ -203,12 +203,11 @@ export default function DashboardPage() {
   const t = useTranslations("dashboard")
   const { data: session } = useSession()
   const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [chartData, setChartData] = useState<ChartDataPoint[]>(placeholderChartData)
-  const [activity, setActivity] = useState<RecentActivity[]>(placeholderActivity)
+  const [chartData] = useState<ChartDataPoint[]>(placeholderChartData)
+  const [activity] = useState<RecentActivity[]>(placeholderActivity)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    setLoading(true)
     fetch("/api/dashboard/stats")
       .then((r) => r.json())
       .then((data: DashboardStats) => {

@@ -13,7 +13,6 @@ import {
 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 
 // ── Types ──────────────────────────────────────────────────────────────
 type EventType = "toolBooking" | "task" | "order" | "commission"

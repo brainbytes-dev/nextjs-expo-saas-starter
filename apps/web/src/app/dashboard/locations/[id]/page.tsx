@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 import {
   IconArrowLeft,
@@ -185,9 +185,7 @@ export default function LocationDetailPage() {
   const t = useTranslations("locations")
   const tCommon = useTranslations("common")
   const router = useRouter()
-  const params = useParams()
-
-  // In production, fetch location by params.id
+  // In production, fetch location by useParams().id
   const location = MOCK_LOCATION
   const stocks = MOCK_STOCKS
   const tools = MOCK_TOOLS

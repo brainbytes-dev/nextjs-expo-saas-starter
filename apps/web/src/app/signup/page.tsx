@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { Logo } from "@/components/logo"
 import { SignupForm } from "@/components/signup-form"
 
@@ -18,11 +19,11 @@ export default function SignupPage() {
         {/* Secondary glow */}
         <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full opacity-[0.06] blur-3xl pointer-events-none bg-secondary" />
 
-        <a href="/"><Logo iconSize={28} /></a>
+        <Link href="/"><Logo iconSize={28} /></Link>
 
         <div className="relative z-10 max-w-sm">
           <div className="font-mono text-[10px] tracking-[0.2em] uppercase mb-4 text-muted-foreground">
-            // Kostenlos starten
+            {`// Kostenlos starten`}
           </div>
           <h2 className="text-3xl font-bold leading-tight mb-5 text-foreground">
             In 5 Minuten<br />einsatzbereit.
@@ -53,7 +54,7 @@ export default function SignupPage() {
       {/* Right: Form */}
       <div className="flex flex-col p-8 md:p-12">
         <div className="flex justify-between items-center lg:hidden mb-8">
-          <a href="/"><Logo iconSize={24} /></a>
+          <Link href="/"><Logo iconSize={24} /></Link>
         </div>
 
         <div className="flex flex-1 items-center justify-center">

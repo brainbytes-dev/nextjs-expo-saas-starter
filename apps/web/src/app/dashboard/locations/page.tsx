@@ -314,6 +314,20 @@ export default function LocationsPage() {
 }
 
 // ─── Table View ──────────────────────────────────────────────────────
+function LocationSortableHead({ label, sk, className, onSort, sortKey, sortDir }: { label: string; sk: LocationSortKey; className?: string; onSort: (key: LocationSortKey) => void; sortKey: LocationSortKey | null; sortDir: "asc" | "desc" }) {
+  return (
+    <TableHead
+      className={`cursor-pointer select-none ${className ?? ""}`}
+      onClick={() => onSort(sk)}
+    >
+      <span className="inline-flex items-center">
+        {label}
+        <SortIcon active={sortKey === sk} dir={sortDir} />
+      </span>
+    </TableHead>
+  )
+}
+
 function LocationTable({
   locations,
   t,
@@ -329,30 +343,17 @@ function LocationTable({
   sortDir: "asc" | "desc"
   onSort: (key: LocationSortKey) => void
 }) {
-  function SortableHead({ label, sk, className }: { label: string; sk: LocationSortKey; className?: string }) {
-    return (
-      <TableHead
-        className={`cursor-pointer select-none ${className ?? ""}`}
-        onClick={() => onSort(sk)}
-      >
-        <span className="inline-flex items-center">
-          {label}
-          <SortIcon active={sortKey === sk} dir={sortDir} />
-        </span>
-      </TableHead>
-    )
-  }
 
   return (
     <div className="rounded-lg border">
       <Table>
         <TableHeader>
           <TableRow>
-            <SortableHead label={t("name")} sk="name" />
-            <SortableHead label={t("type")} sk="type" />
-            <SortableHead label={t("category")} sk="category" />
-            <SortableHead label={t("materialCount")} sk="materialCount" className="text-right" />
-            <SortableHead label={t("toolCount")} sk="toolCount" className="text-right" />
+            <LocationSortableHead label={t("name")} sk="name" onSort={onSort} sortKey={sortKey} sortDir={sortDir} />
+            <LocationSortableHead label={t("type")} sk="type" onSort={onSort} sortKey={sortKey} sortDir={sortDir} />
+            <LocationSortableHead label={t("category")} sk="category" onSort={onSort} sortKey={sortKey} sortDir={sortDir} />
+            <LocationSortableHead label={t("materialCount")} sk="materialCount" className="text-right" onSort={onSort} sortKey={sortKey} sortDir={sortDir} />
+            <LocationSortableHead label={t("toolCount")} sk="toolCount" className="text-right" onSort={onSort} sortKey={sortKey} sortDir={sortDir} />
             <TableHead className="text-right">{t("keyCount")}</TableHead>
           </TableRow>
         </TableHeader>

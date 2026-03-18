@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
@@ -343,10 +344,13 @@ export default function MaterialsPage() {
           return (
             <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-md border bg-muted">
               {src ? (
-                <img
+                <Image
                   src={src}
                   alt={row.original.name}
+                  width={40}
+                  height={40}
                   className="h-full w-full object-cover"
+                  unoptimized
                 />
               ) : (
                 <IconPhoto className="size-4 text-muted-foreground" />

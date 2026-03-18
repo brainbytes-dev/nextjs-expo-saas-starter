@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo } from "react"
 import { useTranslations } from "next-intl"
 import {
   IconSearch,
@@ -57,6 +57,11 @@ type SortKey = keyof OrderItem | null
 
 const PAGE_SIZE = 25
 
+function SortIcon({ sortKey, sortDir, col }: { sortKey: SortKey; sortDir: "asc" | "desc"; col: SortKey }) {
+  if (sortKey !== col) return null
+  return sortDir === "asc" ? <IconChevronUp className="size-3 ml-1 inline" /> : <IconChevronDown className="size-3 ml-1 inline" />
+}
+
 function downloadCsv(headers: string[], rows: (string | number | null | undefined)[][], filename: string) {
   const lines = [
     headers.join(";"),
@@ -78,8 +83,6 @@ export default function HistoryOrderItemsPage() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc")
   const [page, setPage] = useState(1)
   const [loading] = useState(false)
-
-  useEffect(() => setPage(1), [search, supplierFilter, dateFrom, dateTo, sortKey])
 
   const suppliers = useMemo(() => [...new Set(MOCK.map(i => i.supplierName))], [])
 
@@ -107,11 +110,7 @@ export default function HistoryOrderItemsPage() {
   function toggleSort(key: SortKey) {
     if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc")
     else { setSortKey(key); setSortDir("asc") }
-  }
-
-  function SortIcon({ col }: { col: SortKey }) {
-    if (sortKey !== col) return null
-    return sortDir === "asc" ? <IconChevronUp className="size-3 ml-1 inline" /> : <IconChevronDown className="size-3 ml-1 inline" />
+    setPage(1)
   }
 
   function handleExport() {
@@ -136,9 +135,9 @@ export default function HistoryOrderItemsPage() {
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 max-w-sm">
           <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input placeholder="Suchen…" value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Suchen…" value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} className="pl-9" />
         </div>
-        <Select value={supplierFilter} onValueChange={setSupplierFilter}>
+        <Select value={supplierFilter} onValueChange={v => { setSupplierFilter(v); setPage(1) }}>
           <SelectTrigger className="w-48">
             <SelectValue />
           </SelectTrigger>
@@ -152,7 +151,7 @@ export default function HistoryOrderItemsPage() {
           <input
             type="date"
             value={dateFrom}
-            onChange={e => setDateFrom(e.target.value)}
+            onChange={e => { setDateFrom(e.target.value); setPage(1) }}
             className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm font-mono"
           />
         </div>
@@ -161,7 +160,7 @@ export default function HistoryOrderItemsPage() {
           <input
             type="date"
             value={dateTo}
-            onChange={e => setDateTo(e.target.value)}
+            onChange={e => { setDateTo(e.target.value); setPage(1) }}
             className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm font-mono"
           />
         </div>
@@ -176,25 +175,25 @@ export default function HistoryOrderItemsPage() {
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-b border-border">
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[130px] cursor-pointer select-none" onClick={() => toggleSort("orderNumber")}>
-                    {t("orderNumber")}<SortIcon col="orderNumber" />
+                    {t("orderNumber")}<SortIcon sortKey={sortKey} sortDir={sortDir} col="orderNumber" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[100px] cursor-pointer select-none" onClick={() => toggleSort("orderDate")}>
-                    {t("date")}<SortIcon col="orderDate" />
+                    {t("date")}<SortIcon sortKey={sortKey} sortDir={sortDir} col="orderDate" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer select-none" onClick={() => toggleSort("materialName")}>
-                    {t("item")}<SortIcon col="materialName" />
+                    {t("item")}<SortIcon sortKey={sortKey} sortDir={sortDir} col="materialName" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[140px] cursor-pointer select-none" onClick={() => toggleSort("supplierName")}>
-                    {t("supplier")}<SortIcon col="supplierName" />
+                    {t("supplier")}<SortIcon sortKey={sortKey} sortDir={sortDir} col="supplierName" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[90px] text-right cursor-pointer select-none" onClick={() => toggleSort("orderedQty")}>
-                    Bestellt<SortIcon col="orderedQty" />
+                    Bestellt<SortIcon sortKey={sortKey} sortDir={sortDir} col="orderedQty" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[90px] text-right cursor-pointer select-none" onClick={() => toggleSort("deliveredQty")}>
-                    Geliefert<SortIcon col="deliveredQty" />
+                    Geliefert<SortIcon sortKey={sortKey} sortDir={sortDir} col="deliveredQty" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[100px] text-right cursor-pointer select-none" onClick={() => toggleSort("price")}>
-                    Preis/Stk<SortIcon col="price" />
+                    Preis/Stk<SortIcon sortKey={sortKey} sortDir={sortDir} col="price" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[100px] text-right">Total</TableHead>
                   <TableHead className="w-[60px] text-center">OK</TableHead>

@@ -11,10 +11,12 @@ interface QrScannerProps {
 
 export function QrScanner({ onScan, onClose }: QrScannerProps) {
   const [error, setError] = useState<string>("")
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const scannerRef = useRef<any>(null)
   const divId = "qr-reader"
 
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let scanner: any = null
 
     async function startScanner() {
@@ -30,7 +32,7 @@ export function QrScanner({ onScan, onClose }: QrScannerProps) {
           scanner.clear().catch(() => {})
           onScan(decoded)
         },
-        (_err: string) => {
+        () => {
           // Ignore frequent scan errors (normal for no QR in frame)
         }
       )

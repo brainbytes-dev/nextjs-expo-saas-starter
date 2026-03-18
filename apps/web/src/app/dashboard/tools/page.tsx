@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
@@ -217,6 +218,20 @@ function SortIcon({ active, dir }: { active: boolean; dir: "asc" | "desc" }) {
     : <IconChevronDown className="ml-1 size-3.5" />
 }
 
+function ToolSortableHead({ label, sortKeyValue, className, onSort, sortKey, sortDir }: { label: string; sortKeyValue: SortKey; className?: string; onSort: (key: SortKey) => void; sortKey: SortKey | null; sortDir: "asc" | "desc" }) {
+  return (
+    <TableHead
+      className={`cursor-pointer select-none ${className ?? ""}`}
+      onClick={() => onSort(sortKeyValue)}
+    >
+      <span className="inline-flex items-center">
+        {label}
+        <SortIcon active={sortKey === sortKeyValue} dir={sortDir} />
+      </span>
+    </TableHead>
+  )
+}
+
 // ── Component ──────────────────────────────────────────────────────────
 export default function ToolsPage() {
   const t = useTranslations("tools")
@@ -302,20 +317,6 @@ export default function ToolsPage() {
       tool.nextMaintenance,
     ])
     downloadCsv(headers, rows, "werkzeuge.csv")
-  }
-
-  function SortableHead({ label, sortKeyValue, className }: { label: string; sortKeyValue: SortKey; className?: string }) {
-    return (
-      <TableHead
-        className={`cursor-pointer select-none ${className ?? ""}`}
-        onClick={() => handleSort(sortKeyValue)}
-      >
-        <span className="inline-flex items-center">
-          {label}
-          <SortIcon active={sortKey === sortKeyValue} dir={sortDir} />
-        </span>
-      </TableHead>
-    )
   }
 
   return (
@@ -429,14 +430,14 @@ export default function ToolsPage() {
                 <TableRow>
                   <TableHead className="w-[50px]">{t("tabs.general") === "Allgemeine Daten" ? "Bild" : "Bild"}</TableHead>
                   <TableHead>{t("number")}</TableHead>
-                  <SortableHead label={t("name")} sortKeyValue="name" />
-                  <SortableHead label={t("group")} sortKeyValue="group" />
-                  <SortableHead label={t("home")} sortKeyValue="homeLocation" />
-                  <SortableHead label={t("assignedTo")} sortKeyValue="assignedTo" />
+                  <ToolSortableHead label={t("name")} sortKeyValue="name" onSort={handleSort} sortKey={sortKey} sortDir={sortDir} />
+                  <ToolSortableHead label={t("group")} sortKeyValue="group" onSort={handleSort} sortKey={sortKey} sortDir={sortDir} />
+                  <ToolSortableHead label={t("home")} sortKeyValue="homeLocation" onSort={handleSort} sortKey={sortKey} sortDir={sortDir} />
+                  <ToolSortableHead label={t("assignedTo")} sortKeyValue="assignedTo" onSort={handleSort} sortKey={sortKey} sortDir={sortDir} />
                   <TableHead className="text-center">{t("isHome")}</TableHead>
-                  <SortableHead label={t("condition")} sortKeyValue="condition" />
+                  <ToolSortableHead label={t("condition")} sortKeyValue="condition" onSort={handleSort} sortKey={sortKey} sortDir={sortDir} />
                   <TableHead>{t("lastMaintenance")}</TableHead>
-                  <SortableHead label={t("maintenanceDue")} sortKeyValue="nextMaintenance" />
+                  <ToolSortableHead label={t("maintenanceDue")} sortKeyValue="nextMaintenance" onSort={handleSort} sortKey={sortKey} sortDir={sortDir} />
                   <TableHead className="w-[50px]">{tc("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -453,10 +454,13 @@ export default function ToolsPage() {
                       <TableCell>
                         <div className="bg-muted flex size-10 items-center justify-center rounded-md">
                           {tool.image ? (
-                            <img
+                            <Image
                               src={tool.image}
                               alt={tool.name}
+                              width={40}
+                              height={40}
                               className="size-10 rounded-md object-cover"
+                              unoptimized
                             />
                           ) : (
                             <IconTool className="text-muted-foreground size-5" />

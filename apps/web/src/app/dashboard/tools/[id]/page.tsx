@@ -1,7 +1,8 @@
 "use client"
 
+import Image from "next/image"
 import { useState } from "react"
-import { useRouter, useParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -38,8 +39,6 @@ import {
   IconTool,
   IconLogin,
   IconLogout,
-  IconCheck,
-  IconX,
   IconCalendar,
   IconUser,
   IconMapPin,
@@ -283,12 +282,10 @@ export default function ToolDetailPage() {
   const t = useTranslations("tools")
   const tc = useTranslations("common")
   const router = useRouter()
-  const params = useParams()
-
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [checkinOpen, setCheckinOpen] = useState(false)
 
-  // In production this would fetch from API using params.id
+  // In production this would fetch from API using useParams().id
   const tool = MOCK_TOOL
   const cond = conditionConfig[tool.condition]
   const isMaintenanceOverdue =
@@ -329,10 +326,13 @@ export default function ToolDetailPage() {
             <div className="flex items-center gap-6">
               <div className="bg-muted flex size-16 items-center justify-center rounded-xl">
                 {tool.image ? (
-                  <img
+                  <Image
                     src={tool.image}
                     alt={tool.name}
+                    width={64}
+                    height={64}
                     className="size-16 rounded-xl object-cover"
+                    unoptimized
                   />
                 ) : (
                   <IconTool className="text-muted-foreground size-8" />

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo } from "react"
 import { useTranslations } from "next-intl"
 import {
   IconSearch,
@@ -73,6 +73,11 @@ type SortKey = keyof ToolBooking | null
 
 const PAGE_SIZE = 25
 
+function SortIcon({ sortKey, sortDir, col }: { sortKey: SortKey; sortDir: "asc" | "desc"; col: SortKey }) {
+  if (sortKey !== col) return null
+  return sortDir === "asc" ? <IconChevronUp className="size-3 ml-1 inline" /> : <IconChevronDown className="size-3 ml-1 inline" />
+}
+
 function downloadCsv(headers: string[], rows: (string | number | null | undefined)[][], filename: string) {
   const lines = [
     headers.join(";"),
@@ -94,8 +99,6 @@ export default function HistoryToolBookingsPage() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc")
   const [page, setPage] = useState(1)
   const [loading] = useState(false)
-
-  useEffect(() => setPage(1), [search, statusFilter, dateFrom, dateTo, sortKey])
 
   const filtered = useMemo(() => MOCK.filter(b => {
     const ms = !search || b.toolName.toLowerCase().includes(search.toLowerCase()) || b.assignedTo.toLowerCase().includes(search.toLowerCase())
@@ -121,11 +124,7 @@ export default function HistoryToolBookingsPage() {
   function toggleSort(key: SortKey) {
     if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc")
     else { setSortKey(key); setSortDir("asc") }
-  }
-
-  function SortIcon({ col }: { col: SortKey }) {
-    if (sortKey !== col) return null
-    return sortDir === "asc" ? <IconChevronUp className="size-3 ml-1 inline" /> : <IconChevronDown className="size-3 ml-1 inline" />
+    setPage(1)
   }
 
   function handleExport() {
@@ -150,9 +149,9 @@ export default function HistoryToolBookingsPage() {
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 max-w-sm">
           <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input placeholder="Werkzeug oder Person…" value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Werkzeug oder Person…" value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} className="pl-9" />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={v => { setStatusFilter(v); setPage(1) }}>
           <SelectTrigger className="w-44">
             <SelectValue />
           </SelectTrigger>
@@ -168,7 +167,7 @@ export default function HistoryToolBookingsPage() {
           <input
             type="date"
             value={dateFrom}
-            onChange={e => setDateFrom(e.target.value)}
+            onChange={e => { setDateFrom(e.target.value); setPage(1) }}
             className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm font-mono"
           />
         </div>
@@ -177,7 +176,7 @@ export default function HistoryToolBookingsPage() {
           <input
             type="date"
             value={dateTo}
-            onChange={e => setDateTo(e.target.value)}
+            onChange={e => { setDateTo(e.target.value); setPage(1) }}
             className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm font-mono"
           />
         </div>
@@ -192,25 +191,25 @@ export default function HistoryToolBookingsPage() {
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-b border-border">
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer select-none" onClick={() => toggleSort("toolName")}>
-                    Werkzeug<SortIcon col="toolName" />
+                    Werkzeug<SortIcon sortKey={sortKey} sortDir={sortDir} col="toolName" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[120px] cursor-pointer select-none" onClick={() => toggleSort("status")}>
-                    Status<SortIcon col="status" />
+                    Status<SortIcon sortKey={sortKey} sortDir={sortDir} col="status" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[130px] cursor-pointer select-none" onClick={() => toggleSort("assignedTo")}>
-                    {t("assignedTo")}<SortIcon col="assignedTo" />
+                    {t("assignedTo")}<SortIcon sortKey={sortKey} sortDir={sortDir} col="assignedTo" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[160px] cursor-pointer select-none" onClick={() => toggleSort("location")}>
-                    Standort<SortIcon col="location" />
+                    Standort<SortIcon sortKey={sortKey} sortDir={sortDir} col="location" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[110px] cursor-pointer select-none" onClick={() => toggleSort("checkOutDate")}>
-                    Ausgecheckt<SortIcon col="checkOutDate" />
+                    Ausgecheckt<SortIcon sortKey={sortKey} sortDir={sortDir} col="checkOutDate" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[110px] cursor-pointer select-none" onClick={() => toggleSort("returnedDate")}>
-                    {t("returnedAt")}<SortIcon col="returnedDate" />
+                    {t("returnedAt")}<SortIcon sortKey={sortKey} sortDir={sortDir} col="returnedDate" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[80px] text-right cursor-pointer select-none" onClick={() => toggleSort("daysOut")}>
-                    Tage<SortIcon col="daysOut" />
+                    Tage<SortIcon sortKey={sortKey} sortDir={sortDir} col="daysOut" />
                   </TableHead>
                 </TableRow>
               </TableHeader>

@@ -1,13 +1,12 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import {
   IconSearch, IconPackage, IconTool, IconMapPin,
   IconPlus, IconHistory, IconSettings, IconLayoutDashboard,
-  IconChevronRight, IconBuildingWarehouse, IconUsers,
-  IconTag, IconTruckDelivery,
+  IconChevronRight,
 } from "@tabler/icons-react"
 
 // Static navigation items
@@ -45,12 +44,13 @@ export function CommandPalette() {
   }, [])
 
   // Reset query when closing
-  useEffect(() => {
-    if (!open) {
+  function handleOpenChange(val: boolean) {
+    if (!val) {
       setQuery("")
       setSelectedIdx(0)
     }
-  }, [open])
+    setOpen(val)
+  }
 
   // Filter items
   const filtered = query.trim() === ""
@@ -85,8 +85,6 @@ export function CommandPalette() {
     return () => window.removeEventListener("keydown", handler)
   }, [open, filtered, selectedIdx, router])
 
-  // Reset selection when query changes
-  useEffect(() => setSelectedIdx(0), [query])
 
   // Group items preserving order
   const groups = filtered.reduce<Record<string, typeof NAV_ITEMS>>((acc, item) => {
@@ -107,7 +105,7 @@ export function CommandPalette() {
   })
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton={false}
         className="p-0 gap-0 max-w-[520px] overflow-hidden border-border/60 shadow-2xl"
@@ -119,7 +117,7 @@ export function CommandPalette() {
           <input
             autoFocus
             value={query}
-            onChange={e => setQuery(e.target.value)}
+            onChange={e => { setQuery(e.target.value); setSelectedIdx(0) }}
             placeholder="Suchen oder navigieren…"
             className="flex-1 py-[14px] text-sm bg-transparent outline-none placeholder:text-muted-foreground/50 font-mono tracking-tight"
           />
@@ -134,7 +132,7 @@ export function CommandPalette() {
             <div className="py-12 text-center">
               <p className="text-sm font-mono text-muted-foreground/50">
                 Keine Ergebnisse für{" "}
-                <span className="text-muted-foreground">"{query}"</span>
+                <span className="text-muted-foreground">&ldquo;{query}&rdquo;</span>
               </p>
             </div>
           ) : (

@@ -74,8 +74,8 @@ export function ZebraLabelButton({ data, variant = "outline", size = "sm", class
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="small">Klein — 50×25 mm (2"×1")</SelectItem>
-                  <SelectItem value="large">Gross — 100×50 mm (4"×2")</SelectItem>
+                  <SelectItem value="small">Klein — 50×25 mm (2&quot;×1&quot;)</SelectItem>
+                  <SelectItem value="large">Gross — 100×50 mm (4&quot;×2&quot;)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

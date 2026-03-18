@@ -120,6 +120,20 @@ function SortIcon({ active, dir }: { active: boolean; dir: "asc" | "desc" }) {
     : <IconChevronDown className="ml-1 size-3.5" />
 }
 
+function SupplierSortableHead({ label, sk, className, onSort, sortKey, sortDir }: { label: string; sk: SupplierSortKey; className?: string; onSort: (key: SupplierSortKey) => void; sortKey: SupplierSortKey | null; sortDir: "asc" | "desc" }) {
+  return (
+    <TableHead
+      className={`text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer select-none ${className ?? ""}`}
+      onClick={() => onSort(sk)}
+    >
+      <span className="inline-flex items-center">
+        {label}
+        <SortIcon active={sortKey === sk} dir={sortDir} />
+      </span>
+    </TableHead>
+  )
+}
+
 // ── Page ───────────────────────────────────────────────────────────────
 export default function SuppliersPage() {
   const t = useTranslations("suppliers")
@@ -231,20 +245,6 @@ export default function SuppliersPage() {
     downloadCsv(headers, rows, "lieferanten.csv")
   }
 
-  function SortableHead({ label, sk, className }: { label: string; sk: SupplierSortKey; className?: string }) {
-    return (
-      <TableHead
-        className={`text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer select-none ${className ?? ""}`}
-        onClick={() => handleSort(sk)}
-      >
-        <span className="inline-flex items-center">
-          {label}
-          <SortIcon active={sortKey === sk} dir={sortDir} />
-        </span>
-      </TableHead>
-    )
-  }
-
   return (
     <div className="flex flex-col gap-6 p-6">
       {/* Header */}
@@ -319,10 +319,10 @@ export default function SuppliersPage() {
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-b border-border">
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[32px]" />
-                  <SortableHead label={t("materialName")} sk="materialName" />
-                  <SortableHead label={t("supplier")} sk="supplierName" className="w-[120px]" />
-                  <SortableHead label={t("articleNumber")} sk="articleNumber" className="w-[140px]" />
-                  <SortableHead label={t("purchasePrice")} sk="purchasePrice" className="w-[120px] text-right" />
+                  <SupplierSortableHead label={t("materialName")} sk="materialName" onSort={handleSort} sortKey={sortKey} sortDir={sortDir} />
+                  <SupplierSortableHead label={t("supplier")} sk="supplierName" className="w-[120px]" onSort={handleSort} sortKey={sortKey} sortDir={sortDir} />
+                  <SupplierSortableHead label={t("articleNumber")} sk="articleNumber" className="w-[140px]" onSort={handleSort} sortKey={sortKey} sortDir={sortDir} />
+                  <SupplierSortableHead label={t("purchasePrice")} sk="purchasePrice" className="w-[120px] text-right" onSort={handleSort} sortKey={sortKey} sortDir={sortDir} />
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[100px]">{t("priceDate")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[80px] text-right">{t("quantityPerOrder")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[80px]">{t("orderUnit")}</TableHead>

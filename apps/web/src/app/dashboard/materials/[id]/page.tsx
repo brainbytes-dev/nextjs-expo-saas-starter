@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useState, useEffect, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
@@ -21,7 +22,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -382,10 +383,13 @@ export default function MaterialDetailPage() {
           </Button>
           <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border bg-muted">
             {material.image ? (
-              <img
+              <Image
                 src={material.image}
                 alt={material.name}
+                width={48}
+                height={48}
                 className="h-full w-full object-cover"
+                unoptimized
               />
             ) : (
               <IconPhoto className="size-5 text-muted-foreground" />

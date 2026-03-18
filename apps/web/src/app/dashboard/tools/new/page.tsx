@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
@@ -208,10 +209,13 @@ export default function NewToolPage() {
                   className="bg-muted hover:bg-muted/80 flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors"
                 >
                   {imagePreview ? (
-                    <img
+                    <Image
                       src={imagePreview}
                       alt="Vorschau"
+                      width={200}
+                      height={192}
                       className="mb-2 max-h-48 rounded-md object-contain"
+                      unoptimized
                     />
                   ) : (
                     <>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo } from "react"
 import { useTranslations } from "next-intl"
 import {
   IconSearch,
@@ -49,6 +49,11 @@ type SortKey = keyof CommissionEntry | null
 
 const PAGE_SIZE = 25
 
+function SortIcon({ sortKey, sortDir, col }: { sortKey: SortKey; sortDir: "asc" | "desc"; col: SortKey }) {
+  if (sortKey !== col) return null
+  return sortDir === "asc" ? <IconChevronUp className="size-3 ml-1 inline" /> : <IconChevronDown className="size-3 ml-1 inline" />
+}
+
 function downloadCsv(headers: string[], rows: (string | number | null | undefined)[][], filename: string) {
   const lines = [
     headers.join(";"),
@@ -69,8 +74,6 @@ export default function HistoryCommissionsPage() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc")
   const [page, setPage] = useState(1)
   const [loading] = useState(false)
-
-  useEffect(() => setPage(1), [search, dateFrom, dateTo, sortKey])
 
   const filtered = useMemo(() => MOCK.filter(c => {
     const ms = !search ||
@@ -98,11 +101,7 @@ export default function HistoryCommissionsPage() {
   function toggleSort(key: SortKey) {
     if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc")
     else { setSortKey(key); setSortDir("asc") }
-  }
-
-  function SortIcon({ col }: { col: SortKey }) {
-    if (sortKey !== col) return null
-    return sortDir === "asc" ? <IconChevronUp className="size-3 ml-1 inline" /> : <IconChevronDown className="size-3 ml-1 inline" />
+    setPage(1)
   }
 
   function handleExport() {
@@ -127,14 +126,14 @@ export default function HistoryCommissionsPage() {
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 max-w-sm">
           <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input placeholder="Kommission oder Kunde suchen…" value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Kommission oder Kunde suchen…" value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} className="pl-9" />
         </div>
         <div className="flex items-center gap-2">
           <label className="text-sm text-muted-foreground whitespace-nowrap">Von</label>
           <input
             type="date"
             value={dateFrom}
-            onChange={e => setDateFrom(e.target.value)}
+            onChange={e => { setDateFrom(e.target.value); setPage(1) }}
             className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm font-mono"
           />
         </div>
@@ -143,7 +142,7 @@ export default function HistoryCommissionsPage() {
           <input
             type="date"
             value={dateTo}
-            onChange={e => setDateTo(e.target.value)}
+            onChange={e => { setDateTo(e.target.value); setPage(1) }}
             className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm font-mono"
           />
         </div>
@@ -158,25 +157,25 @@ export default function HistoryCommissionsPage() {
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-b border-border">
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[130px] cursor-pointer select-none" onClick={() => toggleSort("commissionNumber")}>
-                    Nummer<SortIcon col="commissionNumber" />
+                    Nummer<SortIcon sortKey={sortKey} sortDir={sortDir} col="commissionNumber" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer select-none" onClick={() => toggleSort("commissionName")}>
-                    Kommission<SortIcon col="commissionName" />
+                    Kommission<SortIcon sortKey={sortKey} sortDir={sortDir} col="commissionName" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[140px] cursor-pointer select-none" onClick={() => toggleSort("customer")}>
-                    Kunde<SortIcon col="customer" />
+                    Kunde<SortIcon sortKey={sortKey} sortDir={sortDir} col="customer" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[150px] cursor-pointer select-none" onClick={() => toggleSort("targetLocation")}>
-                    Ziel Lagerort<SortIcon col="targetLocation" />
+                    Ziel Lagerort<SortIcon sortKey={sortKey} sortDir={sortDir} col="targetLocation" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[130px] cursor-pointer select-none" onClick={() => toggleSort("responsible")}>
-                    Verantwortlich<SortIcon col="responsible" />
+                    Verantwortlich<SortIcon sortKey={sortKey} sortDir={sortDir} col="responsible" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[80px] text-center cursor-pointer select-none" onClick={() => toggleSort("totalEntries")}>
-                    Einträge<SortIcon col="totalEntries" />
+                    Einträge<SortIcon sortKey={sortKey} sortDir={sortDir} col="totalEntries" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[110px] cursor-pointer select-none" onClick={() => toggleSort("closedAt")}>
-                    Abgeschlossen<SortIcon col="closedAt" />
+                    Abgeschlossen<SortIcon sortKey={sortKey} sortDir={sortDir} col="closedAt" />
                   </TableHead>
                 </TableRow>
               </TableHeader>

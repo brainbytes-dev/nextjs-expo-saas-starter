@@ -36,7 +36,6 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from "@/components/ui/empty"
-import { Badge } from "@/components/ui/badge"
 
 // ── Types ──────────────────────────────────────────────────────────────
 interface CartItem {

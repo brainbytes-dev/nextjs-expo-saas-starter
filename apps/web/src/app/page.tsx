@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Logo, LogoMark } from "@/components/logo"
+import { Logo } from "@/components/logo"
 import { ModeToggle } from "@/components/theme/theme-toggle"
 import {
   IconBuildingWarehouse,
@@ -591,7 +591,7 @@ export default function LandingPage() {
         <section id="features" className="mx-auto w-full max-w-7xl px-6 pb-24">
           <div className="mb-14 flex items-end justify-between border-b border-border pb-6">
             <div>
-              <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">// 01 — Funktionen</div>
+              <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{`// 01 — Funktionen`}</div>
               <h2 className="text-3xl lg:text-4xl font-bold leading-tight">
                 Alles was ein<br />
                 <span className="text-primary">Handwerksbetrieb</span> braucht.
@@ -632,7 +632,7 @@ export default function LandingPage() {
         <section className="border-y border-border bg-muted/20 py-24">
           <div className="mx-auto max-w-7xl px-6">
             <div className="mb-14">
-              <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">// 02 — In 3 Schritten</div>
+              <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{`// 02 — In 3 Schritten`}</div>
               <h2 className="text-3xl lg:text-4xl font-bold">In 5 Minuten einsatzbereit.</h2>
             </div>
             <div className="grid md:grid-cols-3 gap-0 relative">
@@ -661,7 +661,7 @@ export default function LandingPage() {
             {/* Left: Copy */}
             <div>
               <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-4">
-                // 02b — Versteckte Kosten
+                {`// 02b — Versteckte Kosten`}
               </div>
               <h2 className="text-3xl lg:text-4xl font-bold mb-6 leading-tight">
                 Was kostet dich<br />dein <span className="text-primary">Chaos?</span>
@@ -684,7 +684,7 @@ export default function LandingPage() {
             {/* Header */}
             <div className="mb-14 flex items-end justify-between border-b border-border pb-6">
               <div>
-                <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">// 03 — Integrationen</div>
+                <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{`// 03 — Integrationen`}</div>
                 <h2 className="text-3xl lg:text-4xl font-bold leading-tight">
                   Nahtlos in Ihre<br />
                   <span className="text-primary">bestehende Umgebung.</span>
@@ -756,7 +756,7 @@ export default function LandingPage() {
           <div className="mx-auto max-w-7xl px-6">
             <div className="grid lg:grid-cols-2 gap-20 items-center">
               <div>
-                <div className="font-mono text-[10px] tracking-[0.2em] uppercase mb-4 text-muted-foreground">// 03 — Datensouveränität</div>
+                <div className="font-mono text-[10px] tracking-[0.2em] uppercase mb-4 text-muted-foreground">{`// 03 — Datensouveränität`}</div>
                 <h2 className="text-3xl lg:text-4xl font-bold mb-6 leading-tight text-foreground">
                   Ihre Daten<br />
                   gehören <span className="text-primary">Ihnen.</span>
@@ -784,7 +784,7 @@ export default function LandingPage() {
         {/* ══ PRICING ══════════════════════════════════════ */}
         <section id="pricing" className="mx-auto w-full max-w-7xl px-6 py-24">
           <div className="mb-14 border-b border-border pb-6">
-            <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">// 04 — Preise</div>
+            <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{`// 04 — Preise`}</div>
             <h2 className="text-3xl lg:text-4xl font-bold">Einfach. Transparent.</h2>
           </div>
 

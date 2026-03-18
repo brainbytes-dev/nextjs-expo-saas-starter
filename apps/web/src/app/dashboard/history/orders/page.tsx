@@ -1,10 +1,9 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo } from "react"
 import { useTranslations } from "next-intl"
 import {
   IconSearch,
-  IconFileInvoice,
   IconTruck,
   IconCheck,
   IconX,
@@ -74,6 +73,11 @@ type SortKey = keyof HistoryOrder | null
 
 const PAGE_SIZE = 25
 
+function SortIcon({ sortKey, sortDir, col }: { sortKey: SortKey; sortDir: "asc" | "desc"; col: SortKey }) {
+  if (sortKey !== col) return null
+  return sortDir === "asc" ? <IconChevronUp className="size-3 ml-1 inline" /> : <IconChevronDown className="size-3 ml-1 inline" />
+}
+
 function downloadCsv(headers: string[], rows: (string | number | null | undefined)[][], filename: string) {
   const lines = [
     headers.join(";"),
@@ -95,8 +99,6 @@ export default function HistoryOrdersPage() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc")
   const [page, setPage] = useState(1)
   const [loading] = useState(false)
-
-  useEffect(() => setPage(1), [search, statusFilter, dateFrom, dateTo, sortKey])
 
   const filtered = useMemo(() => MOCK.filter(o => {
     const ms = !search || o.orderNumber.toLowerCase().includes(search.toLowerCase()) || o.supplierName.toLowerCase().includes(search.toLowerCase())
@@ -122,11 +124,7 @@ export default function HistoryOrdersPage() {
   function toggleSort(key: SortKey) {
     if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc")
     else { setSortKey(key); setSortDir("asc") }
-  }
-
-  function SortIcon({ col }: { col: SortKey }) {
-    if (sortKey !== col) return null
-    return sortDir === "asc" ? <IconChevronUp className="size-3 ml-1 inline" /> : <IconChevronDown className="size-3 ml-1 inline" />
+    setPage(1)
   }
 
   function handleExport() {
@@ -151,9 +149,9 @@ export default function HistoryOrdersPage() {
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 max-w-sm">
           <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input placeholder="Suchen…" value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Suchen…" value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} className="pl-9" />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={v => { setStatusFilter(v); setPage(1) }}>
           <SelectTrigger className="w-40">
             <SelectValue />
           </SelectTrigger>
@@ -168,7 +166,7 @@ export default function HistoryOrdersPage() {
           <input
             type="date"
             value={dateFrom}
-            onChange={e => setDateFrom(e.target.value)}
+            onChange={e => { setDateFrom(e.target.value); setPage(1) }}
             className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm font-mono"
           />
         </div>
@@ -177,7 +175,7 @@ export default function HistoryOrdersPage() {
           <input
             type="date"
             value={dateTo}
-            onChange={e => setDateTo(e.target.value)}
+            onChange={e => { setDateTo(e.target.value); setPage(1) }}
             className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm font-mono"
           />
         </div>
@@ -192,26 +190,26 @@ export default function HistoryOrdersPage() {
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-b border-border">
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer select-none" onClick={() => toggleSort("orderNumber")}>
-                    {t("orderNumber")}<SortIcon col="orderNumber" />
+                    {t("orderNumber")}<SortIcon sortKey={sortKey} sortDir={sortDir} col="orderNumber" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[110px] cursor-pointer select-none" onClick={() => toggleSort("orderDate")}>
-                    {t("date")}<SortIcon col="orderDate" />
+                    {t("date")}<SortIcon sortKey={sortKey} sortDir={sortDir} col="orderDate" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer select-none" onClick={() => toggleSort("supplierName")}>
-                    {t("supplier")}<SortIcon col="supplierName" />
+                    {t("supplier")}<SortIcon sortKey={sortKey} sortDir={sortDir} col="supplierName" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[110px] cursor-pointer select-none" onClick={() => toggleSort("deliveryDate")}>
-                    Lieferdatum<SortIcon col="deliveryDate" />
+                    Lieferdatum<SortIcon sortKey={sortKey} sortDir={sortDir} col="deliveryDate" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[120px] cursor-pointer select-none" onClick={() => toggleSort("status")}>
-                    {t("status")}<SortIcon col="status" />
+                    {t("status")}<SortIcon sortKey={sortKey} sortDir={sortDir} col="status" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[80px] text-center">Pos.</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[110px] text-right cursor-pointer select-none" onClick={() => toggleSort("total")}>
-                    Total<SortIcon col="total" />
+                    Total<SortIcon sortKey={sortKey} sortDir={sortDir} col="total" />
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[140px] cursor-pointer select-none" onClick={() => toggleSort("createdBy")}>
-                    {t("user")}<SortIcon col="createdBy" />
+                    {t("user")}<SortIcon sortKey={sortKey} sortDir={sortDir} col="createdBy" />
                   </TableHead>
                 </TableRow>
               </TableHeader>
