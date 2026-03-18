@@ -12,11 +12,12 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { signIn } from "@/lib/auth-client"
+import { toast } from "sonner"
+import { DEMO_MODE } from "@/lib/demo-mode"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import * as Sentry from "@sentry/nextjs"
-import { DEMO_MODE } from "@/lib/demo-mode"
 
 const loginSchema = z.object({
   email: z.string().email("Ungültige E-Mail-Adresse"),
@@ -52,6 +53,13 @@ export function LoginForm({
   }
 
   const handleOAuthSignIn = (provider: "google" | "microsoft" | "apple") => {
+    if (DEMO_MODE) {
+      toast.info("Im Demo-Modus nicht verfügbar", {
+        description: "Social Login ist in der Demo deaktiviert. Nutze E-Mail + Passwort oder starte eine eigene Instanz.",
+        duration: 5000,
+      })
+      return
+    }
     signIn.social({ provider, callbackURL: "/dashboard" })
   }
 
