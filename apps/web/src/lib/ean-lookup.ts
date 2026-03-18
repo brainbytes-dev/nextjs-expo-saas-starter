@@ -177,30 +177,41 @@ async function queryOpenFacts(
 }
 
 // ─── Open GTIN DB (DACH focus) ───────────────────────────────────────
+// Returns plaintext key=value format, NOT JSON.
+// See: http://opengtindb.org/?ean=[ean]&cmd=query&queryid=[userid]
+
+function parseOpenGtinResponse(text: string): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const line of text.split("\n")) {
+    if (line === "---" || !line.trim()) continue;
+    const idx = line.indexOf("=");
+    if (idx === -1) continue;
+    result[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
+  }
+  return result;
+}
 
 async function queryOpenGtinDb(barcode: string): Promise<EanResult | null> {
-  const apiKey = process.env.OPENGTINDB_API_KEY;
-  if (!apiKey) return null;
+  const queryId = process.env.OPENGTINDB_API_KEY;
+  if (!queryId) return null;
 
   try {
     const res = await fetchWithTimeout(
-      `https://opengtindb.org/api/v1/product?ean=${barcode}&apikey=${apiKey}`
+      `http://opengtindb.org/?ean=${barcode}&cmd=query&queryid=${queryId}`
     );
     if (!res.ok) return null;
 
-    const data = (await res.json()) as {
-      name?: string;
-      vendor?: string;
-      detailname?: string;
-      maincat?: string;
-    };
-    if (!data.name) return null;
+    const text = await res.text();
+    const data = parseOpenGtinResponse(text);
+
+    // error=0 means success, anything else is a miss
+    if (data.error !== "0" || !data.name) return null;
 
     return {
       barcode,
-      name: data.name,
+      name: data.detailname || data.name,
       manufacturer: data.vendor || null,
-      description: data.detailname || null,
+      description: data.descr || null,
       imageUrl: null,
       category: data.maincat || null,
       source: "opengtindb",
