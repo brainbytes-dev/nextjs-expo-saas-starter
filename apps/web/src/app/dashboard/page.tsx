@@ -20,7 +20,6 @@ import {
   IconBoxSeam,
   IconRepeat,
   IconEdit,
-  IconWrench,
   IconCheck,
 } from "@tabler/icons-react"
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
@@ -661,7 +660,7 @@ export default function DashboardPage() {
                       <div key={item.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
                         <div className={`flex size-9 shrink-0 items-center justify-center rounded-xl
                           ${isOverdue ? "bg-destructive/10" : isThisWeek ? "bg-amber-500/10" : "bg-emerald-500/10"}`}>
-                          <IconWrench className={`size-4
+                          <IconTool className={`size-4
                             ${isOverdue ? "text-destructive" : isThisWeek ? "text-amber-600" : "text-emerald-600"}`} />
                         </div>
                         <div className="min-w-0 flex-1">

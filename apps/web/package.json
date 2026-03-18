@@ -22,6 +22,7 @@
     "@opentelemetry/resources": "^2.6.0",
     "@opentelemetry/sdk-node": "^0.213.0",
     "@opentelemetry/semantic-conventions": "^1.40.0",
+    "@radix-ui/react-switch": "^1.2.6",
     "@repo/db": "workspace:*",
     "@repo/shadcn-ui": "workspace:*",
     "@sentry/nextjs": "^10.43.0",

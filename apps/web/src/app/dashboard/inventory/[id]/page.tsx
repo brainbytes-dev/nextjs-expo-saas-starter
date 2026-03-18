@@ -128,10 +128,6 @@ function EditableQuantityCell({ item, readonly, onSave }: EditableCellProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    setValue(item.countedQuantity !== null ? String(item.countedQuantity) : "")
-  }, [item.countedQuantity])
-
-  useEffect(() => {
     if (editing) {
       inputRef.current?.focus()
       inputRef.current?.select()
@@ -183,7 +179,7 @@ function EditableQuantityCell({ item, readonly, onSave }: EditableCellProps) {
 
   return (
     <button
-      onClick={() => setEditing(true)}
+      onClick={() => { setValue(item.countedQuantity !== null ? String(item.countedQuantity) : ""); setEditing(true) }}
       className="min-h-[28px] min-w-[4rem] rounded border border-dashed border-border px-2 py-1 text-left text-sm hover:border-primary hover:bg-primary/5"
       title="Klicken zum Bearbeiten"
     >

@@ -94,7 +94,11 @@ export async function PATCH(
     const { db, orgId, session } = result;
 
     const [existing] = await db
-      .select({ id: inventoryCounts.id, status: inventoryCounts.status })
+      .select({
+        id: inventoryCounts.id,
+        status: inventoryCounts.status,
+        startedAt: inventoryCounts.startedAt,
+      })
       .from(inventoryCounts)
       .where(
         and(

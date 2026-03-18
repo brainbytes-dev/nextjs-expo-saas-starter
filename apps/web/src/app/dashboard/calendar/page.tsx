@@ -10,7 +10,6 @@ import {
   IconChecklist,
   IconFileInvoice,
   IconClipboardList,
-  IconWrench,
   IconAlertTriangle,
   IconFilter,
   IconCheck,
@@ -142,7 +141,7 @@ function MaintenanceRow({
   return (
     <div className={`flex items-center gap-4 p-4 rounded-lg bg-card border ${cfg.rowClass}`}>
       <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted">
-        <IconWrench className="size-5 text-muted-foreground" />
+        <IconTool className="size-5 text-muted-foreground" />
       </div>
 
       <div className="flex-1 min-w-0">
@@ -352,7 +351,7 @@ export default function CalendarPage() {
               : "border-transparent text-muted-foreground hover:text-foreground"}`}
         >
           <span className="flex items-center gap-2">
-            <IconWrench className="size-4" />
+            <IconTool className="size-4" />
             Wartungsplaner
             {counts.overdue > 0 && (
               <span className="inline-flex items-center justify-center size-5 text-[11px] font-bold rounded-full bg-destructive text-destructive-foreground">
@@ -564,7 +563,7 @@ export default function CalendarPage() {
           ) : filteredMaintenance.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-16 gap-3">
-                <IconWrench className="size-12 text-muted-foreground/30" />
+                <IconTool className="size-12 text-muted-foreground/30" />
                 <p className="text-sm text-muted-foreground">
                   {filter === "all"
                     ? "Keine anstehenden Wartungen in den nächsten 30 Tagen."

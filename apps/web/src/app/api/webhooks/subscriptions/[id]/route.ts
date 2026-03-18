@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
 import { webhookSubscriptions } from "@repo/db/schema";
 import { eq, and } from "drizzle-orm";
-import { WEBHOOK_EVENTS, dispatchWebhookAsync, type WebhookEvent } from "@/lib/webhooks";
+import { WEBHOOK_EVENTS, type WebhookEvent } from "@/lib/webhooks";
 
 // ─── PATCH /api/webhooks/subscriptions/[id] ───────────────────────────────────
 // Update a webhook subscription (url, events, isActive)

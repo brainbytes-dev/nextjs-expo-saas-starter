@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
-import { commissions, locations, customers, users, commissionEntries } from "@repo/db/schema";
+import { commissions, locations, customers, users } from "@repo/db/schema";
 import { eq, and, inArray, desc, sql, count } from "drizzle-orm";
 
 export async function GET(request: Request) {

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
   IconBuilding,
@@ -696,7 +695,6 @@ function toSlug(name: string): string {
 // ── Main wizard ───────────────────────────────────────────────────────────
 
 export default function OnboardingPage() {
-  const router = useRouter()
   const { data: session } = useSession()
 
   const [step, setStep] = useState(1)

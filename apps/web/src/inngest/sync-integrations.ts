@@ -5,7 +5,7 @@
 // Results are persisted to integration_tokens.last_sync_result and logged.
 
 import { inngest } from "@/lib/inngest";
-import { getDb, eq } from "@repo/db";
+import { getDb } from "@repo/db";
 import { integrationTokens } from "@repo/db/schema";
 import { syncBexio } from "@/lib/integrations/bexio";
 import { syncAbacus } from "@/lib/integrations/abacus";
