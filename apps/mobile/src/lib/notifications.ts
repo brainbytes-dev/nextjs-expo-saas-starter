@@ -33,11 +33,10 @@ Notifications.setNotificationHandler({
  * @returns The Expo push token string, or null if unavailable / denied.
  */
 export async function registerForPushNotifications(): Promise<string | null> {
-  if (isDemoMode) return null;
-
-  if (!Device.isDevice) {
-    console.warn("[notifications] Push notifications only work on physical devices.");
-    return null;
+  // In demo mode or simulator, just persist the preference without real registration
+  if (isDemoMode || !Device.isDevice) {
+    await AsyncStorage.setItem(NOTIFICATIONS_KEY, "true");
+    return "demo-token";
   }
 
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
