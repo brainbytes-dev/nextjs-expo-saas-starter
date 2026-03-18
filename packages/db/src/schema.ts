@@ -225,6 +225,8 @@ export const locations = pgTable(
     category: text("category"),
     template: text("template"),
     address: text("address"),
+    latitude: text("latitude"),
+    longitude: text("longitude"),
     isActive: boolean("is_active").default(true),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -398,6 +400,11 @@ export const tools = pgTable(
     lastMaintenanceDate: date("last_maintenance_date"),
     nextMaintenanceDate: date("next_maintenance_date"),
     notes: text("notes"),
+    purchasePrice: integer("purchase_price"), // in cents
+    purchaseDate: date("purchase_date"),
+    expectedLifeYears: integer("expected_life_years"),
+    salvageValue: integer("salvage_value"), // in cents
+    depreciationMethod: text("depreciation_method"), // "linear" | "declining"
     isActive: boolean("is_active").default(true),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -1002,3 +1009,395 @@ export const integrationTokens = pgTable(
 
 export type IntegrationToken = typeof integrationTokens.$inferSelect;
 export type NewIntegrationToken = typeof integrationTokens.$inferInsert;
+
+// ═════════════════════════════════════════════════════════════════════
+// Ultimate Edition — New Tables
+// ═════════════════════════════════════════════════════════════════════
+
+// ─── Attachments ─────────────────────────────────────────────────────
+export const attachments = pgTable(
+  "attachments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    entityType: text("entity_type").notNull(), // "material" | "tool" | "key" | "commission" | "order" | "location"
+    entityId: uuid("entity_id").notNull(),
+    fileName: text("file_name").notNull(),
+    fileUrl: text("file_url").notNull(),
+    fileSize: integer("file_size"),
+    mimeType: text("mime_type"),
+    uploadedById: uuid("uploaded_by_id").references(() => users.id),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_attachments_org_id").on(table.organizationId),
+    index("idx_attachments_entity").on(table.entityType, table.entityId),
+    index("idx_attachments_uploaded_by_id").on(table.uploadedById),
+  ]
+);
+
+// ─── Comments ────────────────────────────────────────────────────────
+export const comments = pgTable(
+  "comments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    entityType: text("entity_type").notNull(),
+    entityId: uuid("entity_id").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    body: text("body").notNull(),
+    mentions: jsonb("mentions"), // array of user IDs
+    parentId: uuid("parent_id"), // self-reference for threads
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_comments_org_id").on(table.organizationId),
+    index("idx_comments_entity").on(table.entityType, table.entityId),
+    index("idx_comments_user_id").on(table.userId),
+    index("idx_comments_parent_id").on(table.parentId),
+  ]
+);
+
+// ─── RBAC Roles ───────────────────────────────────────────────────────
+export const roles = pgTable(
+  "roles",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    slug: text("slug").notNull(),
+    isSystem: boolean("is_system").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_roles_org_id").on(table.organizationId),
+    uniqueIndex("idx_roles_org_slug").on(table.organizationId, table.slug),
+  ]
+);
+
+// ─── RBAC Permissions ────────────────────────────────────────────────
+export const permissions = pgTable(
+  "permissions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    roleId: uuid("role_id")
+      .notNull()
+      .references(() => roles.id, { onDelete: "cascade" }),
+    resource: text("resource").notNull(), // "materials" | "tools" | "locations" etc.
+    action: text("action").notNull(), // "read" | "create" | "update" | "delete"
+    allowed: boolean("allowed").default(true).notNull(),
+  },
+  (table) => [
+    index("idx_permissions_role_id").on(table.roleId),
+    index("idx_permissions_resource").on(table.resource),
+  ]
+);
+
+// ─── Supplier Prices ──────────────────────────────────────────────────
+export const supplierPrices = pgTable(
+  "supplier_prices",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    supplierId: uuid("supplier_id")
+      .notNull()
+      .references(() => suppliers.id, { onDelete: "cascade" }),
+    materialId: uuid("material_id")
+      .notNull()
+      .references(() => materials.id, { onDelete: "cascade" }),
+    unitPrice: integer("unit_price").notNull(), // in cents
+    currency: text("currency").default("CHF"),
+    minOrderQuantity: integer("min_order_quantity").default(1),
+    leadTimeDays: integer("lead_time_days"),
+    validFrom: timestamp("valid_from"),
+    validTo: timestamp("valid_to"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_supplier_prices_org_id").on(table.organizationId),
+    index("idx_supplier_prices_supplier_id").on(table.supplierId),
+    index("idx_supplier_prices_material_id").on(table.materialId),
+  ]
+);
+
+// ─── Insurance Records ────────────────────────────────────────────────
+export const insuranceRecords = pgTable(
+  "insurance_records",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    entityType: text("entity_type").notNull(), // "tool" | "material" | "vehicle"
+    entityId: uuid("entity_id").notNull(),
+    provider: text("provider").notNull(),
+    policyNumber: text("policy_number"),
+    coverageAmount: integer("coverage_amount"), // in cents
+    premium: integer("premium"), // in cents
+    startDate: date("start_date"),
+    endDate: date("end_date"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_insurance_records_org_id").on(table.organizationId),
+    index("idx_insurance_records_entity").on(table.entityType, table.entityId),
+  ]
+);
+
+// ─── Warranty Records ────────────────────────────────────────────────
+export const warrantyRecords = pgTable(
+  "warranty_records",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    entityType: text("entity_type").notNull(),
+    entityId: uuid("entity_id").notNull(),
+    provider: text("provider"),
+    warrantyStart: date("warranty_start"),
+    warrantyEnd: date("warranty_end"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_warranty_records_org_id").on(table.organizationId),
+    index("idx_warranty_records_entity").on(table.entityType, table.entityId),
+  ]
+);
+
+// ─── Scheduled Reports ────────────────────────────────────────────────
+export const scheduledReports = pgTable(
+  "scheduled_reports",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    reportType: text("report_type").notNull(), // "inventory" | "tools" | "movements" | "commissions"
+    schedule: text("schedule").notNull(), // cron expression
+    recipients: text("recipients").array().notNull(),
+    format: text("format").default("csv").notNull(),
+    filters: jsonb("filters"),
+    lastSentAt: timestamp("last_sent_at"),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_scheduled_reports_org_id").on(table.organizationId),
+    index("idx_scheduled_reports_is_active").on(table.isActive),
+  ]
+);
+
+// ─── Calibration Records ──────────────────────────────────────────────
+export const calibrationRecords = pgTable(
+  "calibration_records",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    toolId: uuid("tool_id")
+      .notNull()
+      .references(() => tools.id, { onDelete: "cascade" }),
+    calibratedAt: timestamp("calibrated_at").notNull(),
+    calibratedById: uuid("calibrated_by_id").references(() => users.id),
+    nextCalibrationDate: date("next_calibration_date"),
+    certificateUrl: text("certificate_url"),
+    result: text("result"), // "pass" | "fail" | "conditional"
+    notes: text("notes"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_calibration_records_org_id").on(table.organizationId),
+    index("idx_calibration_records_tool_id").on(table.toolId),
+    index("idx_calibration_records_calibrated_at").on(table.calibratedAt),
+  ]
+);
+
+// ─── Approval Requests ────────────────────────────────────────────────
+export const approvalRequests = pgTable(
+  "approval_requests",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    requestType: text("request_type").notNull(), // "tool_checkout" | "order" | "stock_change"
+    entityType: text("entity_type").notNull(),
+    entityId: uuid("entity_id").notNull(),
+    requesterId: uuid("requester_id")
+      .notNull()
+      .references(() => users.id),
+    approverId: uuid("approver_id").references(() => users.id),
+    status: text("status").default("pending").notNull(), // "pending" | "approved" | "rejected"
+    requestedAt: timestamp("requested_at").defaultNow().notNull(),
+    resolvedAt: timestamp("resolved_at"),
+    notes: text("notes"),
+  },
+  (table) => [
+    index("idx_approval_requests_org_id").on(table.organizationId),
+    index("idx_approval_requests_requester_id").on(table.requesterId),
+    index("idx_approval_requests_approver_id").on(table.approverId),
+    index("idx_approval_requests_status").on(table.status),
+    index("idx_approval_requests_entity").on(table.entityType, table.entityId),
+  ]
+);
+
+// ─── Workflow Rules ───────────────────────────────────────────────────
+export const workflowRules = pgTable(
+  "workflow_rules",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    triggerEvent: text("trigger_event").notNull(), // "stock.changed" | "tool.checked_out" | etc.
+    conditions: jsonb("conditions").notNull(),
+    actions: jsonb("actions").notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    priority: integer("priority").default(0).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_workflow_rules_org_id").on(table.organizationId),
+    index("idx_workflow_rules_is_active").on(table.isActive),
+    index("idx_workflow_rules_trigger_event").on(table.triggerEvent),
+  ]
+);
+
+// ─── Industry Templates ───────────────────────────────────────────────
+export const industryTemplates = pgTable(
+  "industry_templates",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    industry: text("industry").notNull(), // "handwerk" | "rettungsdienst" | "arztpraxis" | "spital"
+    name: text("name").notNull(),
+    description: text("description"),
+    materials: jsonb("materials"), // template material definitions
+    tools: jsonb("tools"),
+    locations: jsonb("locations"),
+    customFields: jsonb("custom_fields"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_industry_templates_industry").on(table.industry),
+  ]
+);
+
+// ─── Dashboard Widgets ────────────────────────────────────────────────
+export const dashboardWidgets = pgTable(
+  "dashboard_widgets",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    widgetType: text("widget_type").notNull(), // "kpi" | "chart" | "table" | "alert" | "activity"
+    config: jsonb("config"),
+    position: jsonb("position"), // { x, y }
+    size: jsonb("size"), // { w, h }
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_dashboard_widgets_org_id").on(table.organizationId),
+    index("idx_dashboard_widgets_user_id").on(table.userId),
+  ]
+);
+
+// ─── API Keys ─────────────────────────────────────────────────────────
+export const apiKeys = pgTable(
+  "api_keys",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    keyHash: text("key_hash").notNull(),
+    prefix: text("prefix").notNull(), // first 8 chars for identification
+    scopes: text("scopes").array(),
+    lastUsedAt: timestamp("last_used_at"),
+    expiresAt: timestamp("expires_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_api_keys_org_id").on(table.organizationId),
+    uniqueIndex("idx_api_keys_key_hash").on(table.keyHash),
+    index("idx_api_keys_prefix").on(table.prefix),
+  ]
+);
+
+// ─── Floor Plans ──────────────────────────────────────────────────────
+export const floorPlans = pgTable(
+  "floor_plans",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    locationId: uuid("location_id").references(() => locations.id),
+    name: text("name").notNull(),
+    imageUrl: text("image_url").notNull(),
+    items: jsonb("items"), // position markers [{entityType, entityId, x, y, label}]
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_floor_plans_org_id").on(table.organizationId),
+    index("idx_floor_plans_location_id").on(table.locationId),
+  ]
+);
+
+// ─── Ultimate Edition Type Exports ───────────────────────────────────
+export type Attachment = typeof attachments.$inferSelect;
+export type NewAttachment = typeof attachments.$inferInsert;
+export type Comment = typeof comments.$inferSelect;
+export type NewComment = typeof comments.$inferInsert;
+export type Role = typeof roles.$inferSelect;
+export type NewRole = typeof roles.$inferInsert;
+export type Permission = typeof permissions.$inferSelect;
+export type NewPermission = typeof permissions.$inferInsert;
+export type SupplierPrice = typeof supplierPrices.$inferSelect;
+export type NewSupplierPrice = typeof supplierPrices.$inferInsert;
+export type InsuranceRecord = typeof insuranceRecords.$inferSelect;
+export type NewInsuranceRecord = typeof insuranceRecords.$inferInsert;
+export type WarrantyRecord = typeof warrantyRecords.$inferSelect;
+export type NewWarrantyRecord = typeof warrantyRecords.$inferInsert;
+export type ScheduledReport = typeof scheduledReports.$inferSelect;
+export type NewScheduledReport = typeof scheduledReports.$inferInsert;
+export type CalibrationRecord = typeof calibrationRecords.$inferSelect;
+export type NewCalibrationRecord = typeof calibrationRecords.$inferInsert;
+export type ApprovalRequest = typeof approvalRequests.$inferSelect;
+export type NewApprovalRequest = typeof approvalRequests.$inferInsert;
+export type WorkflowRule = typeof workflowRules.$inferSelect;
+export type NewWorkflowRule = typeof workflowRules.$inferInsert;
+export type IndustryTemplate = typeof industryTemplates.$inferSelect;
+export type NewIndustryTemplate = typeof industryTemplates.$inferInsert;
+export type DashboardWidget = typeof dashboardWidgets.$inferSelect;
+export type NewDashboardWidget = typeof dashboardWidgets.$inferInsert;
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type NewApiKey = typeof apiKeys.$inferInsert;
+export type FloorPlan = typeof floorPlans.$inferSelect;
+export type NewFloorPlan = typeof floorPlans.$inferInsert;
