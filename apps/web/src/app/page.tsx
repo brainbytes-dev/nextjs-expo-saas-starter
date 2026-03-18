@@ -726,9 +726,9 @@ export default function LandingPage() {
             {/* Stats row */}
             <div className="grid grid-cols-3 gap-px bg-white/10 rounded-xl overflow-hidden mb-16 max-w-2xl mx-auto">
               {[
-                { icon: IconDatabase, value: "8", label: "Produktdatenbanken", sub: "Parallel durchsucht" },
-                { icon: IconScan, value: "100M+", label: "Produkte", sub: "Sofort erkannt" },
-                { icon: IconCurrencyFrank, value: "0.—", label: "Zusatzkosten", sub: "Komplett gratis" },
+                { icon: IconScan, value: "< 2s", label: "Erkennung", sub: "Barcode scannen, fertig" },
+                { icon: IconDatabase, value: "100M+", label: "Produkte", sub: "Sofort erkannt" },
+                { icon: IconCurrencyFrank, value: "0.—", label: "Aufpreis", sub: "Im Abo enthalten" },
               ].map(({ icon: Icon, value, label, sub }) => (
                 <div key={label} className="bg-[#0c0e12] p-6 text-center">
                   <Icon className="size-5 text-[#F97316] mx-auto mb-3" />
@@ -739,31 +739,25 @@ export default function LandingPage() {
               ))}
             </div>
 
-            {/* Database grid */}
+            {/* Benefits grid — what the customer gets */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-16">
               {[
-                { name: "Open Food Facts", scope: "Lebensmittel & Getränke", entries: "3M+", color: "#E8A838" },
-                { name: "Open Beauty Facts", scope: "Kosmetik & Hygiene", entries: "200K+", color: "#E85BA0" },
-                { name: "Open Pet Food Facts", scope: "Tierfutter & Zubehör", entries: "50K+", color: "#7BC86C" },
-                { name: "Open Products Facts", scope: "Allgemeine Produkte", entries: "100K+", color: "#5BA4CF" },
-                { name: "Open GTIN DB", scope: "DACH Konsumgüter", entries: "30M+", color: "#F97316" },
-                { name: "UPC ItemDB", scope: "Elektronik & Global", entries: "50M+", color: "#A78BFA" },
-                { name: "Wikidata", scope: "Medikamente & Chemikalien", entries: "15M+", color: "#3B82F6" },
-                { name: "Lokaler Cache", scope: "Eure gescannten Produkte", entries: "∞", color: "#10B981" },
-              ].map(db => (
+                { icon: "🏗️", title: "Baumaterial", desc: "Schrauben, Zement, Rohre — alles erkannt" },
+                { icon: "🧴", title: "Kosmetik & Hygiene", desc: "Reinigungsmittel, Pflegeprodukte" },
+                { icon: "💊", title: "Medikamente", desc: "PZN-Codes, Arzneimittel, Chemikalien" },
+                { icon: "🔧", title: "Werkzeuge & Geräte", desc: "Elektrowerkzeug, Maschinen, Zubehör" },
+                { icon: "🍎", title: "Lebensmittel", desc: "Gastronomie, Catering, Kantinen" },
+                { icon: "💡", title: "Elektromaterial", desc: "Kabel, Schalter, Leuchtmittel" },
+                { icon: "🏥", title: "Medizinprodukte", desc: "Praxisbedarf, Labormaterial" },
+                { icon: "📦", title: "Alles andere", desc: "Wenn's einen Barcode hat, erkennen wir's" },
+              ].map(item => (
                 <div
-                  key={db.name}
-                  className="group relative border border-white/10 rounded-lg p-4 bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/20 transition-all duration-300"
+                  key={item.title}
+                  className="group relative border border-white/10 rounded-lg p-5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-[#F97316]/30 transition-all duration-300"
                 >
-                  {/* Top accent line */}
-                  <div className="absolute top-0 left-3 right-3 h-px" style={{ backgroundColor: db.color, opacity: 0.5 }} />
-
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="size-2 rounded-full mt-1" style={{ backgroundColor: db.color }} />
-                    <span className="font-mono text-[10px] text-white/30">{db.entries}</span>
-                  </div>
-                  <div className="text-sm font-semibold text-white/90 mb-1">{db.name}</div>
-                  <div className="font-mono text-[10px] text-white/40 leading-snug">{db.scope}</div>
+                  <div className="text-2xl mb-3">{item.icon}</div>
+                  <div className="text-sm font-semibold text-white/90 mb-1">{item.title}</div>
+                  <div className="font-mono text-[11px] text-white/40 leading-snug">{item.desc}</div>
                 </div>
               ))}
             </div>
@@ -800,7 +794,7 @@ export default function LandingPage() {
                 </Button>
               </Link>
               <p className="font-mono text-[10px] text-white/30 mt-4 tracking-widest">
-                Alle Datenbanken kostenlos · Keine API-Keys nötig · Unbegrenzte Scans
+                Im Abo enthalten · Keine Zusatzkosten · Unbegrenzte Scans
               </p>
             </div>
           </div>
