@@ -1,5 +1,8 @@
 "use client"
 
+// Note: IconRefresh may be IconRotate in newer @tabler/icons-react versions
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 import { useState, useEffect, useRef } from "react"
 import {
   Card,
@@ -21,6 +24,8 @@ interface AlertSettingsData {
   whatsappAlerts: boolean
   lowStockThreshold: number
   maintenanceAlertDays: number
+  autoReorder: boolean
+  reorderTargetMultiplier: number
 }
 
 export default function AlertSettingsPage() {
@@ -31,6 +36,8 @@ export default function AlertSettingsPage() {
     whatsappAlerts: false,
     lowStockThreshold: 1,
     maintenanceAlertDays: 7,
+    autoReorder: false,
+    reorderTargetMultiplier: 2,
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -51,6 +58,8 @@ export default function AlertSettingsPage() {
             setSettings({
               ...data,
               whatsappPhone: data.whatsappPhone ?? "",
+              autoReorder: data.autoReorder ?? false,
+              reorderTargetMultiplier: data.reorderTargetMultiplier ?? 2,
             })
           }
         }
@@ -265,6 +274,53 @@ export default function AlertSettingsPage() {
                 Alert, wenn die naechste Wartung innerhalb dieser Tage faellig ist.
               </p>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Auto-Nachbestellung */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Auto-Nachbestellung</CardTitle>
+            <CardDescription>
+              Automatisch Bestellvorschläge (Entwürfe) erstellen, wenn der Meldebestand unterschritten wird.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="font-medium">Auto-Nachbestellung aktivieren</p>
+                <p className="text-sm text-muted-foreground">
+                  Täglich um 08:00 Uhr werden automatisch Bestell-Entwürfe für Materialien unter Meldebestand erstellt.
+                </p>
+              </div>
+              <Switch
+                checked={settings.autoReorder}
+                onCheckedChange={(v) => setSettings((s) => ({ ...s, autoReorder: v }))}
+              />
+            </div>
+
+            {settings.autoReorder && (
+              <>
+                <Separator />
+                <div className="space-y-1.5">
+                  <Label htmlFor="reorder-multiplier">Ziel-Bestand (Vielfaches des Meldebestands)</Label>
+                  <Input
+                    id="reorder-multiplier"
+                    type="number"
+                    min={1}
+                    max={10}
+                    value={settings.reorderTargetMultiplier}
+                    onChange={(e) =>
+                      setSettings((s) => ({ ...s, reorderTargetMultiplier: Math.max(1, Math.min(10, Number(e.target.value))) }))
+                    }
+                    className="max-w-[120px]"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Bestellmenge = (Meldebestand × Multiplikator) − aktueller Bestand. Standard: 2×.
+                  </p>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 

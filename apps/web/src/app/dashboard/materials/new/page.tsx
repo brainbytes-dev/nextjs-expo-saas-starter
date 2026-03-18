@@ -6,8 +6,6 @@ import { useTranslations } from "next-intl"
 import {
   IconArrowLeft,
   IconDeviceFloppy,
-  IconUpload,
-  IconPhoto,
 } from "@tabler/icons-react"
 
 import { Button } from "@/components/ui/button"
@@ -22,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { AiPhotoRecognize, type RecognizeResult } from "@/components/ai-photo-recognize"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -111,6 +110,24 @@ export default function NewMaterialPage() {
     []
   )
 
+  // ── AI recognition callback ──────────────────────────────────────────────
+  const handleRecognized = useCallback(
+    (data: Partial<RecognizeResult>) => {
+      setForm((prev) => ({
+        ...prev,
+        ...(data.name ? { name: data.name } : {}),
+        ...(data.manufacturer ? { manufacturer: data.manufacturer } : {}),
+        ...(data.description ? { notes: data.description } : {}),
+        ...(data.unit ? { unit: data.unit } : {}),
+      }))
+      // Clear name error if it was just filled in
+      if (data.name) {
+        setErrors((e) => ({ ...e, name: undefined }))
+      }
+    },
+    []
+  )
+
   const validate = useCallback((): boolean => {
     const errs: Partial<Record<keyof FormState, string>> = {}
     if (!form.name.trim()) errs.name = "Name ist erforderlich"
@@ -134,7 +151,6 @@ export default function NewMaterialPage() {
         manufacturerNumber: form.manufacturerNumber.trim() || null,
         notes: form.notes.trim() || null,
       }
-      // expiryDate is stored at stock level, but we pass it for initial stock creation
       if (form.expiryDate) {
         body.expiryDate = form.expiryDate
       }
@@ -191,6 +207,16 @@ export default function NewMaterialPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main form */}
         <div className="lg:col-span-2 space-y-6">
+          {/* AI Photo Recognition */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">KI-Erkennung aus Foto</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AiPhotoRecognize onRecognized={handleRecognized} />
+            </CardContent>
+          </Card>
+
           {/* Basic info */}
           <Card>
             <CardHeader>
@@ -391,28 +417,6 @@ export default function NewMaterialPage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Image upload placeholder */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">{t("image")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/30 p-8 transition-colors hover:border-muted-foreground/50 hover:bg-muted/50">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                  <IconPhoto className="size-6 text-muted-foreground" />
-                </div>
-                <p className="mt-3 text-sm font-medium">Bild hochladen</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  PNG, JPG bis 5 MB
-                </p>
-                <Button variant="outline" size="sm" className="mt-4" disabled>
-                  <IconUpload className="size-4" />
-                  Datei w&auml;hlen
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Quick info */}
           <Card>
             <CardHeader>
@@ -452,6 +456,15 @@ export default function NewMaterialPage() {
                     <span>
                       {new Date(form.expiryDate).toLocaleDateString("de-CH")}
                     </span>
+                  </div>
+                </>
+              )}
+              {form.manufacturer && (
+                <>
+                  <Separator />
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{t("manufacturer")}</span>
+                    <span className="truncate max-w-[140px]">{form.manufacturer}</span>
                   </div>
                 </>
               )}

@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Platform } from "react-native";
 import * as Haptics from "expo-haptics";
+import SegmentedControl from "@react-native-segmented-control/segmented-control";
 
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader";
 import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator";
@@ -10,8 +11,13 @@ import { ScanResultSheet } from "@/components/scan-result-sheet";
 import { CommissionPicker, type CommissionPickerItem } from "@/components/commission-picker";
 import { scanBarcode, eanLookup, type ScanResult } from "@/lib/api";
 import { CreateMaterialSheet } from "@/components/create-material-sheet";
+import { NfcScanView } from "./nfc";
+import { useColorScheme } from "@/lib/useColorScheme";
+
+type ScanMode = "camera" | "nfc";
 
 export default function ScannerScreen() {
+  const [scanMode, setScanMode] = useState<ScanMode>("camera");
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [isLooking, setIsLooking] = useState(false);
   const [pickCommissionFor, setPickCommissionFor] =
@@ -20,6 +26,7 @@ export default function ScannerScreen() {
   const [eanData, setEanData] = useState<any>(null);
   const [eanLoading, setEanLoading] = useState(false);
   const lastScannedBarcode = useRef<string>("");
+  const { colors } = useColorScheme();
 
   const handleScanned = useCallback(
     async (barcode: string) => {
@@ -50,7 +57,6 @@ export default function ScannerScreen() {
     itemId: string,
     quantity: number
   ) {
-    // Dismiss the scan sheet first, then open the commission picker
     setScanResult(null);
     setPickCommissionFor({ type: itemType, id: itemId, quantity });
   }
@@ -60,7 +66,7 @@ export default function ScannerScreen() {
   }
 
   async function handleCreateMaterial(barcode: string) {
-    setScanResult(null); // dismiss scan sheet
+    setScanResult(null);
     setEanLoading(true);
     try {
       const result = await eanLookup(barcode);
@@ -77,16 +83,58 @@ export default function ScannerScreen() {
     setEanData(null);
   }
 
+  // The NFC scan view is "active" when NFC mode is selected and no sheet is open
+  const nfcActive =
+    scanMode === "nfc" &&
+    !isLooking &&
+    scanResult === null &&
+    pickCommissionFor === null &&
+    createBarcode === null;
+
   return (
     <View style={styles.container}>
+      {/* Header — positioned absolutely so BarcodeCamera / NfcScanView fill behind */}
       <View style={styles.header}>
         <LargeTitleHeader title="Scanner" backgroundColor="transparent" />
       </View>
 
-      <BarcodeCamera
-        onScanned={handleScanned}
-        isActive={!isLooking && scanResult === null && pickCommissionFor === null && createBarcode === null}
-      />
+      {/* Mode toggle — sits just below the header */}
+      <View style={styles.toggleWrapper}>
+        <SegmentedControl
+          values={["Kamera", "NFC"]}
+          selectedIndex={scanMode === "camera" ? 0 : 1}
+          onChange={(e) => {
+            const idx = e.nativeEvent.selectedSegmentIndex;
+            setScanMode(idx === 0 ? "camera" : "nfc");
+          }}
+          style={styles.segmented}
+          tintColor={Platform.OS === "ios" ? colors.primary : undefined}
+          backgroundColor={
+            Platform.OS === "ios" ? "rgba(255,255,255,0.15)" : undefined
+          }
+          fontStyle={{ color: "#fff" }}
+          activeFontStyle={{ color: "#fff" }}
+        />
+      </View>
+
+      {/* Scan content */}
+      {scanMode === "camera" ? (
+        <BarcodeCamera
+          onScanned={handleScanned}
+          isActive={
+            !isLooking &&
+            scanResult === null &&
+            pickCommissionFor === null &&
+            createBarcode === null
+          }
+        />
+      ) : (
+        <NfcScanView
+          onRead={handleScanned}
+          isActive={nfcActive}
+          onCancel={() => setScanMode("camera")}
+        />
+      )}
 
       {/* Loading indicator during lookup */}
       {isLooking && (
@@ -147,6 +195,16 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 10,
+  },
+  toggleWrapper: {
+    position: "absolute",
+    top: 110,
+    left: 24,
+    right: 24,
+    zIndex: 15,
+  },
+  segmented: {
+    height: 36,
   },
   lookingOverlay: {
     ...StyleSheet.absoluteFillObject,

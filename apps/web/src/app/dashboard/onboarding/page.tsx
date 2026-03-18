@@ -12,6 +12,14 @@ import {
   IconTrash,
   IconArrowRight,
   IconArrowLeft,
+  IconSparkles,
+  IconX,
+  IconHammer,
+  IconAmbulance,
+  IconStethoscope,
+  IconBuildingHospital,
+  IconChefHat,
+  IconBuilding2,
 } from "@tabler/icons-react"
 import {
   Card,
@@ -31,7 +39,10 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
+import { Badge } from "@/components/ui/badge"
 import { useSession } from "@/lib/auth-client"
+import { INDUSTRY_TEMPLATES, getTemplateSummary } from "@/lib/industry-templates"
+import type { IndustryTemplate } from "@/lib/industry-templates"
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -61,13 +72,32 @@ interface InviteRow {
   role: string
 }
 
+interface ApplyResult {
+  counts: {
+    locations: number
+    materialGroups: number
+    toolGroups: number
+    materials: number
+    tools: number
+    customFields: number
+  }
+}
+
 // ── Constants ─────────────────────────────────────────────────────────────
 
-const TOTAL_STEPS = 5
+// Steps: 1 = Org, 1.5 = Template, 2 = Location, 3 = Materials, 4 = Invite, 5 = Done
+// We represent steps numerically but add a "template" step between 1 and 2.
+type WizardStep = 1 | "template" | 2 | 3 | 4 | 5
+
+const TOTAL_PROGRESS_STEPS = 5
 
 const INDUSTRIES = [
-  { value: "bau", label: "Bau" },
-  { value: "handwerk", label: "Handwerk" },
+  { value: "handwerk", label: "Handwerk / Bau" },
+  { value: "rettungsdienst", label: "Rettungsdienst / Feuerwehr" },
+  { value: "arztpraxis", label: "Arztpraxis / Zahnarztpraxis" },
+  { value: "spital", label: "Spital / Klinik" },
+  { value: "gastronomie", label: "Gastronomie / Hotellerie" },
+  { value: "facility", label: "Facility Management" },
   { value: "industrie", label: "Industrie" },
   { value: "handel", label: "Handel" },
   { value: "dienstleistung", label: "Dienstleistung" },
@@ -88,30 +118,51 @@ const ROLES = [
 
 const UNITS = ["Stk", "m", "m²", "kg", "L", "Pkg", "Rl"]
 
-// ── Step progress header ──────────────────────────────────────────────────
+// ── Icon map for template cards ───────────────────────────────────────────────
 
-function StepHeader({ step }: { step: number }) {
-  const progress = Math.round((step / TOTAL_STEPS) * 100)
+function IndustryIcon({ icon, className }: { icon: string; className?: string }) {
+  const props = { className: className ?? "size-5" }
+  switch (icon) {
+    case "Hammer": return <IconHammer {...props} />
+    case "Ambulance": return <IconAmbulance {...props} />
+    case "Stethoscope": return <IconStethoscope {...props} />
+    case "BuildingHospital": return <IconBuildingHospital {...props} />
+    case "ChefHat": return <IconChefHat {...props} />
+    case "Building": return <IconBuilding2 {...props} />
+    default: return <IconBuilding {...props} />
+  }
+}
+
+// ── Progress header ───────────────────────────────────────────────────────────
+
+function stepToNumber(step: WizardStep): number {
+  if (step === "template") return 1
+  return step as number
+}
+
+function StepHeader({ step }: { step: WizardStep }) {
+  const n = stepToNumber(step)
+  const progress = Math.round((n / TOTAL_PROGRESS_STEPS) * 100)
   return (
     <div className="mb-8 space-y-3">
       <div className="flex items-center justify-between text-sm text-muted-foreground">
         <span className="font-medium text-foreground">Einrichtung</span>
-        <span>Schritt {step} von {TOTAL_STEPS}</span>
+        <span>Schritt {n} von {TOTAL_PROGRESS_STEPS}</span>
       </div>
       <Progress value={progress} className="h-2" />
       <div className="flex justify-between">
-        {Array.from({ length: TOTAL_STEPS }, (_, i) => (
+        {Array.from({ length: TOTAL_PROGRESS_STEPS }, (_, i) => (
           <div
             key={i}
             className={`flex size-7 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
-              i + 1 < step
+              i + 1 < n
                 ? "bg-primary text-primary-foreground"
-                : i + 1 === step
+                : i + 1 === n
                 ? "border-2 border-primary bg-background text-primary"
                 : "border border-border bg-muted text-muted-foreground"
             }`}
           >
-            {i + 1 < step ? <IconCheck className="size-3.5" /> : i + 1}
+            {i + 1 < n ? <IconCheck className="size-3.5" /> : i + 1}
           </div>
         ))}
       </div>
@@ -119,7 +170,7 @@ function StepHeader({ step }: { step: number }) {
   )
 }
 
-// ── Step 1: Organisation ──────────────────────────────────────────────────
+// ── Step 1: Organisation ──────────────────────────────────────────────────────
 
 function StepOrganisation({
   data,
@@ -251,7 +302,238 @@ function StepOrganisation({
   )
 }
 
-// ── Step 2: Erster Standort ───────────────────────────────────────────────
+// ── Step 1.5: Branchenvorlage ──────────────────────────────────────────────────
+
+function TemplateSummaryBadges({ template }: { template: IndustryTemplate }) {
+  const summary = getTemplateSummary(template)
+  const items = [
+    { count: summary.locations, label: summary.locations === 1 ? "Standort" : "Standorte" },
+    { count: summary.materialGroups, label: "Materialgruppen" },
+    { count: summary.toolGroups, label: "Werkzeuggruppen" },
+    { count: summary.materials, label: "Materialien" },
+    { count: summary.tools, label: "Werkzeuge" },
+    { count: summary.customFields, label: summary.customFields === 1 ? "Zusatzfeld" : "Zusatzfelder" },
+  ]
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {items.map(({ count, label }) => (
+        <Badge key={label} variant="secondary" className="text-xs font-normal">
+          {count} {label}
+        </Badge>
+      ))}
+    </div>
+  )
+}
+
+function StepTemplate({
+  industry,
+  orgId,
+  onApply,
+  onSkip,
+  isLoading,
+  error,
+  applyResult,
+}: {
+  industry: string
+  orgId: string
+  onApply: () => void
+  onSkip: () => void
+  isLoading: boolean
+  error: string | null
+  applyResult: ApplyResult | null
+}) {
+  const template = INDUSTRY_TEMPLATES[industry] ?? null
+
+  // Industry has no template — skip automatically to next step
+  if (!template) {
+    return (
+      <Card>
+        <CardContent className="py-10 text-center">
+          <p className="text-muted-foreground">
+            Für diese Branche ist keine Vorlage verfügbar.
+          </p>
+          <Button className="mt-4" onClick={onSkip}>
+            Weiter
+            <IconArrowRight className="ml-2 size-4" />
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // Template already applied — show success summary
+  if (applyResult) {
+    const { counts } = applyResult
+    const summaryItems = [
+      { count: counts.locations, label: counts.locations === 1 ? "Standort" : "Standorte" },
+      { count: counts.materialGroups, label: "Materialgruppen" },
+      { count: counts.toolGroups, label: "Werkzeuggruppen" },
+      { count: counts.materials, label: "Materialien" },
+      { count: counts.tools, label: "Werkzeuge" },
+      { count: counts.customFields, label: counts.customFields === 1 ? "Zusatzfeld" : "Zusatzfelder" },
+    ]
+    return (
+      <Card>
+        <CardHeader>
+          <div className="mb-2 flex size-10 items-center justify-center rounded-xl bg-emerald-500/10">
+            <IconCheck className="size-5 text-emerald-600" />
+          </div>
+          <CardTitle>Vorlage angewendet!</CardTitle>
+          <CardDescription>
+            Die Branchenvorlage wurde erfolgreich eingerichtet. Du kannst alle Einträge jederzeit anpassen.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="rounded-lg border bg-muted/30 p-4">
+            <p className="mb-3 text-sm font-medium">Folgendes wurde erstellt:</p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {summaryItems.map(({ count, label }) => (
+                <div key={label} className="flex items-center gap-2 text-sm">
+                  <IconCheck className="size-3.5 shrink-0 text-emerald-600" />
+                  <span>
+                    <span className="font-semibold">{count}</span> {label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={onSkip} className="gap-2">
+              Weiter
+              <IconArrowRight className="size-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="mb-2 flex size-10 items-center justify-center rounded-xl bg-violet-500/10">
+          <IconSparkles className="size-5 text-violet-600" />
+        </div>
+        <CardTitle>Branchenvorlage anwenden?</CardTitle>
+        <CardDescription>
+          Wir haben eine passende Vorlage für <span className="font-medium text-foreground">{template.label}</span> gefunden.
+          Du kannst damit sofort starten.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        {/* Template preview card */}
+        <div className="rounded-xl border bg-card">
+          <div className="flex items-start gap-4 p-4">
+            <div className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${template.iconColor.split(" ")[0]}`}>
+              <IndustryIcon
+                icon={template.icon}
+                className={`size-5 ${template.iconColor.split(" ")[1]}`}
+              />
+            </div>
+            <div className="min-w-0 flex-1 space-y-2">
+              <div>
+                <p className="font-semibold">{template.label}</p>
+                <p className="mt-0.5 text-sm text-muted-foreground leading-snug">
+                  {template.description}
+                </p>
+              </div>
+              <TemplateSummaryBadges template={template} />
+            </div>
+          </div>
+
+          {/* Locations preview */}
+          <div className="border-t px-4 py-3">
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Standorte
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {template.locations.map((loc) => (
+                <span
+                  key={loc.name}
+                  className="inline-flex items-center gap-1 rounded-md border bg-muted/40 px-2 py-0.5 text-xs"
+                >
+                  <IconMapPin className="size-3 text-muted-foreground" />
+                  {loc.name}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Groups preview */}
+          <div className="border-t px-4 py-3">
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Gruppen
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {[...template.materialGroups, ...template.toolGroups].map((grp) => (
+                <span
+                  key={grp.name}
+                  className="inline-flex items-center gap-1.5 rounded-md border bg-muted/40 px-2 py-0.5 text-xs"
+                >
+                  <span
+                    className="size-2 shrink-0 rounded-full"
+                    style={{ backgroundColor: grp.color }}
+                  />
+                  {grp.name}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Custom fields preview */}
+          {template.customFields.length > 0 && (
+            <div className="border-t px-4 py-3">
+              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Zusatzfelder
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {template.customFields.map((field) => (
+                  <span
+                    key={`${field.entityType}-${field.name}`}
+                    className="inline-flex items-center gap-1 rounded-md border bg-muted/40 px-2 py-0.5 text-xs"
+                  >
+                    {field.name}
+                    <span className="text-muted-foreground">({field.fieldType})</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {error && (
+          <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {error}
+          </p>
+        )}
+
+        <div className="flex items-center justify-between pt-1">
+          <Button
+            type="button"
+            variant="ghost"
+            className="gap-2 text-muted-foreground"
+            onClick={onSkip}
+            disabled={isLoading}
+          >
+            <IconX className="size-4" />
+            Überspringen
+          </Button>
+          <Button
+            type="button"
+            onClick={onApply}
+            disabled={isLoading}
+            className="gap-2 bg-violet-600 hover:bg-violet-700"
+          >
+            <IconSparkles className="size-4" />
+            {isLoading ? "Wird eingerichtet..." : "Vorlage anwenden"}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// ── Step 2: Erster Standort ───────────────────────────────────────────────────
 
 function StepLocation({
   data,
@@ -351,7 +633,7 @@ function StepLocation({
   )
 }
 
-// ── Step 3: Erste Materialien ─────────────────────────────────────────────
+// ── Step 3: Erste Materialien ─────────────────────────────────────────────────
 
 const EMPTY_MATERIAL: MaterialRow = { name: "", number: "", unit: "Stk" }
 
@@ -401,7 +683,6 @@ function StepMaterials({
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            {/* Column headers */}
             <div className="grid grid-cols-[1fr_120px_100px_32px] gap-2 px-1">
               <span className="text-xs font-medium text-muted-foreground">Name</span>
               <span className="text-xs font-medium text-muted-foreground">Nummer</span>
@@ -492,7 +773,7 @@ function StepMaterials({
   )
 }
 
-// ── Step 4: Team einladen ─────────────────────────────────────────────────
+// ── Step 4: Team einladen ─────────────────────────────────────────────────────
 
 const EMPTY_INVITE: InviteRow = { email: "", role: "member" }
 
@@ -627,7 +908,7 @@ function StepInvite({
   )
 }
 
-// ── Step 5: Fertig! ───────────────────────────────────────────────────────
+// ── Step 5: Fertig! ───────────────────────────────────────────────────────────
 
 function StepDone({ firstName }: { firstName: string }) {
   return (
@@ -662,14 +943,14 @@ function StepDone({ firstName }: { firstName: string }) {
             href="/dashboard/tools"
             className="flex flex-col items-center gap-1.5 rounded-lg border bg-card p-3 text-muted-foreground transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-foreground"
           >
-            <span className="text-lg">🔧</span>
+            <IconHammer className="size-5 text-primary" />
             Werkzeuge
           </Link>
           <Link
             href="/dashboard/settings"
             className="flex flex-col items-center gap-1.5 rounded-lg border bg-card p-3 text-muted-foreground transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-foreground"
           >
-            <span className="text-lg">⚙️</span>
+            <IconBuilding className="size-5 text-primary" />
             Einstellungen
           </Link>
         </div>
@@ -678,7 +959,7 @@ function StepDone({ firstName }: { firstName: string }) {
   )
 }
 
-// ── Slug generator ─────────────────────────────────────────────────────────
+// ── Slug generator ────────────────────────────────────────────────────────────
 
 function toSlug(name: string): string {
   return name
@@ -692,17 +973,20 @@ function toSlug(name: string): string {
     .slice(0, 63)
 }
 
-// ── Main wizard ───────────────────────────────────────────────────────────
+// ── Main wizard ───────────────────────────────────────────────────────────────
 
 export default function OnboardingPage() {
   const { data: session } = useSession()
 
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState<WizardStep>(1)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Created entity IDs — needed for subsequent steps
+  // Created entity IDs
   const [orgId, setOrgId] = useState<string | null>(null)
+
+  // Template apply result (if applied)
+  const [applyResult, setApplyResult] = useState<ApplyResult | null>(null)
 
   // Form state per step
   const [orgData, setOrgData] = useState<OrgFormData>({
@@ -734,7 +1018,7 @@ export default function OnboardingPage() {
 
   const clearError = () => setError(null)
 
-  // ── Step 1: Create organisation ───────────────────────────────────────
+  // ── Step 1: Create organisation ────────────────────────────────────────────
 
   const handleCreateOrg = useCallback(async () => {
     clearError()
@@ -757,12 +1041,19 @@ export default function OnboardingPage() {
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
-        throw new Error(body.error ?? "Organisation konnte nicht erstellt werden")
+        throw new Error((body as { error?: string }).error ?? "Organisation konnte nicht erstellt werden")
       }
 
       const org = await res.json() as { id: string }
       setOrgId(org.id)
-      setStep(2)
+
+      // If the selected industry has a template, show the template step.
+      // Otherwise skip straight to step 2.
+      if (orgData.industry && INDUSTRY_TEMPLATES[orgData.industry]) {
+        setStep("template")
+      } else {
+        setStep(2)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unbekannter Fehler")
     } finally {
@@ -770,7 +1061,35 @@ export default function OnboardingPage() {
     }
   }, [orgData])
 
-  // ── Step 2: Create location ───────────────────────────────────────────
+  // ── Template step: apply template ─────────────────────────────────────────
+
+  const handleApplyTemplate = useCallback(async () => {
+    if (!orgId || !orgData.industry) return
+    clearError()
+    setIsLoading(true)
+    try {
+      const res = await fetch("/api/templates/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ industry: orgData.industry, orgId }),
+      })
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error((body as { error?: string }).error ?? "Vorlage konnte nicht angewendet werden")
+      }
+
+      const result = await res.json() as ApplyResult
+      setApplyResult(result)
+      // Stay on the template step to show the success summary; user clicks "Weiter"
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unbekannter Fehler")
+    } finally {
+      setIsLoading(false)
+    }
+  }, [orgId, orgData.industry])
+
+  // ── Step 2: Create location ────────────────────────────────────────────────
 
   const handleCreateLocation = useCallback(async () => {
     if (!orgId) return
@@ -792,7 +1111,7 @@ export default function OnboardingPage() {
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
-        throw new Error(body.error ?? "Standort konnte nicht erstellt werden")
+        throw new Error((body as { error?: string }).error ?? "Standort konnte nicht erstellt werden")
       }
 
       setStep(3)
@@ -803,7 +1122,7 @@ export default function OnboardingPage() {
     }
   }, [orgId, locationData])
 
-  // ── Step 3: Create materials ──────────────────────────────────────────
+  // ── Step 3: Create materials ───────────────────────────────────────────────
 
   const handleCreateMaterials = useCallback(async () => {
     if (!orgId) return
@@ -827,7 +1146,7 @@ export default function OnboardingPage() {
           }).then(async (res) => {
             if (!res.ok) {
               const body = await res.json().catch(() => ({}))
-              throw new Error(body.error ?? `Material "${row.name}" konnte nicht erstellt werden`)
+              throw new Error((body as { error?: string }).error ?? `Material "${row.name}" konnte nicht erstellt werden`)
             }
           })
         )
@@ -840,7 +1159,7 @@ export default function OnboardingPage() {
     }
   }, [orgId, materialRows])
 
-  // ── Step 4: Send invites ──────────────────────────────────────────────
+  // ── Step 4: Send invites ───────────────────────────────────────────────────
 
   const handleSendInvites = useCallback(async () => {
     if (!orgId) return
@@ -848,7 +1167,6 @@ export default function OnboardingPage() {
     setIsLoading(true)
     try {
       const validRows = inviteRows.filter((r) => r.email.trim())
-      // Fire all invites; report first error but don't block progress
       const results = await Promise.allSettled(
         validRows.map((row) =>
           fetch(`/api/organizations/${orgId}/invite`, {
@@ -858,7 +1176,7 @@ export default function OnboardingPage() {
           }).then(async (res) => {
             if (!res.ok) {
               const body = await res.json().catch(() => ({}))
-              throw new Error(body.error ?? `Einladung an ${row.email} fehlgeschlagen`)
+              throw new Error((body as { error?: string }).error ?? `Einladung an ${row.email} fehlgeschlagen`)
             }
           })
         )
@@ -866,7 +1184,6 @@ export default function OnboardingPage() {
       const firstFailure = results.find((r): r is PromiseRejectedResult => r.status === "rejected")
       if (firstFailure) {
         setError(firstFailure.reason instanceof Error ? firstFailure.reason.message : "Eine Einladung ist fehlgeschlagen")
-        // Still advance — partial success is fine
       }
       setStep(5)
     } catch (err) {
@@ -878,10 +1195,12 @@ export default function OnboardingPage() {
 
   const firstName = session?.user?.name?.split(" ")[0] ?? ""
 
+  // Determine which numeric step to pass to the header
+  const headerStep: WizardStep = step === "template" ? 1 : step
+
   return (
     <div className="flex min-h-[calc(100vh-theme(spacing.24))] items-start justify-center py-8 px-4">
       <div className="w-full max-w-xl">
-        {/* Logo / brand mark */}
         <div className="mb-8 text-center">
           <h1 className="text-xl font-semibold tracking-tight">LogistikApp</h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -889,7 +1208,7 @@ export default function OnboardingPage() {
           </p>
         </div>
 
-        {step < TOTAL_STEPS && <StepHeader step={step} />}
+        {step !== 5 && <StepHeader step={headerStep} />}
 
         {step === 1 && (
           <StepOrganisation
@@ -901,12 +1220,28 @@ export default function OnboardingPage() {
           />
         )}
 
+        {step === "template" && orgId && (
+          <StepTemplate
+            industry={orgData.industry}
+            orgId={orgId}
+            onApply={handleApplyTemplate}
+            onSkip={() => { clearError(); setStep(2) }}
+            isLoading={isLoading}
+            error={error}
+            applyResult={applyResult}
+          />
+        )}
+
         {step === 2 && (
           <StepLocation
             data={locationData}
             onChange={(p) => setLocationData((d) => ({ ...d, ...p }))}
             onNext={handleCreateLocation}
-            onBack={() => { clearError(); setStep(1) }}
+            onBack={() => {
+              clearError()
+              // If template was shown, go back there; otherwise go to step 1
+              setStep(orgData.industry && INDUSTRY_TEMPLATES[orgData.industry] ? "template" : 1)
+            }}
             isLoading={isLoading}
             error={error}
           />

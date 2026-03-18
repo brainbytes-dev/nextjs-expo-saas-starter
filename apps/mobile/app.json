@@ -26,7 +26,8 @@
         "tinted": true
       },
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NFCReaderUsageDescription": "LogistikApp nutzt NFC zum Lesen und Beschreiben von Inventar-Tags."
       }
     },
     "android": {
@@ -37,8 +38,10 @@
       },
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
-      ]
+        "android.permission.RECORD_AUDIO",
+        "android.permission.NFC"
+      ],
+      "androidManifest": {}
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
@@ -61,7 +64,8 @@
           "androidMode": "default",
           "androidCollapsedTitle": "#{unread_notifications} neue Mitteilungen"
         }
-      ]
+      ],
+      "react-native-nfc-manager"
     ],
     "extra": {
       "eas": {

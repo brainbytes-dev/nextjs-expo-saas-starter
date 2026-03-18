@@ -22,6 +22,7 @@ import { BarcodeLabel } from "@/components/barcode-label"
 import { CustomFieldsSection } from "@/components/custom-fields"
 import { InsuranceWarrantyPanel } from "@/components/insurance-warranty-panel"
 import { CommentsThread } from "@/components/comments-thread"
+import { SupplierPricesTab } from "./supplier-prices-tab"
 import { AttachmentsPanel } from "@/components/attachments-panel"
 
 import { Button } from "@/components/ui/button"
@@ -531,6 +532,7 @@ export default function MaterialDetailPage() {
           <TabsTrigger value="general">{t("tabs.general")}</TabsTrigger>
           <TabsTrigger value="locations">{t("tabs.locations")}</TabsTrigger>
           <TabsTrigger value="suppliers">{t("tabs.suppliers")}</TabsTrigger>
+          <TabsTrigger value="supplier-prices">Lieferanten &amp; Preise</TabsTrigger>
           <TabsTrigger value="tasks">{t("tabs.tasks")}</TabsTrigger>
           <TabsTrigger value="qr">QR-Code</TabsTrigger>
           <TabsTrigger value="attachments">Anhänge</TabsTrigger>
@@ -884,7 +886,14 @@ export default function MaterialDetailPage() {
           </Card>
         </TabsContent>
 
-        {/* ─── Tasks Tab ───────────────────────────────────────────── */}
+        {/* ─── Supplier Prices Tab ─────────────────────────────────── */}
+        <TabsContent value="supplier-prices">
+          <Card>
+            <SupplierPricesTab materialId={materialId} />
+          </Card>
+        </TabsContent>
+
+                {/* ─── Tasks Tab ───────────────────────────────────────────── */}
         <TabsContent value="tasks">
           <Card>
             {tasks.length === 0 ? (

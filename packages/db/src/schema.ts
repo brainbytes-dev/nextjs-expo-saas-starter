@@ -921,6 +921,8 @@ export const alertSettings = pgTable("alert_settings", {
   whatsappAlerts: boolean("whatsapp_alerts").default(false).notNull(),
   lowStockThreshold: integer("low_stock_threshold").default(1).notNull(),
   maintenanceAlertDays: integer("maintenance_alert_days").default(7).notNull(),
+  autoReorder: boolean("auto_reorder").default(false).notNull(),
+  reorderTargetMultiplier: integer("reorder_target_multiplier").default(2).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

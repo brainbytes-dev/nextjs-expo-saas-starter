@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   Modal,
   View,
@@ -7,8 +7,10 @@ import {
   StyleSheet,
   ScrollView,
   Platform,
+  Alert,
 } from "react-native";
 import * as Haptics from "expo-haptics";
+import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { toast } from "burnt";
 
@@ -17,6 +19,9 @@ import { Text } from "@/components/nativewindui/Text";
 import { TextField } from "@/components/nativewindui/TextField";
 import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator";
 import { createMaterial } from "@/lib/api";
+import { getSession } from "@/lib/session-store";
+import { getOrgId } from "@/lib/org-store";
+import { isDemoMode } from "@/lib/demo/config";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -31,6 +36,15 @@ export interface EanData {
   source?: string;
 }
 
+interface AiRecognizeResult {
+  name: string;
+  manufacturer: string;
+  category: string;
+  description: string;
+  estimatedPrice: string;
+  unit: string;
+}
+
 interface CreateMaterialSheetProps {
   visible: boolean;
   barcode: string;
@@ -39,9 +53,56 @@ interface CreateMaterialSheetProps {
   onDismiss: () => void;
 }
 
-// ── Unit options ──────────────────────────────────────────────────────────────
+// ── Constants ─────────────────────────────────────────────────────────────────
 
 const UNITS = ["Stk", "m", "kg", "l", "Paar", "Packung"] as const;
+
+const BASE_URL = process.env.EXPO_PUBLIC_APP_URL ?? "http://localhost:3003";
+
+const DEMO_AI_RESULT: AiRecognizeResult = {
+  name: "Hilti TE 70-ATC Bohrhammer",
+  manufacturer: "Hilti",
+  category: "Elektrowerkzeug",
+  description: "Kombihammer für Beton und Mauerwerk",
+  estimatedPrice: "2450.00",
+  unit: "Stk",
+};
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+async function recognizeImageUri(uri: string): Promise<AiRecognizeResult | null> {
+  if (isDemoMode) {
+    // Simulate latency
+    await new Promise((r) => setTimeout(r, 900));
+    return DEMO_AI_RESULT;
+  }
+
+  const session = getSession();
+  const orgId = getOrgId();
+
+  const formData = new FormData();
+  // React Native FormData accepts { uri, name, type } objects
+  formData.append("image", {
+    uri,
+    name: "photo.jpg",
+    type: "image/jpeg",
+  } as unknown as Blob);
+
+  const headers: Record<string, string> = {
+    ...(session?.token ? { Authorization: `Bearer ${session.token}` } : {}),
+    ...(orgId ? { "x-organization-id": orgId } : {}),
+  };
+
+  const res = await fetch(`${BASE_URL}/api/ai/recognize`, {
+    method: "POST",
+    headers,
+    body: formData,
+  });
+
+  if (!res.ok) return null;
+  const json = await res.json();
+  return json.result as AiRecognizeResult;
+}
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -53,6 +114,9 @@ export function CreateMaterialSheet({
   onDismiss,
 }: CreateMaterialSheetProps) {
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState<AiRecognizeResult | null>(null);
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
 
   // Form state — pre-fill from EAN data when available
   const [name, setName] = useState(() => eanData?.name ?? "");
@@ -63,12 +127,99 @@ export function CreateMaterialSheet({
   );
   const [notes, setNotes] = useState("");
 
-  // Re-init fields when the sheet opens with new data
-  // (using key prop on the outer Modal to remount — see usage in scanner)
   const hasEan = !!eanData?.found;
 
+  // ── Photo & AI ─────────────────────────────────────────────────────────────
+
+  const pickAndRecognize = useCallback(async (source: "camera" | "gallery") => {
+    try {
+      let result: ImagePicker.ImagePickerResult;
+
+      if (source === "camera") {
+        const perm = await ImagePicker.requestCameraPermissionsAsync();
+        if (!perm.granted) {
+          Alert.alert(
+            "Kamera-Zugriff",
+            "Bitte erlaube den Kamera-Zugriff in den Einstellungen."
+          );
+          return;
+        }
+        result = await ImagePicker.launchCameraAsync({
+          mediaTypes: ["images"],
+          quality: 0.7,
+          allowsEditing: false,
+        });
+      } else {
+        const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!perm.granted) {
+          Alert.alert(
+            "Galerie-Zugriff",
+            "Bitte erlaube den Galerie-Zugriff in den Einstellungen."
+          );
+          return;
+        }
+        result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ["images"],
+          quality: 0.7,
+          allowsEditing: false,
+        });
+      }
+
+      if (result.canceled || !result.assets[0]?.uri) return;
+
+      const uri = result.assets[0].uri;
+      setPhotoUri(uri);
+      setAiLoading(true);
+      setAiResult(null);
+
+      const recognized = await recognizeImageUri(uri);
+
+      if (recognized) {
+        setAiResult(recognized);
+        // Auto-fill empty fields
+        if (!name && recognized.name) setName(recognized.name);
+        if (!manufacturer && recognized.manufacturer)
+          setManufacturer(recognized.manufacturer);
+        if (!notes && recognized.description) setNotes(recognized.description);
+        if (recognized.unit && UNITS.includes(recognized.unit as typeof UNITS[number])) {
+          setUnit(recognized.unit);
+        }
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        toast({ title: "KI-Erkennung erfolgreich", preset: "done" });
+      } else {
+        toast({
+          title: "Erkennung fehlgeschlagen",
+          message: "Bitte manuell ausfüllen.",
+          preset: "error",
+        });
+      }
+    } catch (err) {
+      toast({
+        title: "Fehler",
+        message: err instanceof Error ? err.message : "Unbekannter Fehler",
+        preset: "error",
+      });
+    } finally {
+      setAiLoading(false);
+    }
+  }, [name, manufacturer, notes]);
+
+  const showPhotoOptions = useCallback(() => {
+    Alert.alert(
+      "Foto aufnehmen",
+      "Wie möchtest du ein Foto hinzufügen?",
+      [
+        { text: "Kamera", onPress: () => pickAndRecognize("camera") },
+        { text: "Galerie", onPress: () => pickAndRecognize("gallery") },
+        { text: "Abbrechen", style: "cancel" },
+      ]
+    );
+  }, [pickAndRecognize]);
+
+  // ── Save ───────────────────────────────────────────────────────────────────
+
   function handleDismiss() {
-    if (loading) return;
+    if (loading || aiLoading) return;
     onDismiss();
   }
 
@@ -105,6 +256,8 @@ export function CreateMaterialSheet({
     }
   }
 
+  // ── Render ─────────────────────────────────────────────────────────────────
+
   return (
     <Modal
       visible={visible}
@@ -124,7 +277,7 @@ export function CreateMaterialSheet({
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header */}
+          {/* Header row with camera button */}
           <View className="flex-row items-center gap-3 mb-4">
             <View className="w-10 h-10 rounded-full bg-orange-100 items-center justify-center">
               <Ionicons name="add-circle-outline" size={22} color="#f97316" />
@@ -139,10 +292,44 @@ export function CreateMaterialSheet({
                 </Text>
               ) : null}
             </View>
+
+            {/* Camera / AI button */}
+            <TouchableOpacity
+              onPress={showPhotoOptions}
+              disabled={aiLoading || loading}
+              className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center"
+              accessibilityLabel="Foto für KI-Erkennung aufnehmen"
+              accessibilityRole="button"
+            >
+              {aiLoading ? (
+                <ActivityIndicator size="small" />
+              ) : (
+                <Ionicons
+                  name={photoUri ? "camera" : "camera-outline"}
+                  size={20}
+                  color="#f97316"
+                />
+              )}
+            </TouchableOpacity>
           </View>
 
+          {/* AI result badge */}
+          {aiResult && (
+            <View className="flex-row items-center gap-1.5 bg-violet-50 border border-violet-200 rounded-xl px-3 py-2 mb-4">
+              <Ionicons name="sparkles" size={16} color="#7c3aed" />
+              <Text className="text-sm text-violet-700 font-medium flex-1">
+                KI erkannt: {aiResult.name}
+              </Text>
+              {aiResult.category ? (
+                <Text className="text-xs text-violet-500">
+                  {aiResult.category}
+                </Text>
+              ) : null}
+            </View>
+          )}
+
           {/* EAN badge */}
-          {hasEan && (
+          {hasEan && !aiResult && (
             <View className="flex-row items-center gap-1.5 bg-green-50 border border-green-200 rounded-xl px-3 py-2 mb-4">
               <Ionicons name="checkmark-circle" size={16} color="#16a34a" />
               <Text className="text-sm text-green-700 font-medium">
@@ -261,7 +448,7 @@ export function CreateMaterialSheet({
                 <ActivityIndicator />
               </View>
             ) : (
-              <Button onPress={handleSave}>
+              <Button onPress={handleSave} disabled={aiLoading}>
                 <Ionicons name="checkmark-circle-outline" size={16} color="white" />
                 <Text className="text-white ml-2 font-semibold">Speichern</Text>
               </Button>
@@ -271,7 +458,7 @@ export function CreateMaterialSheet({
           {/* Dismiss link */}
           <TouchableOpacity
             onPress={handleDismiss}
-            disabled={loading}
+            disabled={loading || aiLoading}
             className="mt-3 py-3 items-center"
           >
             <Text className="text-muted-foreground text-sm">Abbrechen</Text>

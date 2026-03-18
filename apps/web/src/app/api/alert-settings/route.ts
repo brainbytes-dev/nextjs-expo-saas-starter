@@ -27,6 +27,8 @@ export async function GET(request: Request) {
         whatsappAlerts: false,
         lowStockThreshold: 1,
         maintenanceAlertDays: 7,
+        autoReorder: false,
+        reorderTargetMultiplier: 2,
       }
     );
   } catch (error) {
@@ -48,6 +50,8 @@ export async function PUT(request: Request) {
       whatsappAlerts?: boolean;
       lowStockThreshold?: number;
       maintenanceAlertDays?: number;
+      autoReorder?: boolean;
+      reorderTargetMultiplier?: number;
     };
 
     const values = {
@@ -57,6 +61,8 @@ export async function PUT(request: Request) {
       whatsappAlerts: body.whatsappAlerts ?? false,
       lowStockThreshold: Math.max(0, Number(body.lowStockThreshold ?? 1)),
       maintenanceAlertDays: Math.max(1, Number(body.maintenanceAlertDays ?? 7)),
+      autoReorder: body.autoReorder ?? false,
+      reorderTargetMultiplier: Math.max(1, Math.min(10, Number(body.reorderTargetMultiplier ?? 2))),
       updatedAt: new Date(),
     };
 

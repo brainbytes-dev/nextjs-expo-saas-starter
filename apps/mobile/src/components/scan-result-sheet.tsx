@@ -18,6 +18,10 @@ import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator";
 import { Stepper } from "@/components/nativewindui/Stepper";
 import { type ScanResult } from "@/lib/api";
 import { stockIn, stockOut, toolCheckout, toolCheckin } from "@/lib/scan-actions";
+import { initNfc, writeNfcTag, cancelNfcScan } from "@/lib/nfc";
+import { isDemoMode } from "@/lib/demo/config";
+
+const APP_BASE_URL = "https://app.logistikapp.ch";
 
 interface ScanResultSheetProps {
   result: ScanResult | null;
@@ -39,14 +43,12 @@ export function ScanResultSheet({
   scannedBarcode,
 }: ScanResultSheetProps) {
   const [loading, setLoading] = useState(false);
+  const [nfcWriting, setNfcWriting] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const visible = result !== null;
 
   const item = result?.item as Record<string, unknown> | null;
   const itemType = result?.type;
-
-  // Reset quantity whenever a new scan result appears
-  // (quantity is keyed to the sheet instance; it resets on dismiss via state)
 
   function increment() {
     setQuantity((q) => q + 1);
@@ -118,6 +120,66 @@ export function ScanResultSheet({
       return;
     }
     onAddToCommission?.(itemType, item.id as string, quantity);
+  }
+
+  async function handleWriteNfc() {
+    // Determine the barcode to encode: prefer item barcode, fall back to scannedBarcode
+    const barcode = (item?.barcode as string | undefined) ?? scannedBarcode;
+    if (!barcode) {
+      Alert.alert("Kein Barcode", "Diesem Eintrag ist kein Barcode zugeordnet.");
+      return;
+    }
+
+    const url = `${APP_BASE_URL}/s/${barcode}`;
+
+    if (isDemoMode) {
+      // Simulate write in demo mode
+      setNfcWriting(true);
+      await new Promise((r) => setTimeout(r, 2000));
+      setNfcWriting(false);
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      toast({ title: "NFC-Tag beschrieben (Demo)", preset: "done" });
+      return;
+    }
+
+    setNfcWriting(true);
+    try {
+      const supported = await initNfc();
+      if (!supported) {
+        Alert.alert(
+          "NFC nicht verfügbar",
+          "Dieses Gerät unterstützt kein NFC oder NFC ist deaktiviert."
+        );
+        return;
+      }
+
+      Alert.alert(
+        "NFC-Tag beschreiben",
+        `Halte jetzt einen NFC-Tag ans Gerät.\n\nURL: ${url}`,
+        [
+          {
+            text: "Abbrechen",
+            style: "cancel",
+            onPress: () => {
+              cancelNfcScan();
+              setNfcWriting(false);
+            },
+          },
+        ],
+        { cancelable: false }
+      );
+
+      const success = await writeNfcTag(url);
+      if (success) {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        toast({ title: "NFC-Tag beschrieben", preset: "done" });
+      } else {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        toast({ title: "Schreiben fehlgeschlagen", preset: "error" });
+      }
+    } finally {
+      setNfcWriting(false);
+    }
   }
 
   function handleDismiss() {
@@ -278,6 +340,23 @@ export function ScanResultSheet({
                       />
                       <Text className="text-muted-foreground ml-2">
                         Zu Lieferschein hinzufügen
+                      </Text>
+                    </Button>
+                  )}
+
+                  {/* NFC write button */}
+                  {nfcWriting ? (
+                    <View className="flex-row items-center justify-center gap-2 py-2">
+                      <ActivityIndicator size="small" />
+                      <Text className="text-muted-foreground text-sm">
+                        NFC-Tag wird beschrieben…
+                      </Text>
+                    </View>
+                  ) : (
+                    <Button variant="plain" onPress={handleWriteNfc}>
+                      <Ionicons name="wifi-outline" size={16} color="#6b7280" />
+                      <Text className="text-muted-foreground ml-2">
+                        Auf NFC-Tag schreiben
                       </Text>
                     </Button>
                   )}
