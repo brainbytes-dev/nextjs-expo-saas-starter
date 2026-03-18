@@ -21,7 +21,9 @@ import { BrandLogo } from "@/components/integrations/brand-logo"
 
 /* ─── Global styles injected at runtime ─────────────────────── */
 const STYLES = `
-  *, *::before, *::after { cursor: none !important; }
+  @media (pointer: fine) {
+    *, *::before, *::after { cursor: none !important; }
+  }
 
   @keyframes reveal-clip {
     from { clip-path: inset(0 0 100% 0); transform: translateY(12px); opacity: 0; }
@@ -99,8 +101,12 @@ const STYLES = `
 function CustomCursor() {
   const dotRef  = useRef<HTMLDivElement>(null)
   const ringRef = useRef<HTMLDivElement>(null)
+  const [isPointer] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia("(pointer: fine)").matches
+  )
 
   useEffect(() => {
+    if (!isPointer) return
     const dot  = dotRef.current
     const ring = ringRef.current
     if (!dot || !ring) return
@@ -129,7 +135,9 @@ function CustomCursor() {
     window.addEventListener("mousemove", onMove, { passive: true })
     raf = requestAnimationFrame(lerp)
     return () => { window.removeEventListener("mousemove", onMove); cancelAnimationFrame(raf) }
-  }, [])
+  }, [isPointer])
+
+  if (!isPointer) return null
 
   return (
     <>

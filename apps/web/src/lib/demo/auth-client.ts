@@ -4,22 +4,28 @@ import { useState, useEffect } from "react";
 import { DEMO_SESSION } from "./data";
 
 const DEMO_STORAGE_KEY = "demo-session";
+const DEMO_SIGNED_OUT_KEY = "demo-signed-out";
 
 function getDemoSession() {
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined") return DEMO_SESSION; // SSR: always return session
   try {
+    // Respect explicit sign-out
+    if (localStorage.getItem(DEMO_SIGNED_OUT_KEY) === "true") return null;
     const stored = localStorage.getItem(DEMO_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : null;
+    // Default to DEMO_SESSION on first visit — no login required
+    return stored ? JSON.parse(stored) : DEMO_SESSION;
   } catch {
-    return null;
+    return DEMO_SESSION;
   }
 }
 
 function setDemoSession(session: typeof DEMO_SESSION | null) {
   if (typeof window === "undefined") return;
   if (session) {
+    localStorage.removeItem(DEMO_SIGNED_OUT_KEY);
     localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(session));
   } else {
+    localStorage.setItem(DEMO_SIGNED_OUT_KEY, "true");
     localStorage.removeItem(DEMO_STORAGE_KEY);
   }
   // Dispatch storage event so other tabs/hooks pick it up
@@ -66,7 +72,7 @@ export const signUp = {
 };
 
 export async function signOut() {
-  setDemoSession(null);
+  setDemoSession(null); // sets DEMO_SIGNED_OUT_KEY so next visit starts signed out
   window.location.href = "/";
 }
 
