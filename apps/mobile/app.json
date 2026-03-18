@@ -56,8 +56,14 @@
         }
       ]
     ],
+    "extra": {
+      "eas": {
+        "projectId": "9b0d1f7e-01c6-45bd-87c5-164b4bb7216f"
+      }
+    },
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "owner": "brainbytes"
   }
 }
