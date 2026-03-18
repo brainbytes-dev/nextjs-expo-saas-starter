@@ -94,8 +94,6 @@ export default function AppLayout() {
           ),
         }}
       />
-      {/* Hidden screens — accessible via navigation but not in tab bar */}
-      <Tabs.Screen name="subscription" options={{ href: null }} />
     </Tabs>
       {isDemoMode && <DemoBanner />}
     </>

@@ -350,7 +350,7 @@ function ListSectionHeader<T extends ListDataItem>({
     return (
       <View
         className={cn(
-          'bg-background',
+          'bg-transparent',
           Platform.OS !== 'ios' && 'border-border/25 dark:border-border/80 border-b',
           className
         )}
