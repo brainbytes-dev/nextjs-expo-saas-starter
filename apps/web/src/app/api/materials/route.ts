@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
 import { materials, materialGroups, locations } from "@repo/db/schema";
 import { eq, and, ilike, sql } from "drizzle-orm";
+import { dispatchWebhook } from "@/lib/webhooks";
 
 export async function GET(request: Request) {
   try {
@@ -125,6 +126,17 @@ export async function POST(request: Request) {
         notes,
       })
       .returning();
+
+    // Dispatch webhook — fire-and-forget, does not affect response time
+    dispatchWebhook(orgId, "material.created", {
+      id: material.id,
+      number: material.number,
+      name: material.name,
+      groupId: material.groupId,
+      unit: material.unit,
+      barcode: material.barcode,
+      createdAt: material.createdAt,
+    });
 
     return NextResponse.json(material, { status: 201 });
   } catch (error) {

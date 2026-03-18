@@ -20,6 +20,7 @@ import {
   IconReportAnalytics,
   IconUsers,
   IconSettings,
+  IconListDetails,
   IconShoppingCart,
   IconTool,
   IconTruck,
@@ -171,6 +172,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: t("settings"),
         url: "/dashboard/settings",
         icon: IconSettings,
+      },
+      {
+        title: t("customFields"),
+        url: "/dashboard/settings/custom-fields",
+        icon: IconListDetails,
       },
       {
         title: t("team"),

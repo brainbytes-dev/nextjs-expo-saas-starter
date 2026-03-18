@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
 import { stockChanges, materials, materialStocks, locations, users } from "@repo/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
+import { dispatchWebhook } from "@/lib/webhooks";
 
 export async function GET(request: Request) {
   try {
@@ -115,7 +116,7 @@ export async function POST(request: Request) {
 
     // Verify material belongs to org
     const [material] = await db
-      .select({ id: materials.id })
+      .select({ id: materials.id, name: materials.name, number: materials.number })
       .from(materials)
       .where(and(eq(materials.id, materialId), eq(materials.organizationId, orgId)))
       .limit(1);
@@ -181,6 +182,31 @@ export async function POST(request: Request) {
 
       return change;
     });
+
+    // Dispatch webhook — fire-and-forget, outside the transaction
+    dispatchWebhook(orgId, "stock.changed", {
+      id: stockChange.id,
+      materialId,
+      materialName: material.name,
+      materialNumber: material.number,
+      locationId,
+      changeType,
+      quantity: delta,
+      previousQuantity: stockChange.previousQuantity,
+      newQuantity: stockChange.newQuantity,
+      userId: session.user.id,
+      notes: notes ?? null,
+      createdAt: stockChange.createdAt,
+    });
+
+    // TODO: Add dispatchWebhook to tool booking routes:
+    //   POST /api/tools/:id/booking → "tool.checked_out" / "tool.checked_in"
+    // TODO: Add dispatchWebhook to commission routes:
+    //   POST /api/commissions → "commission.created"
+    //   PATCH /api/commissions/:id → "commission.status_changed"
+    // TODO: Add dispatchWebhook to team/member routes:
+    //   POST /api/team/invite → "member.invited"
+    //   DELETE /api/team/:id → "member.removed"
 
     return NextResponse.json(stockChange, { status: 201 });
   } catch (error) {

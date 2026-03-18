@@ -854,14 +854,25 @@ export default function LandingPage() {
 
         {/* ══ FOOTER ═══════════════════════════════════════ */}
         <footer className="border-t border-border">
-          <div className="mx-auto max-w-7xl px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <Logo iconSize={20} />
-            <p className="font-mono text-[10px] tracking-widest text-muted-foreground">
-              © {new Date().getFullYear()} LogistikApp · Schweizer Datenschutz
-            </p>
-            <div className="flex gap-6 font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
-              <Link href="/login"  className="hover:text-foreground transition-colors">Anmelden</Link>
-              <Link href="/signup" className="hover:text-foreground transition-colors">Registrieren</Link>
+          <div className="mx-auto max-w-7xl px-6 py-8 flex flex-col gap-4">
+            {/* Top row */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <Logo iconSize={20} />
+              <p className="font-mono text-[10px] tracking-widest text-muted-foreground">
+                © {new Date().getFullYear()} BrainBytes GmbH · LogistikApp
+              </p>
+              <div className="flex gap-6 font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
+                <Link href="/login"  className="hover:text-foreground transition-colors">Anmelden</Link>
+                <Link href="/signup" className="hover:text-foreground transition-colors">Registrieren</Link>
+              </div>
+            </div>
+            {/* Legal row */}
+            <div className="flex items-center justify-center gap-6 border-t border-border pt-4">
+              <Link href="/datenschutz" className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase hover:text-foreground transition-colors">Datenschutz</Link>
+              <span className="text-border font-mono text-[10px]">·</span>
+              <Link href="/agb" className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase hover:text-foreground transition-colors">AGB</Link>
+              <span className="text-border font-mono text-[10px]">·</span>
+              <Link href="/impressum" className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase hover:text-foreground transition-colors">Impressum</Link>
             </div>
           </div>
         </footer>

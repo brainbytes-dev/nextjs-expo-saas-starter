@@ -10,6 +10,7 @@ import {
   auditLog,
 } from "@repo/db/schema";
 import { eq, and } from "drizzle-orm";
+import { dispatchWebhook } from "@/lib/webhooks";
 
 export async function GET(
   request: Request,
@@ -176,6 +177,20 @@ export async function PATCH(
       );
     }
 
+    // Dispatch webhook — fire-and-forget
+    if (auditEntries.length > 0) {
+      dispatchWebhook(orgId, "material.updated", {
+        id: updated.id,
+        name: updated.name,
+        changes: auditEntries.map(({ field, oldValue, newValue }) => ({
+          field,
+          oldValue,
+          newValue,
+        })),
+        updatedAt: updated.updatedAt,
+      });
+    }
+
     return NextResponse.json(updated);
   } catch (error) {
     console.error("PATCH /api/materials/[id] error:", error);
@@ -214,6 +229,14 @@ export async function DELETE(
       .update(materials)
       .set({ isActive: false, updatedAt: new Date() })
       .where(eq(materials.id, id));
+
+    // Dispatch webhook — fire-and-forget
+    dispatchWebhook(orgId, "material.deleted", {
+      id: existing.id,
+      name: existing.name,
+      number: existing.number,
+      deletedAt: new Date().toISOString(),
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

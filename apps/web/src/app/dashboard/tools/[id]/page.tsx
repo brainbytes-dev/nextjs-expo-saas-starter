@@ -21,6 +21,7 @@ import {
 import { QrCodeDisplay } from "@/components/qr-code"
 import { ZebraLabelButton } from "@/components/zebra-label-button"
 import { BarcodeLabel } from "@/components/barcode-label"
+import { CustomFieldsSection } from "@/components/custom-fields"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -930,6 +931,9 @@ export default function ToolDetailPage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* ─── Custom Fields ─────────────────────────────────────────────── */}
+      <CustomFieldsSection entityType="tool" entityId={toolId} />
 
       {/* ─── Checkout Dialog ─────────────────────────────────────────── */}
       <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>

@@ -1,7 +1,7 @@
 "use client"
 
-import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useRouter, usePathname } from "next/navigation"
+import { useEffect, useRef } from "react"
 import { useSession } from "@/lib/auth-client"
 import { AppSidebar } from "@/components/app-sidebar"
 import { CommandPalette } from "@/components/command-palette"
@@ -18,15 +18,45 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
+  const pathname = usePathname()
   const { data: session, isPending } = useSession()
+
+  // Track whether we have already checked org membership to avoid repeated fetches
+  const orgCheckDone = useRef(false)
 
   const devBypass = process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_DEMO_MODE === "true"
 
+  // ── Auth guard ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!devBypass && !isPending && !session) {
       router.push("/login")
     }
   }, [session, isPending, router, devBypass])
+
+  // ── Onboarding guard ────────────────────────────────────────────────────
+  // Skip when: already on onboarding, in dev/demo bypass mode, or session is loading
+  useEffect(() => {
+    const isOnboarding = pathname === "/dashboard/onboarding"
+    if (isOnboarding || isPending || orgCheckDone.current) return
+    if (!devBypass && !session) return
+
+    orgCheckDone.current = true
+
+    const checkOrgs = async () => {
+      try {
+        const res = await fetch("/api/organizations")
+        if (!res.ok) return
+        const orgs: unknown[] = await res.json()
+        if (Array.isArray(orgs) && orgs.length === 0) {
+          router.push("/dashboard/onboarding")
+        }
+      } catch {
+        // Network error — fail open, don't block the user
+      }
+    }
+
+    void checkOrgs()
+  }, [session, isPending, pathname, router, devBypass])
 
   if (!devBypass && isPending) {
     return (

@@ -807,3 +807,29 @@ export const pushTokens = pgTable(
 
 export type PushToken = typeof pushTokens.$inferSelect;
 export type NewPushToken = typeof pushTokens.$inferInsert;
+
+// ─── Webhook Subscriptions (Zapier/Make/Custom) ──────────────────────
+export const webhookSubscriptions = pgTable(
+  "webhook_subscriptions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    secret: text("secret").notNull(), // HMAC-SHA256 signing secret
+    events: text("events").array().notNull(), // e.g. ["material.created", "stock.changed"]
+    isActive: boolean("is_active").default(true).notNull(),
+    lastTriggeredAt: timestamp("last_triggered_at"),
+    failCount: integer("fail_count").default(0).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_webhook_subscriptions_org_id").on(table.organizationId),
+    index("idx_webhook_subscriptions_is_active").on(table.isActive),
+  ]
+);
+
+export type WebhookSubscription = typeof webhookSubscriptions.$inferSelect;
+export type NewWebhookSubscription = typeof webhookSubscriptions.$inferInsert;
