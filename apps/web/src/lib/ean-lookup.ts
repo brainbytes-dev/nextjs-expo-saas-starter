@@ -38,9 +38,11 @@ export async function lookupEan(barcode: string): Promise<EanResult | null> {
     if (result) { await saveToCache(barcode, result); return result; }
   }
 
-  // 6. Open GTIN DB (DACH focus)
-  const gtindb = await queryOpenGtinDb(barcode);
-  if (gtindb) { await saveToCache(barcode, gtindb); return gtindb; }
+  // 6. Open GTIN DB (DACH focus) — requires paid queryid (35 EUR), skip if not configured
+  if (process.env.OPENGTINDB_API_KEY) {
+    const gtindb = await queryOpenGtinDb(barcode);
+    if (gtindb) { await saveToCache(barcode, gtindb); return gtindb; }
+  }
 
   // 7. UPC ItemDB
   const upc = await queryUpcItemDb(barcode);
