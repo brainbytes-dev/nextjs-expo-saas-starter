@@ -16,7 +16,14 @@
     },
     "plugins": [
       "expo-router",
-      "@sentry/react-native"
+      "@sentry/react-native",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "LogistikApp benötigt Kamerazugriff zum Scannen von Barcodes.",
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

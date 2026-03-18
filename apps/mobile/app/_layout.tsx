@@ -5,6 +5,7 @@ import * as Sentry from "@sentry/react-native";
 import { PostHogProvider } from "posthog-react-native";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { loadSession } from "@/lib/session-store";
+import { loadOrgId } from "@/lib/org-store";
 import { initializeRevenueCat } from "@/lib/revenue-cat";
 
 Sentry.init({
@@ -19,6 +20,7 @@ const POSTHOG_HOST =
 function RootLayout() {
   useEffect(() => {
     loadSession();
+    loadOrgId();
     initializeRevenueCat();
   }, []);
 

@@ -20,6 +20,7 @@
     "burnt": "^0.13.0",
     "clsx": "^2.1.0",
     "expo": "latest",
+    "expo-camera": "~55.0.10",
     "expo-haptics": "~14.1.0",
     "expo-router": "latest",
     "expo-status-bar": "latest",
