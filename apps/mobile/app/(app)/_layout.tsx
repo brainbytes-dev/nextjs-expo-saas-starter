@@ -21,10 +21,12 @@ import {
   registerForPushNotifications,
   isNotificationsEnabled,
 } from "@/lib/notifications";
+import { useConflicts } from "@/lib/conflict-resolver";
 
 export default function AppLayout() {
   const { data, isPending } = useSession();
   const { colors } = useColorScheme();
+  const { unresolvedCount } = useConflicts();
 
   // Re-register the push token on every launch when the user has previously
   // opted in (covers token rotation and server-side deactivation recovery).
@@ -99,6 +101,48 @@ export default function AppLayout() {
         }}
       />
       <Tabs.Screen
+        name="sync"
+        options={{
+          title: "Sync",
+          tabBarIcon: ({ focused, color }) => (
+            <View>
+              <Icon
+                name={focused ? "arrow.triangle.2.circlepath" : ("arrow.triangle.2.circlepath" as any)}
+                color={color}
+                size={24}
+              />
+              {unresolvedCount > 0 && (
+                <View
+                  style={{
+                    position: "absolute",
+                    top: -2,
+                    right: -6,
+                    backgroundColor: "#ef4444",
+                    borderRadius: 8,
+                    minWidth: 16,
+                    height: 16,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    paddingHorizontal: 3,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#fff",
+                      fontSize: 9,
+                      fontWeight: "700",
+                      lineHeight: 14,
+                    }}
+                  >
+                    {unresolvedCount > 9 ? "9+" : unresolvedCount}
+                  </Text>
+                </View>
+              )}
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: "Einstellungen",
@@ -111,6 +155,8 @@ export default function AppLayout() {
           ),
         }}
       />
+      {/* Hidden screens that exist as files but should not appear as tabs */}
+      <Tabs.Screen name="nfc" options={{ href: null }} />
     </Tabs>
       {isDemoMode && <DemoBanner />}
       <OfflineBanner />
@@ -131,6 +177,7 @@ const TAB_ICON: Record<string, string> = {
   index: "home",
   scanner: "barcode-scan",
   commissions: "file-document-outline",
+  sync: "sync",
   settings: "cog",
 };
 
@@ -141,6 +188,7 @@ function MaterialTabBar({
 }: BottomTabBarProps) {
   const { colors } = useColorScheme();
   const insets = useSafeAreaInsets();
+  const { unresolvedCount } = useConflicts();
 
   // Build the visible routes list while keeping the original route index for
   // focus comparison against state.index.
@@ -172,6 +220,8 @@ function MaterialTabBar({
           }
         };
 
+        const showBadge = route.name === "sync" && unresolvedCount > 0;
+
         return (
           <MaterialTabItem
             key={route.name}
@@ -184,6 +234,7 @@ function MaterialTabBar({
             label={label}
             activeColor={colors.primary}
             inactiveColor={colors.grey2}
+            badgeCount={showBadge ? unresolvedCount : 0}
           />
         );
       })}
@@ -197,6 +248,7 @@ function MaterialTabItem({
   label,
   activeColor,
   inactiveColor,
+  badgeCount = 0,
   className: itemClassName,
   ...pressableProps
 }: {
@@ -205,6 +257,7 @@ function MaterialTabItem({
   label: string;
   activeColor: string;
   inactiveColor: string;
+  badgeCount?: number;
 } & Omit<PressableProps, "children">) {
   // Derive a shared value from the JS boolean so Reanimated can read it on
   // the UI thread without stale closure issues.
@@ -247,6 +300,26 @@ function MaterialTabItem({
           name="questionmark"
           size={22}
         />
+        {badgeCount > 0 && (
+          <View
+            style={{
+              position: "absolute",
+              top: 2,
+              right: 10,
+              backgroundColor: "#ef4444",
+              borderRadius: 8,
+              minWidth: 14,
+              height: 14,
+              alignItems: "center",
+              justifyContent: "center",
+              paddingHorizontal: 2,
+            }}
+          >
+            <Text style={{ color: "#fff", fontSize: 8, fontWeight: "700", lineHeight: 12 }}>
+              {badgeCount > 9 ? "9+" : badgeCount}
+            </Text>
+          </View>
+        )}
       </View>
       <Text
         variant="caption2"

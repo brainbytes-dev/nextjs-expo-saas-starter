@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import GpsPicker, { type GpsValue } from "@/components/gps-picker"
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -75,6 +76,8 @@ interface FormState {
   category: string
   address: string
   template: string
+  latitude: string
+  longitude: string
 }
 
 const initialForm: FormState = {
@@ -83,6 +86,8 @@ const initialForm: FormState = {
   category: "",
   address: "",
   template: "none",
+  latitude: "",
+  longitude: "",
 }
 
 // ---------------------------------------------------------------------------
@@ -107,10 +112,18 @@ export default function NewLocationPage() {
     []
   )
 
+  const handleGpsChange = useCallback((gps: GpsValue) => {
+    setForm((f) => ({ ...f, latitude: gps.latitude, longitude: gps.longitude }))
+  }, [])
+
   const validate = useCallback((): boolean => {
     const errs: Partial<Record<keyof FormState, string>> = {}
     if (!form.name.trim()) errs.name = "Name ist erforderlich"
     if (!form.type) errs.type = "Typ ist erforderlich"
+    if (form.latitude && isNaN(parseFloat(form.latitude)))
+      errs.latitude = "Ungültiger Breitengrad"
+    if (form.longitude && isNaN(parseFloat(form.longitude)))
+      errs.longitude = "Ungültiger Längengrad"
     setErrors(errs)
     return Object.keys(errs).length === 0
   }, [form])
@@ -125,6 +138,8 @@ export default function NewLocationPage() {
         category: form.category.trim() || null,
         address: form.address.trim() || null,
         template: form.template !== "none" ? form.template : null,
+        latitude: form.latitude.trim() || null,
+        longitude: form.longitude.trim() || null,
       }
 
       const res = await fetch("/api/locations", {
@@ -272,6 +287,19 @@ export default function NewLocationPage() {
             </CardContent>
           </Card>
 
+          {/* GPS Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">GPS-Koordinaten</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <GpsPicker
+                value={{ latitude: form.latitude, longitude: form.longitude }}
+                onChange={handleGpsChange}
+              />
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Template</CardTitle>
@@ -348,6 +376,17 @@ export default function NewLocationPage() {
                       Adresse
                     </span>
                     <span className="text-right text-xs">{form.address}</span>
+                  </div>
+                </>
+              )}
+              {(form.latitude || form.longitude) && (
+                <>
+                  <Separator />
+                  <div className="flex justify-between gap-2">
+                    <span className="shrink-0 text-muted-foreground">GPS</span>
+                    <span className="text-right text-xs font-mono">
+                      {form.latitude}, {form.longitude}
+                    </span>
                   </div>
                 </>
               )}

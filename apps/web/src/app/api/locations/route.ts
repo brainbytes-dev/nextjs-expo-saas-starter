@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     const { db, orgId } = result;
 
     const body = await request.json();
-    const { name, type, category, template, address } = body;
+    const { name, type, category, template, address, latitude, longitude } = body;
 
     if (!name || !type) {
       return NextResponse.json(
@@ -62,6 +62,8 @@ export async function POST(request: Request) {
         category,
         template,
         address,
+        latitude: latitude ?? null,
+        longitude: longitude ?? null,
       })
       .returning();
 

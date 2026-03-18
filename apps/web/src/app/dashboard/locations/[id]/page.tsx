@@ -55,6 +55,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import GpsPicker, { type GpsValue } from "@/components/gps-picker"
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -148,6 +149,8 @@ interface LocationDetail {
   category: string | null
   template: string | null
   address: string | null
+  latitude: string | null
+  longitude: string | null
   isActive: boolean
   createdAt: string
   updatedAt: string
@@ -270,12 +273,16 @@ export default function LocationDetailPage() {
     category: string
     address: string
     template: string
+    latitude: string
+    longitude: string
   }>({
     name: "",
     type: "",
     category: "",
     address: "",
     template: "none",
+    latitude: "",
+    longitude: "",
   })
 
   // Fetch location details
@@ -297,6 +304,8 @@ export default function LocationDetailPage() {
             category: data.category ?? "",
             address: data.address ?? "",
             template: data.template ?? "none",
+            latitude: data.latitude ?? "",
+            longitude: data.longitude ?? "",
           })
         }
       } catch {
@@ -371,6 +380,8 @@ export default function LocationDetailPage() {
         category: editForm.category.trim() || null,
         address: editForm.address.trim() || null,
         template: editForm.template !== "none" ? editForm.template : null,
+        latitude: editForm.latitude.trim() || null,
+        longitude: editForm.longitude.trim() || null,
       }
       const res = await fetch(`/api/locations/${id}`, {
         method: "PATCH",
@@ -399,6 +410,8 @@ export default function LocationDetailPage() {
       category: location.category ?? "",
       address: location.address ?? "",
       template: location.template ?? "none",
+      latitude: location.latitude ?? "",
+      longitude: location.longitude ?? "",
     })
     setEditing(false)
   }, [location])
@@ -563,6 +576,15 @@ export default function LocationDetailPage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label className="text-sm font-medium">GPS-Koordinaten</Label>
+                <GpsPicker
+                  value={{ latitude: editForm.latitude, longitude: editForm.longitude }}
+                  onChange={(gps: GpsValue) =>
+                    setEditForm((f) => ({ ...f, latitude: gps.latitude, longitude: gps.longitude }))
+                  }
+                />
               </div>
             </div>
             <div className="flex items-center gap-2">

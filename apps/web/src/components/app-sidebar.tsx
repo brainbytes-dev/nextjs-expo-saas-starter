@@ -17,6 +17,7 @@ import {
   IconHistory,
   IconKey,
   IconMapPin,
+  IconMap,
   IconPackage,
   IconPlugConnected,
   IconReportAnalytics,
@@ -29,6 +30,9 @@ import {
   IconTruck,
   IconShield,
   IconBolt,
+  IconBuilding,
+  IconChevronDown,
+  IconChartBar,
 } from "@tabler/icons-react"
 import { useTranslations } from "next-intl"
 
@@ -51,7 +55,143 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
+// ---------------------------------------------------------------------------
+// Org Switcher
+// ---------------------------------------------------------------------------
+interface OrgEntry {
+  id: string
+  name: string
+  slug: string
+  logo: string | null
+}
+
+function OrgSwitcher({
+  orgName,
+  logo,
+}: {
+  orgName: string | null
+  logo: string | null
+}) {
+  const [orgs, setOrgs] = React.useState<OrgEntry[]>([])
+  const [loaded, setLoaded] = React.useState(false)
+
+  // Lazy-load org list on first open attempt
+  const loadOrgs = React.useCallback(async () => {
+    if (loaded) return
+    try {
+      const res = await fetch("/api/consolidated/stats")
+      if (res.ok) {
+        const data = await res.json()
+        setOrgs(data.orgs ?? [])
+      }
+    } catch {
+      // silent — switcher just won't show extra options
+    } finally {
+      setLoaded(true)
+    }
+  }, [loaded])
+
+  const hasMultiple = orgs.length > 1
+
+  return (
+    <SidebarMenu>
+      <SidebarMenuItem>
+        {hasMultiple ? (
+          <DropdownMenu onOpenChange={(open) => { if (open) loadOrgs() }}>
+            <DropdownMenuTrigger asChild>
+              <SidebarMenuButton
+                asChild={false}
+                className="data-[slot=sidebar-menu-button]:p-1.5!"
+                onMouseEnter={loadOrgs}
+              >
+                <div className="flex w-full items-center gap-2">
+                  {logo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={logo}
+                      alt={orgName || "Logo"}
+                      className="h-5 w-5 rounded-sm object-contain"
+                    />
+                  ) : (
+                    <LogoMark size={20} />
+                  )}
+                  <span className="flex-1 truncate text-base font-semibold">
+                    {orgName || (
+                      <>
+                        Logistik<span className="text-primary">App</span>
+                      </>
+                    )}
+                  </span>
+                  <IconChevronDown className="ml-auto size-3.5 text-muted-foreground" />
+                </div>
+              </SidebarMenuButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="bottom" align="start" className="min-w-52">
+              {orgs.map((org) => (
+                <DropdownMenuItem key={org.id} asChild>
+                  <a href={`/dashboard?org=${org.slug}`} className="flex items-center gap-2">
+                    {org.logo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={org.logo} alt={org.name} className="size-5 rounded-sm object-contain" />
+                    ) : (
+                      <IconBuilding className="size-4 text-muted-foreground" />
+                    )}
+                    <span className="truncate">{org.name}</span>
+                  </a>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <a href="/dashboard/consolidated" className="flex items-center gap-2">
+                  <IconChartBar className="size-4 text-muted-foreground" />
+                  <span>Konsolidierter Bericht</span>
+                </a>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <SidebarMenuButton
+            asChild
+            className="data-[slot=sidebar-menu-button]:p-1.5!"
+            onMouseEnter={loadOrgs}
+          >
+            <a href="/dashboard">
+              {logo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={logo}
+                  alt={orgName || "Logo"}
+                  className="h-5 w-5 rounded-sm object-contain"
+                />
+              ) : (
+                <LogoMark size={20} />
+              )}
+              <span className="text-base font-semibold">
+                {orgName || (
+                  <>
+                    Logistik<span className="text-primary">App</span>
+                  </>
+                )}
+              </span>
+            </a>
+          </SidebarMenuButton>
+        )}
+      </SidebarMenuItem>
+    </SidebarMenu>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Main Sidebar
+// ---------------------------------------------------------------------------
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const t = useTranslations("nav")
   const { logo, orgName } = useBrand()
@@ -109,6 +249,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         name: t("locations"),
         url: "/dashboard/locations",
         icon: IconMapPin,
+      },
+      {
+        name: "Karte",
+        url: "/dashboard/map",
+        icon: IconMap,
       },
       {
         name: t("suppliers"),
@@ -230,34 +375,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:p-1.5!"
-            >
-              <a href="/dashboard">
-                {logo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={logo}
-                    alt={orgName || "Logo"}
-                    className="h-5 w-5 rounded-sm object-contain"
-                  />
-                ) : (
-                  <LogoMark size={20} />
-                )}
-                <span className="text-base font-semibold">
-                  {orgName || (
-                    <>
-                      Logistik<span className="text-primary">App</span>
-                    </>
-                  )}
-                </span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <OrgSwitcher orgName={orgName} logo={logo} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />

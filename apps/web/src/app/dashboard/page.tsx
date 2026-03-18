@@ -1,9 +1,14 @@
 "use client"
 
+import "react-grid-layout/css/styles.css"
+import "react-resizable/css/styles.css"
+
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { useSession } from "@/lib/auth-client"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
+import { ResponsiveGridLayout, noCompactor, useContainerWidth } from "react-grid-layout"
+import type { LayoutItem as GridLayoutItem, ResponsiveLayouts } from "react-grid-layout"
 import {
   IconPackage,
   IconTool,
@@ -23,6 +28,7 @@ import {
   IconCheck,
   IconAlertCircle,
   IconShieldCheck,
+  IconLayoutDashboard,
 } from "@tabler/icons-react"
 import type { AnomalyEvent } from "@/lib/anomaly-detection"
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
@@ -47,8 +53,16 @@ import { Separator } from "@/components/ui/separator"
 import { PrintButton } from "@/components/print-button"
 import { ForecastWidget } from "@/components/forecast-widget"
 import type { ActivityItem } from "@/app/api/dashboard/activity/route"
+import {
+  WidgetRenderer,
+  type WidgetType,
+} from "@/components/dashboard-widgets"
 
-// ── Types ─────────────────────────────────────────────────────────────
+// ── react-grid-layout ─────────────────────────────────────────────────────────
+const BREAKPOINTS = { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }
+const COLS        = { lg: 12,   md: 10,  sm: 6,   xs: 4,   xxs: 2  }
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 interface DashboardStats {
   materials: number
   tools: number
@@ -59,7 +73,6 @@ interface DashboardStats {
   expiringCount: number
   overdueToolsCount: number
 }
-
 
 interface MaintenanceItem {
   id: string
@@ -91,14 +104,29 @@ interface ChartDataPoint {
   keys: number
 }
 
-// ── Chart config ──────────────────────────────────────────────────────
+interface SavedWidget {
+  id: string
+  widgetType: WidgetType
+  position: { x: number; y: number } | null
+  size: { w: number; h: number } | null
+}
+
+interface WidgetLayoutItem {
+  id: string
+  type: WidgetType
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+// ── Chart config ──────────────────────────────────────────────────────────────
 const areaChartConfig = {
   materials: { label: "Materialien", color: "hsl(var(--chart-1))" },
   tools:     { label: "Werkzeuge",   color: "hsl(var(--chart-2))" },
   keys:      { label: "Schlüssel",   color: "hsl(var(--chart-3))" },
 } satisfies ChartConfig
 
-// ── Placeholder chart data (last 12 months) ───────────────────────────
 const PLACEHOLDER_CHART: ChartDataPoint[] = [
   { month: "Apr 25", materials: 42, tools: 18, keys: 5 },
   { month: "Mai 25", materials: 56, tools: 24, keys: 8 },
@@ -114,7 +142,7 @@ const PLACEHOLDER_CHART: ChartDataPoint[] = [
   { month: "Mär 26", materials: 74, tools: 38, keys: 14 },
 ]
 
-// ── Helpers ───────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function formatRelativeTime(iso: string): string {
   const diff = (Date.now() - new Date(iso).getTime()) / 1000
   if (diff < 60)          return "Gerade eben"
@@ -135,8 +163,17 @@ function buildDescription(item: ActivityItem): string {
   return `${who} — ${item.itemName}${where}`
 }
 
-// ── Sub-components ────────────────────────────────────────────────────
+function getOrgHeaders(): HeadersInit {
+  if (typeof window === "undefined") return {}
+  try {
+    const orgId = sessionStorage.getItem("orgId") ?? localStorage.getItem("orgId")
+    return orgId ? { "x-organization-id": orgId } : {}
+  } catch {
+    return {}
+  }
+}
 
+// ── Sub-components ────────────────────────────────────────────────────────────
 function KpiCard({
   icon: Icon,
   iconBg,
@@ -290,11 +327,57 @@ function ActivityFeedSkeleton() {
   )
 }
 
-// ── Main Dashboard Page ───────────────────────────────────────────────
+// ── Custom widget grid (when user has saved layout) ───────────────────────────
+function buildGridLayouts(items: WidgetLayoutItem[]): ResponsiveLayouts {
+  const lg = items.map((item) => ({
+    i: item.id,
+    x: item.x,
+    y: item.y,
+    w: item.w,
+    h: item.h,
+    minW: 2,
+    minH: 2,
+    }))
+  const md  = lg.map((l) => ({ ...l, w: Math.min(l.w, 10), x: Math.min(l.x, 8) }))
+  const sm  = lg.map((l) => ({ ...l, w: Math.min(l.w, 6),  x: Math.min(l.x, 4) }))
+  const xs  = lg.map((l) => ({ ...l, w: Math.min(l.w, 4),  x: 0                }))
+  const xxs = lg.map((l) => ({ ...l, w: 2, x: 0 }))
+  return { lg, md, sm, xs, xxs }
+}
+
+function CustomWidgetGrid({ widgets }: { widgets: WidgetLayoutItem[] }) {
+  const layouts = buildGridLayouts(widgets)
+  const { width: gridWidth, containerRef, mounted: widthMounted } = useContainerWidth()
+  return (
+    <div ref={containerRef}>
+    <ResponsiveGridLayout
+      width={widthMounted ? gridWidth : 1280}
+      layouts={layouts}
+      breakpoints={BREAKPOINTS}
+      cols={COLS}
+      rowHeight={80}
+      margin={[12, 12]}
+      containerPadding={[0, 0]}
+      compactor={noCompactor}
+      dragConfig={{ enabled: false }}
+      resizeConfig={{ enabled: false }}
+    >
+      {widgets.map((item) => (
+        <div key={item.id} className="rounded-xl overflow-hidden border bg-card shadow-sm">
+          <WidgetRenderer type={item.type} />
+        </div>
+      ))}
+    </ResponsiveGridLayout>
+    </div>
+  )
+}
+
+// ── Main Dashboard Page ───────────────────────────────────────────────────────
 export default function DashboardPage() {
   const t = useTranslations("dashboard")
   const { data: session } = useSession()
 
+  // Static dashboard state
   const [stats, setStats]         = useState<DashboardStats | null>(null)
   const [activity, setActivity]   = useState<ActivityItem[]>([])
   const [chartData]               = useState<ChartDataPoint[]>(PLACEHOLDER_CHART)
@@ -307,8 +390,45 @@ export default function DashboardPage() {
   const [expiryLoading, setExpiryLoading] = useState(true)
   const [anomalies, setAnomalies] = useState<AnomalyEvent[]>([])
   const [anomalyLoading, setAnomalyLoading] = useState(true)
+
+  // Custom widget grid state
+  const [customWidgets, setCustomWidgets] = useState<WidgetLayoutItem[] | null>(null)
+  const [widgetsLoading, setWidgetsLoading] = useState(true)
+
   const isMounted = useRef(false)
 
+  // ── Load saved widget layout ──────────────────────────────────────────────
+  useEffect(() => {
+    isMounted.current = true
+    const run = async () => {
+      try {
+        const r = await fetch("/api/dashboard/widgets", { headers: getOrgHeaders() })
+        if (!r.ok) throw new Error("not ok")
+        const data = await r.json() as { data: SavedWidget[] }
+        const rows = data.data ?? []
+        if (rows.length > 0 && isMounted.current) {
+          setCustomWidgets(
+            rows.map((row) => ({
+              id: row.id,
+              type: row.widgetType,
+              x: row.position?.x ?? 0,
+              y: row.position?.y ?? 0,
+              w: row.size?.w ?? 4,
+              h: row.size?.h ?? 3,
+            }))
+          )
+        }
+      } catch {
+        // Fall through to static dashboard
+      } finally {
+        if (isMounted.current) setWidgetsLoading(false)
+      }
+    }
+    void run()
+    return () => { isMounted.current = false }
+  }, [refreshKey])
+
+  // ── Static dashboard data ─────────────────────────────────────────────────
   useEffect(() => {
     isMounted.current = true
     const run = async () => {
@@ -318,7 +438,7 @@ export default function DashboardPage() {
         const data: DashboardStats = await r.json()
         if (isMounted.current) setStats(data)
       } catch {
-        // stats stay null; page still usable
+        // stats stay null
       } finally {
         if (isMounted.current) setLoading(false)
       }
@@ -345,7 +465,6 @@ export default function DashboardPage() {
     return () => { isMounted.current = false }
   }, [refreshKey])
 
-
   useEffect(() => {
     isMounted.current = true
     const run = async () => {
@@ -363,7 +482,6 @@ export default function DashboardPage() {
     void run()
     return () => { isMounted.current = false }
   }, [refreshKey])
-
 
   useEffect(() => {
     isMounted.current = true
@@ -401,39 +519,87 @@ export default function DashboardPage() {
     return () => { isMounted.current = false }
   }, [refreshKey])
 
-  const handleRefresh = () => setRefreshKey((k) => k + 1)
+  const handleRefresh = useCallback(() => setRefreshKey((k) => k + 1), [])
 
   const firstName = session?.user?.name?.split(" ")[0] ?? ""
-
-  // Alert severity: only flag non-zero counts
   const hasAlerts = stats && (stats.lowStockCount + stats.expiringCount + stats.overdueToolsCount) > 0
 
+  // ── Page header (shared) ────────────────────────────────────────────────────
+  const pageHeader = (
+    <div className="flex items-start justify-between gap-4 px-4 lg:px-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">
+          {t("greeting", { name: firstName })}
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Hier ist dein Überblick für heute
+        </p>
+      </div>
+      <div className="flex items-center gap-2 shrink-0 no-print">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5"
+          asChild
+        >
+          <Link href="/dashboard/customize">
+            <IconLayoutDashboard className="size-3.5" />
+            Dashboard anpassen
+          </Link>
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRefresh}
+          className="gap-1.5"
+        >
+          <IconRefresh className="size-3.5" />
+          Aktualisieren
+        </Button>
+        <PrintButton />
+      </div>
+    </div>
+  )
+
+  // ── Show skeleton while checking for saved widgets ─────────────────────────
+  if (widgetsLoading) {
+    return (
+      <div className="flex flex-col gap-6 py-4 md:py-6">
+        {pageHeader}
+        <div className="px-4 lg:px-6 grid grid-cols-1 gap-3 sm:grid-cols-2 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardContent className="flex items-center gap-4 pt-6 pb-5">
+                <Skeleton className="size-12 rounded-xl" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // ── Custom widget grid mode ────────────────────────────────────────────────
+  if (customWidgets && customWidgets.length > 0) {
+    return (
+      <div className="flex flex-col gap-6 py-4 md:py-6">
+        {pageHeader}
+        <div className="px-4 lg:px-6">
+          <CustomWidgetGrid widgets={customWidgets} />
+        </div>
+      </div>
+    )
+  }
+
+  // ── Default static dashboard ───────────────────────────────────────────────
   return (
     <div className="flex flex-col gap-6 py-4 md:py-6">
 
-      {/* ── Page Header ──────────────────────────────────────────────── */}
-      <div className="flex items-start justify-between gap-4 px-4 lg:px-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {t("greeting", { name: firstName })}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Hier ist dein Überblick für heute
-          </p>
-        </div>
-        <div className="flex items-center gap-2 shrink-0 no-print">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            className="gap-1.5"
-          >
-            <IconRefresh className="size-3.5" />
-            Aktualisieren
-          </Button>
-          <PrintButton />
-        </div>
-      </div>
+      {pageHeader}
 
       {/* ── KPI Cards ────────────────────────────────────────────────── */}
       <section aria-label="Kennzahlen" className="px-4 lg:px-6">
@@ -562,7 +728,7 @@ export default function DashboardPage() {
       {/* ── Main grid: Activity + Quick Actions ──────────────────────── */}
       <div className="grid grid-cols-1 gap-6 px-4 lg:px-6 @3xl/main:grid-cols-3">
 
-        {/* Activity Feed — 2/3 width on larger screens */}
+        {/* Activity Feed */}
         <Card className="@3xl/main:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
@@ -618,7 +784,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Quick Actions — 1/3 width */}
+        {/* Quick Actions */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle>Schnellaktionen</CardTitle>
@@ -678,7 +844,7 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* ── Anstehende Wartungen Widget ──────────────────────────────── */}
+      {/* ── Anstehende Wartungen ──────────────────────────────────────── */}
       {(maintenanceLoading || upcomingMaintenance.length > 0) && (
         <section aria-label="Anstehende Wartungen" className="px-4 lg:px-6">
           <Card>
@@ -711,7 +877,7 @@ export default function DashboardPage() {
               ) : (
                 <div className="divide-y divide-border">
                   {upcomingMaintenance.slice(0, 5).map((item) => {
-                    const isOverdue = item.status === "overdue"
+                    const isOverdue  = item.status === "overdue"
                     const isThisWeek = item.status === "this-week"
                     return (
                       <div key={item.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
@@ -745,7 +911,7 @@ export default function DashboardPage() {
         </section>
       )}
 
-      {/* ── Ablaufende Materialien Widget ──────────────────────────── */}
+      {/* ── Ablaufende Materialien ────────────────────────────────────── */}
       {(expiryLoading || expiringItems.length > 0) && (
         <section aria-label="Ablaufende Materialien" className="px-4 lg:px-6">
           <Card>
@@ -779,7 +945,7 @@ export default function DashboardPage() {
                 <div className="divide-y divide-border">
                   {expiringItems.slice(0, 8).map((item) => {
                     const isExpired = item.daysUntil < 0
-                    const isUrgent = item.daysUntil >= 0 && item.daysUntil < 7
+                    const isUrgent  = item.daysUntil >= 0 && item.daysUntil < 7
                     const isWarning = item.daysUntil >= 7 && item.daysUntil < 30
                     return (
                       <div key={item.stockId} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
@@ -815,7 +981,7 @@ export default function DashboardPage() {
         </section>
       )}
 
-      {/* ── Anomalien Widget ─────────────────────────────────────────── */}
+      {/* ── Anomalien ─────────────────────────────────────────────────── */}
       {(anomalyLoading || anomalies.length > 0) && (
         <section aria-label="Erkannte Anomalien" className="px-4 lg:px-6">
           <Card>
@@ -864,9 +1030,9 @@ export default function DashboardPage() {
                 <div className="divide-y divide-border">
                   {anomalies.slice(0, 4).map((anomaly) => {
                     const severityConfig = {
-                      high: { bg: "bg-destructive/10", icon: "text-destructive", badge: "destructive" as const },
-                      medium: { bg: "bg-amber-500/10", icon: "text-amber-600", badge: "outline" as const },
-                      low: { bg: "bg-blue-500/10", icon: "text-blue-500", badge: "outline" as const },
+                      high:   { bg: "bg-destructive/10", icon: "text-destructive", badge: "destructive" as const },
+                      medium: { bg: "bg-amber-500/10",   icon: "text-amber-600",   badge: "outline" as const },
+                      low:    { bg: "bg-blue-500/10",    icon: "text-blue-500",    badge: "outline" as const },
                     }
                     const cfg = severityConfig[anomaly.severity]
                     return (
@@ -898,7 +1064,7 @@ export default function DashboardPage() {
         </section>
       )}
 
-      {/* ── Nachbestellvorschläge Widget ───────────────────────────── */}
+      {/* ── Nachbestellvorschläge ─────────────────────────────────────── */}
       <section aria-label="Nachbestellvorschläge" className="px-4 lg:px-6">
         <ForecastWidget />
       </section>

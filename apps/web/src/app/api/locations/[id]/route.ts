@@ -105,7 +105,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { name, type, category, template, address } = body;
+    const { name, type, category, template, address, latitude, longitude } = body;
 
     const [updated] = await db
       .update(locations)
@@ -115,6 +115,8 @@ export async function PATCH(
         ...(category !== undefined && { category }),
         ...(template !== undefined && { template }),
         ...(address !== undefined && { address }),
+        ...(latitude !== undefined && { latitude }),
+        ...(longitude !== undefined && { longitude }),
         updatedAt: new Date(),
       })
       .where(eq(locations.id, id))

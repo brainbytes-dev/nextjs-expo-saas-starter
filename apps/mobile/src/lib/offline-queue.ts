@@ -10,6 +10,8 @@ export interface QueuedAction {
   method: "POST" | "PATCH";
   path: string;
   body: Record<string, unknown>;
+  /** Unix timestamp (ms) when the action was enqueued — used for conflict detection */
+  clientTimestamp: number;
   createdAt: number;
   retryCount: number;
 }
@@ -39,12 +41,14 @@ async function persistQueue(): Promise<void> {
 }
 
 export async function enqueue(
-  action: Omit<QueuedAction, "id" | "createdAt" | "retryCount">
+  action: Omit<QueuedAction, "id" | "createdAt" | "retryCount" | "clientTimestamp">
 ): Promise<void> {
+  const now = Date.now();
   const item: QueuedAction = {
     ...action,
-    id: `q_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-    createdAt: Date.now(),
+    id: `q_${now}_${Math.random().toString(36).slice(2, 8)}`,
+    clientTimestamp: now,
+    createdAt: now,
     retryCount: 0,
   };
   queue.push(item);
@@ -60,42 +64,127 @@ export function getPendingCount(): number {
   return queue.length;
 }
 
+/** Remove a specific queue item by id — used after conflict resolution */
+export async function removeFromQueue(id: string): Promise<void> {
+  queue = queue.filter((item) => item.id !== id);
+  await persistQueue();
+  notifyQueueListeners();
+}
+
 export async function flushQueue(): Promise<void> {
   if (flushing || queue.length === 0 || !isOnline()) return;
   flushing = true;
 
-  // Import apiFetch dynamically to avoid circular dep
-  const { apiFetch } = await import("./api");
+  try {
+    await _flushWithConflictDetection();
+  } finally {
+    flushing = false;
+  }
+}
 
+async function _flushWithConflictDetection(): Promise<void> {
+  // Import lazily to avoid circular dependencies
+  const { apiFetch } = await import("./api");
+  const {
+    buildConflicts,
+    addConflicts,
+    persistLastSyncAt,
+  } = await import("./conflict-resolver");
+
+  // Batch all queued actions to the sync/resolve endpoint first so the server
+  // can detect conflicts before we blindly apply changes.
+  const batch = [...queue];
+
+  let syncResponse: {
+    resolved: Array<{ queueId: string; status: number }>;
+    conflicts: Array<{
+      queueId: string;
+      clientChange: {
+        path: string;
+        method: string;
+        body: Record<string, unknown>;
+        clientTimestamp: number;
+      };
+      serverState: Record<string, unknown>;
+      conflictFields: string[];
+    }>;
+  } | null = null;
+
+  try {
+    syncResponse = await apiFetch<typeof syncResponse>("/api/sync/resolve", {
+      method: "POST",
+      body: JSON.stringify({
+        changes: batch.map((item) => ({
+          queueId: item.id,
+          path: item.path,
+          method: item.method,
+          body: item.body,
+          clientTimestamp: item.clientTimestamp,
+        })),
+      }),
+    });
+  } catch {
+    // Sync endpoint unavailable — fall through to legacy sequential mode
+  }
+
+  if (syncResponse) {
+    // Remove resolved items from the queue
+    const resolvedIds = new Set(
+      syncResponse.resolved
+        .filter((r) => r.status < 500)
+        .map((r) => r.queueId)
+    );
+    // Also remove conflict items — they are now tracked in the conflict store
+    const conflictIds = new Set(syncResponse.conflicts.map((c) => c.queueId));
+
+    queue = queue.filter(
+      (item) => !resolvedIds.has(item.id) && !conflictIds.has(item.id)
+    );
+    await persistQueue();
+    notifyQueueListeners();
+
+    // Register detected conflicts
+    if (syncResponse.conflicts.length > 0) {
+      const newConflicts = buildConflicts(syncResponse.conflicts, batch);
+      addConflicts(newConflicts);
+    }
+
+    await persistLastSyncAt(Date.now());
+    return;
+  }
+
+  // ── Legacy fallback: apply sequentially ─────────────────────────────────────
   while (queue.length > 0 && isOnline()) {
-    const item = queue[0];
+    const item = queue[0]!;
     try {
       await apiFetch(item.path, {
         method: item.method,
         body: JSON.stringify(item.body),
       });
-      queue.shift(); // success — remove from queue
+      queue.shift();
       await persistQueue();
       notifyQueueListeners();
-    } catch (err: any) {
-      if (err?.status >= 400 && err?.status < 500) {
+    } catch (err: unknown) {
+      const status = (err as { status?: number })?.status;
+      if (status !== undefined && status >= 400 && status < 500) {
         // Client error — discard (dead letter)
         console.warn(
-          `[offline-queue] Discarding action ${item.id} (${err.status}):`,
+          `[offline-queue] Discarding action ${item.id} (${status}):`,
           item
         );
         queue.shift();
         await persistQueue();
         notifyQueueListeners();
       } else {
-        // Network error — stop flushing, retry later
+        // Network or server error — stop flushing, retry later
         item.retryCount++;
         await persistQueue();
         break;
       }
     }
   }
-  flushing = false;
+
+  await persistLastSyncAt(Date.now());
 }
 
 export async function clearQueue(): Promise<void> {

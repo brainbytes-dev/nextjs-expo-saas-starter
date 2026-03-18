@@ -12,9 +12,11 @@ import { CommissionPicker, type CommissionPickerItem } from "@/components/commis
 import { scanBarcode, eanLookup, type ScanResult } from "@/lib/api";
 import { CreateMaterialSheet } from "@/components/create-material-sheet";
 import { NfcScanView } from "./nfc";
+import { ArOverlay, type ArItem } from "@/components/ar-overlay";
+import { VoiceButton } from "@/components/voice-button";
 import { useColorScheme } from "@/lib/useColorScheme";
 
-type ScanMode = "camera" | "nfc";
+type ScanMode = "camera" | "nfc" | "ar";
 
 export default function ScannerScreen() {
   const [scanMode, setScanMode] = useState<ScanMode>("camera");
@@ -27,6 +29,13 @@ export default function ScannerScreen() {
   const [eanLoading, setEanLoading] = useState(false);
   const lastScannedBarcode = useRef<string>("");
   const { colors } = useColorScheme();
+
+  // ── AR mode state ──────────────────────────────────────────────────────────
+  const [arItems, setArItems] = useState<ArItem[]>([]);
+  // When the user taps a card in AR mode we show the full ScanResultSheet
+  const [arExpandedItem, setArExpandedItem] = useState<ArItem | null>(null);
+
+  // ── Camera scan handler (standard mode) ────────────────────────────────────
 
   const handleScanned = useCallback(
     async (barcode: string) => {
@@ -48,8 +57,47 @@ export default function ScannerScreen() {
     [isLooking, scanResult]
   );
 
+  // ── AR scan handler (continuous) ───────────────────────────────────────────
+
+  const arScanningRef = useRef(false);
+
+  const handleArScanned = useCallback(async (barcode: string) => {
+    // Prevent concurrent lookups in AR mode
+    if (arScanningRef.current) return;
+    arScanningRef.current = true;
+
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    try {
+      const result = await scanBarcode(barcode);
+      const newItem: ArItem = {
+        id: String(Date.now()),
+        barcode,
+        result,
+        scannedAt: Date.now(),
+      };
+      setArItems((prev) => [...prev, newItem]);
+    } catch {
+      const errorItem: ArItem = {
+        id: String(Date.now()),
+        barcode,
+        result: { type: null, item: null },
+        scannedAt: Date.now(),
+      };
+      setArItems((prev) => [...prev, errorItem]);
+    } finally {
+      // Short cooldown to avoid re-scanning the same barcode immediately
+      setTimeout(() => {
+        arScanningRef.current = false;
+      }, 1500);
+    }
+  }, []);
+
+  // ── Common dismiss / action handlers ──────────────────────────────────────
+
   function handleDismiss() {
     setScanResult(null);
+    setArExpandedItem(null);
   }
 
   function handleAddToCommission(
@@ -58,6 +106,7 @@ export default function ScannerScreen() {
     quantity: number
   ) {
     setScanResult(null);
+    setArExpandedItem(null);
     setPickCommissionFor({ type: itemType, id: itemId, quantity });
   }
 
@@ -67,6 +116,7 @@ export default function ScannerScreen() {
 
   async function handleCreateMaterial(barcode: string) {
     setScanResult(null);
+    setArExpandedItem(null);
     setEanLoading(true);
     try {
       const result = await eanLookup(barcode);
@@ -83,6 +133,14 @@ export default function ScannerScreen() {
     setEanData(null);
   }
 
+  // The result shown in ScanResultSheet — either standard or AR-expanded
+  const activeResult: ScanResult | null = arExpandedItem
+    ? arExpandedItem.result
+    : scanResult;
+  const activeBarcode: string = arExpandedItem
+    ? arExpandedItem.barcode
+    : lastScannedBarcode.current;
+
   // The NFC scan view is "active" when NFC mode is selected and no sheet is open
   const nfcActive =
     scanMode === "nfc" &&
@@ -91,21 +149,32 @@ export default function ScannerScreen() {
     pickCommissionFor === null &&
     createBarcode === null;
 
+  // Derived booleans
+  const sheetOpen =
+    activeResult !== null ||
+    pickCommissionFor !== null ||
+    createBarcode !== null;
+
   return (
     <View style={styles.container}>
-      {/* Header — positioned absolutely so BarcodeCamera / NfcScanView fill behind */}
+      {/* Header — positioned absolutely so content fills behind */}
       <View style={styles.header}>
         <LargeTitleHeader title="Scanner" backgroundColor="transparent" />
       </View>
 
-      {/* Mode toggle — sits just below the header */}
+      {/* Mode toggle */}
       <View style={styles.toggleWrapper}>
         <SegmentedControl
-          values={["Kamera", "NFC"]}
-          selectedIndex={scanMode === "camera" ? 0 : 1}
+          values={["Kamera", "NFC", "AR"]}
+          selectedIndex={
+            scanMode === "camera" ? 0 : scanMode === "nfc" ? 1 : 2
+          }
           onChange={(e) => {
             const idx = e.nativeEvent.selectedSegmentIndex;
-            setScanMode(idx === 0 ? "camera" : "nfc");
+            const next: ScanMode = idx === 0 ? "camera" : idx === 1 ? "nfc" : "ar";
+            setScanMode(next);
+            // Clear AR history when switching away
+            if (next !== "ar") setArItems([]);
           }}
           style={styles.segmented}
           tintColor={Platform.OS === "ios" ? colors.primary : undefined}
@@ -118,7 +187,7 @@ export default function ScannerScreen() {
       </View>
 
       {/* Scan content */}
-      {scanMode === "camera" ? (
+      {scanMode === "camera" && (
         <BarcodeCamera
           onScanned={handleScanned}
           isActive={
@@ -128,7 +197,9 @@ export default function ScannerScreen() {
             createBarcode === null
           }
         />
-      ) : (
+      )}
+
+      {scanMode === "nfc" && (
         <NfcScanView
           onRead={handleScanned}
           isActive={nfcActive}
@@ -136,8 +207,24 @@ export default function ScannerScreen() {
         />
       )}
 
-      {/* Loading indicator during lookup */}
-      {isLooking && (
+      {scanMode === "ar" && (
+        <>
+          <BarcodeCamera
+            onScanned={handleArScanned}
+            isActive={!sheetOpen}
+          />
+          <ArOverlay
+            arItems={arItems}
+            onExpandItem={(item) => {
+              setArExpandedItem(item);
+            }}
+            onClearHistory={() => setArItems([])}
+          />
+        </>
+      )}
+
+      {/* Loading indicator during standard lookup */}
+      {isLooking && scanMode !== "ar" && (
         <View style={styles.lookingOverlay}>
           <View className="bg-black/70 rounded-2xl px-6 py-4 items-center gap-2">
             <ActivityIndicator color="white" />
@@ -146,9 +233,17 @@ export default function ScannerScreen() {
         </View>
       )}
 
+      {/* Voice button — bottom-right, above tab bar, visible in all camera modes */}
+      {(scanMode === "camera" || scanMode === "ar") && (
+        <View style={styles.voiceButtonWrapper} pointerEvents="box-none">
+          <VoiceButton />
+        </View>
+      )}
+
+      {/* ScanResultSheet — handles both standard and AR-expanded results */}
       <ScanResultSheet
-        result={scanResult}
-        scannedBarcode={lastScannedBarcode.current}
+        result={activeResult}
+        scannedBarcode={activeBarcode}
         onDismiss={handleDismiss}
         onAddToCommission={handleAddToCommission}
         onCreateMaterial={handleCreateMaterial}
@@ -211,5 +306,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     zIndex: 20,
+  },
+  voiceButtonWrapper: {
+    position: "absolute",
+    bottom: 100,
+    right: 20,
+    zIndex: 25,
   },
 });
