@@ -4,5 +4,5 @@
   "outputDirectory": "apps/web/.next",
   "installCommand": "pnpm install",
   "framework": "nextjs",
-  "ignoreCommand": "npx turbo-ignore"
+  "ignoreCommand": "[[ \"$VERCEL_GIT_COMMIT_REF\" == release-please--* ]] && exit 1 || npx turbo-ignore"
 }
