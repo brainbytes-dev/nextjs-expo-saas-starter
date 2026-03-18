@@ -689,10 +689,10 @@ export default function LandingPage() {
         </section>
 
         {/* ══ SCAN & ERKENNUNG ════════════════════════════════ */}
-        <section id="scan" className="relative py-28 overflow-hidden bg-[#0c0e12] text-white">
+        <section id="scan" className="relative py-28 overflow-hidden bg-background text-foreground border-y border-border">
           {/* Animated scan grid background */}
           <div className="absolute inset-0 pointer-events-none" style={{
-            backgroundImage: `linear-gradient(rgba(249,115,22,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(249,115,22,0.06) 1px, transparent 1px)`,
+            backgroundImage: `linear-gradient(color-mix(in oklch, var(--primary) 8%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in oklch, var(--primary) 8%, transparent) 1px, transparent 1px)`,
             backgroundSize: "48px 48px",
           }} />
 
@@ -709,32 +709,32 @@ export default function LandingPage() {
           <div className="relative z-10 mx-auto max-w-7xl px-6">
             {/* Section header */}
             <div className="mb-16 text-center">
-              <div className="inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full border border-[#F97316]/30 bg-[#F97316]/10">
-                <IconScan className="size-3.5 text-[#F97316]" />
-                <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-[#F97316]">Killer Feature</span>
+              <div className="inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/10">
+                <IconScan className="size-3.5 text-primary" />
+                <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-primary">Killer Feature</span>
               </div>
               <h2 className="text-4xl lg:text-6xl font-bold mb-6 leading-[0.95] tracking-tight">
                 Barcode scannen.<br />
-                <span className="text-[#F97316]">Produkt erkannt.</span>
+                <span className="text-primary">Produkt erkannt.</span>
               </h2>
-              <p className="font-mono text-sm text-white/50 max-w-xl mx-auto leading-relaxed">
+              <p className="font-mono text-sm text-muted-foreground max-w-xl mx-auto leading-relaxed">
                 Über 100 Millionen Produkte sofort erkannt — Lebensmittel, Baumaterial,
                 Medikamente, Chemikalien, Kosmetik und mehr. Kein manuelles Tippen.
               </p>
             </div>
 
             {/* Stats row */}
-            <div className="grid grid-cols-3 gap-px bg-white/10 rounded-xl overflow-hidden mb-16 max-w-2xl mx-auto">
+            <div className="grid grid-cols-3 gap-px bg-border rounded-xl overflow-hidden mb-16 max-w-2xl mx-auto">
               {[
                 { icon: IconScan, value: "< 2s", label: "Erkennung", sub: "Barcode scannen, fertig" },
                 { icon: IconDatabase, value: "100M+", label: "Produkte", sub: "Sofort erkannt" },
                 { icon: IconCurrencyFrank, value: "0.—", label: "Aufpreis", sub: "Im Abo enthalten" },
               ].map(({ icon: Icon, value, label, sub }) => (
-                <div key={label} className="bg-[#0c0e12] p-6 text-center">
-                  <Icon className="size-5 text-[#F97316] mx-auto mb-3" />
-                  <div className="text-3xl font-bold text-white font-mono mb-1">{value}</div>
-                  <div className="text-[11px] font-semibold text-white/80 mb-0.5">{label}</div>
-                  <div className="font-mono text-[9px] text-white/30 tracking-widest uppercase">{sub}</div>
+                <div key={label} className="bg-card p-6 text-center">
+                  <Icon className="size-5 text-primary mx-auto mb-3" />
+                  <div className="text-3xl font-bold text-foreground font-mono mb-1">{value}</div>
+                  <div className="text-[11px] font-semibold text-foreground/80 mb-0.5">{label}</div>
+                  <div className="font-mono text-[9px] text-muted-foreground/60 tracking-widest uppercase">{sub}</div>
                 </div>
               ))}
             </div>
@@ -753,11 +753,11 @@ export default function LandingPage() {
               ].map(item => (
                 <div
                   key={item.title}
-                  className="group relative border border-white/10 rounded-lg p-5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-[#F97316]/30 transition-all duration-300"
+                  className="group relative border border-border rounded-lg p-5 bg-muted/30 hover:bg-muted/50 hover:border-primary/30 transition-all duration-300"
                 >
                   <div className="text-2xl mb-3">{item.icon}</div>
-                  <div className="text-sm font-semibold text-white/90 mb-1">{item.title}</div>
-                  <div className="font-mono text-[11px] text-white/40 leading-snug">{item.desc}</div>
+                  <div className="text-sm font-semibold text-foreground/90 mb-1">{item.title}</div>
+                  <div className="font-mono text-[11px] text-muted-foreground leading-snug">{item.desc}</div>
                 </div>
               ))}
             </div>
@@ -772,14 +772,14 @@ export default function LandingPage() {
                 ].map((s, i) => (
                   <div key={s.step} className="flex items-center">
                     <div className="text-center px-6">
-                      <div className="size-10 rounded-full border border-[#F97316]/40 bg-[#F97316]/10 flex items-center justify-center font-mono text-sm font-bold text-[#F97316] mx-auto mb-2">
+                      <div className="size-10 rounded-full border border-primary/40 bg-primary/10 flex items-center justify-center font-mono text-sm font-bold text-primary mx-auto mb-2">
                         {s.step}
                       </div>
-                      <div className="text-xs font-semibold text-white/80 mb-0.5">{s.label}</div>
-                      <div className="font-mono text-[9px] text-white/30">{s.desc}</div>
+                      <div className="text-xs font-semibold text-foreground/80 mb-0.5">{s.label}</div>
+                      <div className="font-mono text-[9px] text-muted-foreground/60">{s.desc}</div>
                     </div>
                     {i < 2 && (
-                      <div className="w-12 h-px bg-gradient-to-r from-[#F97316]/40 to-[#F97316]/10 shrink-0" />
+                      <div className="w-12 h-px bg-gradient-to-r from-primary/40 to-primary/10 shrink-0" />
                     )}
                   </div>
                 ))}
@@ -789,11 +789,11 @@ export default function LandingPage() {
             {/* CTA */}
             <div className="text-center">
               <Link href="/signup">
-                <Button size="lg" className="font-mono text-[11px] tracking-widest uppercase gap-2 px-10 h-12 bg-[#F97316] hover:bg-[#EA580C] text-white border-0">
+                <Button size="lg" className="font-mono text-[11px] tracking-widest uppercase gap-2 px-10 h-12 bg-primary hover:bg-primary/90 text-white border-0">
                   Kostenlos testen <IconArrowUpRight className="size-4" />
                 </Button>
               </Link>
-              <p className="font-mono text-[10px] text-white/30 mt-4 tracking-widest">
+              <p className="font-mono text-[10px] text-muted-foreground/60 mt-4 tracking-widest">
                 Im Abo enthalten · Keine Zusatzkosten · Unbegrenzte Scans
               </p>
             </div>
