@@ -1,13 +1,39 @@
 "use client"
 
 import Image from "next/image"
-import { useState, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  flexRender,
+  type ColumnDef,
+  type SortingState,
+} from "@tanstack/react-table"
+import {
+  IconPlus,
+  IconSearch,
+  IconEdit,
+  IconTrash,
+  IconDotsVertical,
+  IconTool,
+  IconChevronLeft,
+  IconChevronRight,
+  IconChevronUp,
+  IconChevronDown,
+  IconSelector,
+  IconDownload,
+  IconUpload,
+  IconAlertTriangle,
+} from "@tabler/icons-react"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
   TableBody,
@@ -27,33 +53,21 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
-  Empty,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-  EmptyDescription,
-} from "@/components/ui/empty"
-import {
-  IconPlus,
-  IconSearch,
-  IconTool,
-  IconCheck,
-  IconX,
-  IconDotsVertical,
-  IconEye,
-  IconEdit,
-  IconTrash,
-  IconDownload,
-  IconUpload,
-  IconChevronUp,
-  IconChevronDown,
-  IconSelector,
-} from "@tabler/icons-react"
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
-// ── Types ──────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 type ToolCondition = "good" | "damaged" | "repair" | "decommissioned"
 
 interface ToolGroup {
@@ -62,128 +76,49 @@ interface ToolGroup {
   color: string | null
 }
 
-interface ToolItem {
+interface ToolRow {
   id: string
   number: string | null
   name: string
   image: string | null
-  group: ToolGroup | null
-  homeLocation: string | null
-  assignedTo: string | null
-  assignedLocation: string | null
-  isHome: boolean
-  condition: ToolCondition
-  lastMaintenance: string | null
-  nextMaintenance: string | null
+  groupId: string | null
+  groupName: string | null
+  homeLocationId: string | null
+  homeLocationName: string | null
+  assignedToId: string | null
+  assignedUserName: string | null
+  assignedLocationId: string | null
+  barcode: string | null
+  manufacturer: string | null
+  serialNumber: string | null
+  condition: ToolCondition | null
+  nextMaintenanceDate: string | null
 }
 
-type SortKey = "name" | "group" | "homeLocation" | "assignedTo" | "condition" | "nextMaintenance"
+interface ToolsResponse {
+  data: ToolRow[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}
 
-// ── Mock Data ──────────────────────────────────────────────────────────
-const MOCK_GROUPS: ToolGroup[] = [
-  { id: "1", name: "Elektrowerkzeuge", color: "#3b82f6" },
-  { id: "2", name: "Handwerkzeuge", color: "#10b981" },
-  { id: "3", name: "Messinstrumente", color: "#f59e0b" },
-]
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+const ITEMS_PER_PAGE = 20
 
-const MOCK_TOOLS: ToolItem[] = [
-  {
-    id: "1",
-    number: "WZ-001",
-    name: "Bohrmaschine Hilti TE 6-A22",
-    image: null,
-    group: MOCK_GROUPS[0]!,
-    homeLocation: "Hauptlager",
-    assignedTo: null,
-    assignedLocation: null,
-    isHome: true,
-    condition: "good",
-    lastMaintenance: "2025-12-01",
-    nextMaintenance: "2026-06-01",
-  },
-  {
-    id: "2",
-    number: "WZ-002",
-    name: "Akkuschrauber Makita DDF484",
-    image: null,
-    group: MOCK_GROUPS[0]!,
-    homeLocation: "Hauptlager",
-    assignedTo: "Max Müller",
-    assignedLocation: "Baustelle Zürich",
-    isHome: false,
-    condition: "good",
-    lastMaintenance: "2026-01-15",
-    nextMaintenance: "2026-07-15",
-  },
-  {
-    id: "3",
-    number: "WZ-003",
-    name: "Wasserwaage Stabila 196-2",
-    image: null,
-    group: MOCK_GROUPS[2]!,
-    homeLocation: "Fahrzeug 1",
-    assignedTo: "Anna Schmid",
-    assignedLocation: "Baustelle Bern",
-    isHome: false,
-    condition: "damaged",
-    lastMaintenance: "2025-09-10",
-    nextMaintenance: "2026-03-10",
-  },
-  {
-    id: "4",
-    number: "WZ-004",
-    name: "Winkelschleifer Bosch GWS 18V",
-    image: null,
-    group: MOCK_GROUPS[0]!,
-    homeLocation: "Hauptlager",
-    assignedTo: null,
-    assignedLocation: null,
-    isHome: true,
-    condition: "repair",
-    lastMaintenance: "2025-11-20",
-    nextMaintenance: "2026-05-20",
-  },
-  {
-    id: "5",
-    number: "WZ-005",
-    name: "Stichsäge Festool PSB 420",
-    image: null,
-    group: MOCK_GROUPS[0]!,
-    homeLocation: "Hauptlager",
-    assignedTo: null,
-    assignedLocation: null,
-    isHome: true,
-    condition: "decommissioned",
-    lastMaintenance: null,
-    nextMaintenance: null,
-  },
-]
-
-// ── Helpers ────────────────────────────────────────────────────────────
-const conditionConfig: Record<
-  ToolCondition,
-  { label: string; className: string }
-> = {
-  good: {
-    label: "Gut",
-    className: "bg-secondary/10 text-secondary",
-  },
-  damaged: {
-    label: "Beschädigt",
-    className: "bg-primary/10 text-primary",
-  },
-  repair: {
-    label: "Reparatur",
-    className: "bg-destructive/10 text-destructive",
-  },
-  decommissioned: {
-    label: "Ausgemustert",
-    className: "bg-muted text-muted-foreground",
-  },
+const conditionConfig: Record<ToolCondition, { label: string; className: string }> = {
+  good: { label: "Gut", className: "bg-secondary/10 text-secondary border-transparent" },
+  damaged: { label: "Beschädigt", className: "bg-primary/10 text-primary border-transparent" },
+  repair: { label: "Reparatur", className: "bg-destructive/10 text-destructive border-transparent" },
+  decommissioned: { label: "Ausgemustert", className: "bg-muted text-muted-foreground border-transparent" },
 }
 
 function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "-"
+  if (!dateStr) return "\u2014"
   return new Date(dateStr).toLocaleDateString("de-CH", {
     day: "2-digit",
     month: "2-digit",
@@ -191,147 +126,439 @@ function formatDate(dateStr: string | null): string {
   })
 }
 
-function downloadCsv(headers: string[], rows: (string | number | null | undefined)[][], filename: string) {
+function isMaintenanceOverdue(dateStr: string | null): boolean {
+  if (!dateStr) return false
+  return new Date(dateStr) < new Date()
+}
+
+function downloadCsv(rows: ToolRow[], filename: string) {
+  const headers = [
+    "Nummer",
+    "Name",
+    "Gruppe",
+    "Heimstandort",
+    "Zugewiesen An",
+    "Zustand",
+    "Seriennummer",
+    "Nächste Wartung",
+  ]
   const lines = [
     headers.join(";"),
-    ...rows.map(row => row.map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(";"))
+    ...rows.map((r) =>
+      [
+        r.number ?? "",
+        r.name,
+        r.groupName ?? "",
+        r.homeLocationName ?? "",
+        r.assignedUserName ?? "",
+        r.condition ? (conditionConfig[r.condition]?.label ?? r.condition) : "",
+        r.serialNumber ?? "",
+        r.nextMaintenanceDate ?? "",
+      ]
+        .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+        .join(";")
+    ),
   ]
-  const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8;" })
+  const blob = new Blob(["\uFEFF" + lines.join("\n")], {
+    type: "text/csv;charset=utf-8;",
+  })
   const url = URL.createObjectURL(blob)
   const a = document.createElement("a")
-  a.href = url; a.download = filename; a.click()
+  a.href = url
+  a.download = filename
+  a.click()
   URL.revokeObjectURL(url)
 }
 
-function cmp(a: string | null | undefined, b: string | null | undefined): number {
-  if (a == null && b == null) return 0
-  if (a == null) return 1
-  if (b == null) return -1
-  return a.toLowerCase().localeCompare(b.toLowerCase(), "de")
+function SortIcon({ sorted }: { sorted: false | "asc" | "desc" }) {
+  if (sorted === "asc")
+    return <IconChevronUp className="ml-1 inline size-3.5 text-foreground" />
+  if (sorted === "desc")
+    return <IconChevronDown className="ml-1 inline size-3.5 text-foreground" />
+  return <IconSelector className="ml-1 inline size-3.5 text-muted-foreground/50" />
 }
 
-// ── Sort Icon ──────────────────────────────────────────────────────────
-function SortIcon({ active, dir }: { active: boolean; dir: "asc" | "desc" }) {
-  if (!active) return <IconSelector className="ml-1 size-3.5 text-muted-foreground/50" />
-  return dir === "asc"
-    ? <IconChevronUp className="ml-1 size-3.5" />
-    : <IconChevronDown className="ml-1 size-3.5" />
-}
-
-function ToolSortableHead({ label, sortKeyValue, className, onSort, sortKey, sortDir }: { label: string; sortKeyValue: SortKey; className?: string; onSort: (key: SortKey) => void; sortKey: SortKey | null; sortDir: "asc" | "desc" }) {
-  return (
-    <TableHead
-      className={`cursor-pointer select-none ${className ?? ""}`}
-      onClick={() => onSort(sortKeyValue)}
-    >
-      <span className="inline-flex items-center">
-        {label}
-        <SortIcon active={sortKey === sortKeyValue} dir={sortDir} />
-      </span>
-    </TableHead>
-  )
-}
-
-// ── Component ──────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 export default function ToolsPage() {
   const t = useTranslations("tools")
   const tc = useTranslations("common")
   const router = useRouter()
 
+  // Data state
+  const [tools, setTools] = useState<ToolRow[]>([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(true)
+
+  // Filter / pagination state
   const [search, setSearch] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
   const [groupFilter, setGroupFilter] = useState<string>("all")
   const [conditionFilter, setConditionFilter] = useState<string>("all")
-  const [assignedFilter, setAssignedFilter] = useState<string>("all")
-  const [sortKey, setSortKey] = useState<SortKey | null>(null)
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc")
+  const [page, setPage] = useState(1)
 
-  function handleSort(key: SortKey) {
-    if (sortKey === key) {
-      setSortDir(d => d === "asc" ? "desc" : "asc")
-    } else {
-      setSortKey(key)
-      setSortDir("asc")
-    }
-  }
+  // Sorting state
+  const [sorting, setSorting] = useState<SortingState>([])
 
-  const filteredTools = useMemo(() => {
-    return MOCK_TOOLS.filter((tool) => {
-      const matchesSearch =
-        !search ||
-        tool.name.toLowerCase().includes(search.toLowerCase()) ||
-        tool.number?.toLowerCase().includes(search.toLowerCase())
+  // Reference data
+  const [groups, setGroups] = useState<ToolGroup[]>([])
 
-      const matchesGroup =
-        groupFilter === "all" || tool.group?.id === groupFilter
+  // Delete dialog
+  const [deleteTarget, setDeleteTarget] = useState<ToolRow | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
-      const matchesCondition =
-        conditionFilter === "all" || tool.condition === conditionFilter
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search)
+      setPage(1)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [search])
 
-      const matchesAssigned =
-        assignedFilter === "all" ||
-        (assignedFilter === "assigned" && tool.assignedTo) ||
-        (assignedFilter === "unassigned" && !tool.assignedTo)
-
-      return matchesSearch && matchesGroup && matchesCondition && matchesAssigned
-    })
-  }, [search, groupFilter, conditionFilter, assignedFilter])
-
-  const sortedTools = useMemo(() => {
-    if (!sortKey) return filteredTools
-    return [...filteredTools].sort((a, b) => {
-      let result = 0
-      switch (sortKey) {
-        case "name":
-          result = cmp(a.name, b.name)
-          break
-        case "group":
-          result = cmp(a.group?.name, b.group?.name)
-          break
-        case "homeLocation":
-          result = cmp(a.homeLocation, b.homeLocation)
-          break
-        case "assignedTo":
-          result = cmp(a.assignedTo, b.assignedTo)
-          break
-        case "condition":
-          result = cmp(a.condition, b.condition)
-          break
-        case "nextMaintenance":
-          result = cmp(a.nextMaintenance, b.nextMaintenance)
-          break
+  // Fetch reference data once
+  useEffect(() => {
+    async function fetchReferenceData() {
+      try {
+        const res = await fetch("/api/tool-groups")
+        if (res.ok) {
+          const g = await res.json()
+          setGroups(Array.isArray(g) ? g : (g.data ?? []))
+        }
+      } catch {
+        // silently fail — filter will just be empty
       }
-      return sortDir === "asc" ? result : -result
-    })
-  }, [filteredTools, sortKey, sortDir])
+    }
+    fetchReferenceData()
+  }, [])
 
-  function handleExportCsv() {
-    const headers = ["Nummer", "Name", "Gruppe", "Heimstandort", "Zugewiesen An", "Zustand", "Letzte Wartung", "Nächste Wartung"]
-    const rows = sortedTools.map(tool => [
-      tool.number,
-      tool.name,
-      tool.group?.name ?? null,
-      tool.homeLocation,
-      tool.assignedTo,
-      conditionConfig[tool.condition].label,
-      tool.lastMaintenance,
-      tool.nextMaintenance,
-    ])
-    downloadCsv(headers, rows, "werkzeuge.csv")
-  }
+  // Fetch tools
+  useEffect(() => {
+    async function fetchTools() {
+      setLoading(true)
+      try {
+        const params = new URLSearchParams({
+          page: String(page),
+          limit: String(ITEMS_PER_PAGE),
+        })
+        if (debouncedSearch) params.set("search", debouncedSearch)
+        if (groupFilter && groupFilter !== "all") params.set("groupId", groupFilter)
+        if (conditionFilter && conditionFilter !== "all")
+          params.set("condition", conditionFilter)
 
+        const res = await fetch(`/api/tools?${params.toString()}`)
+        if (res.ok) {
+          const json: ToolsResponse = await res.json()
+          setTools(json.data ?? [])
+          setTotal(json.pagination?.total ?? 0)
+        }
+      } catch {
+        // TODO: toast error
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchTools()
+  }, [page, debouncedSearch, groupFilter, conditionFilter])
+
+  // Delete handler
+  const handleDelete = useCallback(async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/tools/${deleteTarget.id}`, {
+        method: "DELETE",
+      })
+      if (res.ok) {
+        setTools((prev) => prev.filter((t) => t.id !== deleteTarget.id))
+        setTotal((prev) => prev - 1)
+      }
+    } catch {
+      // TODO: toast error
+    } finally {
+      setDeleting(false)
+      setDeleteTarget(null)
+    }
+  }, [deleteTarget])
+
+  // CSV export: fetch all pages then download
+  const handleExport = useCallback(async () => {
+    try {
+      const params = new URLSearchParams({ page: "1", limit: "9999" })
+      if (debouncedSearch) params.set("search", debouncedSearch)
+      if (groupFilter && groupFilter !== "all") params.set("groupId", groupFilter)
+      if (conditionFilter && conditionFilter !== "all")
+        params.set("condition", conditionFilter)
+
+      const res = await fetch(`/api/tools?${params.toString()}`)
+      if (!res.ok) return
+      const json: ToolsResponse = await res.json()
+      downloadCsv(json.data ?? [], "werkzeuge.csv")
+    } catch {
+      // silently fail
+    }
+  }, [debouncedSearch, groupFilter, conditionFilter])
+
+  const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE))
+
+  // ---------------------------------------------------------------------------
+  // Table columns
+  // ---------------------------------------------------------------------------
+  const columns = useMemo<ColumnDef<ToolRow>[]>(
+    () => [
+      {
+        accessorKey: "image",
+        header: () => "Bild",
+        size: 60,
+        enableSorting: false,
+        cell: ({ row }) => {
+          const src = row.original.image
+          return (
+            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-md border bg-muted">
+              {src ? (
+                <Image
+                  src={src}
+                  alt={row.original.name}
+                  width={40}
+                  height={40}
+                  className="h-full w-full object-cover"
+                  unoptimized
+                />
+              ) : (
+                <IconTool className="size-4 text-muted-foreground" />
+              )}
+            </div>
+          )
+        },
+      },
+      {
+        accessorKey: "number",
+        header: ({ column }) => (
+          <button
+            className="flex cursor-pointer select-none items-center"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {t("number")}
+            <SortIcon sorted={column.getIsSorted()} />
+          </button>
+        ),
+        size: 100,
+        cell: ({ getValue }) => (
+          <span className="font-mono text-xs text-muted-foreground">
+            {(getValue() as string) || "\u2014"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "name",
+        header: ({ column }) => (
+          <button
+            className="flex cursor-pointer select-none items-center"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {t("name")}
+            <SortIcon sorted={column.getIsSorted()} />
+          </button>
+        ),
+        size: 220,
+        cell: ({ row }) => (
+          <button
+            onClick={() => router.push(`/dashboard/tools/${row.original.id}`)}
+            className="text-left font-medium text-foreground hover:underline"
+          >
+            {row.original.name}
+          </button>
+        ),
+      },
+      {
+        accessorKey: "groupName",
+        header: ({ column }) => (
+          <button
+            className="flex cursor-pointer select-none items-center"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {t("group")}
+            <SortIcon sorted={column.getIsSorted()} />
+          </button>
+        ),
+        size: 150,
+        cell: ({ row }) => {
+          const name = row.original.groupName
+          const group = groups.find((g) => g.id === row.original.groupId)
+          if (!name) return <span className="text-muted-foreground">\u2014</span>
+          return (
+            <Badge
+              variant="secondary"
+              className="text-xs"
+              style={
+                group?.color
+                  ? {
+                      backgroundColor: `${group.color}18`,
+                      color: group.color,
+                      borderColor: `${group.color}30`,
+                    }
+                  : undefined
+              }
+            >
+              {name}
+            </Badge>
+          )
+        },
+      },
+      {
+        accessorKey: "homeLocationName",
+        header: () => t("home"),
+        size: 150,
+        enableSorting: false,
+        cell: ({ row }) => (
+          <span className="text-sm">
+            {row.original.homeLocationName ?? "\u2014"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "assignedUserName",
+        header: ({ column }) => (
+          <button
+            className="flex cursor-pointer select-none items-center"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {t("assignedTo")}
+            <SortIcon sorted={column.getIsSorted()} />
+          </button>
+        ),
+        size: 150,
+        cell: ({ row }) => (
+          <span className="text-sm">
+            {row.original.assignedUserName ?? (
+              <span className="text-muted-foreground">\u2014</span>
+            )}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "condition",
+        header: ({ column }) => (
+          <button
+            className="flex cursor-pointer select-none items-center"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {t("condition")}
+            <SortIcon sorted={column.getIsSorted()} />
+          </button>
+        ),
+        size: 120,
+        cell: ({ row }) => {
+          const cond = row.original.condition
+          if (!cond) return <span className="text-muted-foreground">\u2014</span>
+          const cfg = conditionConfig[cond]
+          return (
+            <Badge variant="outline" className={`text-xs ${cfg.className}`}>
+              {cfg.label}
+            </Badge>
+          )
+        },
+      },
+      {
+        accessorKey: "nextMaintenanceDate",
+        header: ({ column }) => (
+          <button
+            className="flex cursor-pointer select-none items-center"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {t("maintenanceDue")}
+            <SortIcon sorted={column.getIsSorted()} />
+          </button>
+        ),
+        size: 140,
+        cell: ({ row }) => {
+          const date = row.original.nextMaintenanceDate
+          const overdue = isMaintenanceOverdue(date)
+          return (
+            <div className="flex items-center gap-1.5">
+              {overdue && (
+                <IconAlertTriangle className="size-4 text-destructive" />
+              )}
+              <span
+                className={
+                  overdue
+                    ? "text-sm font-medium text-destructive"
+                    : "text-sm text-muted-foreground"
+                }
+              >
+                {formatDate(date)}
+              </span>
+            </div>
+          )
+        },
+      },
+      {
+        id: "actions",
+        header: () => tc("actions"),
+        size: 60,
+        enableSorting: false,
+        cell: ({ row }) => (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <IconDotsVertical className="size-4" />
+                <span className="sr-only">{tc("actions")}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => router.push(`/dashboard/tools/${row.original.id}`)}
+              >
+                <IconEdit className="size-4" />
+                {tc("edit")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => setDeleteTarget(row.original)}
+              >
+                <IconTrash className="size-4" />
+                {tc("delete")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ),
+      },
+    ],
+    [t, tc, router, groups]
+  )
+
+  const table = useReactTable({
+    data: tools,
+    columns,
+    state: { sorting },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    manualPagination: true,
+    pageCount: totalPages,
+  })
+
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
   return (
-    <div className="flex flex-col gap-6 px-4 py-4 md:px-6 md:py-6 lg:px-8">
+    <div className="flex flex-col gap-6 px-4 py-6 lg:px-6">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
-          <p className="text-muted-foreground mt-1">
-            {filteredTools.length} {t("title")}
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {t("title")}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {total} {t("title")}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={handleExportCsv} title="CSV exportieren">
+          <Button variant="outline" size="sm" onClick={handleExport}>
             <IconDownload className="size-4" />
+            CSV
           </Button>
           <Button
             variant="outline"
@@ -349,251 +576,212 @@ export default function ToolsPage() {
         </div>
       </div>
 
-      {/* Search & Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="relative flex-1">
-              <IconSearch className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
-              <Input
-                placeholder={`${tc("search")}...`}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Select value={groupFilter} onValueChange={setGroupFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder={t("group")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{tc("all")} {t("group")}n</SelectItem>
-                  {MOCK_GROUPS.map((g) => (
-                    <SelectItem key={g.id} value={g.id}>
-                      {g.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+      {/* Filters */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
+        <div className="relative flex-1 sm:max-w-sm">
+          <IconSearch className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={`${tc("search")}...`}
+            className="pl-9"
+          />
+        </div>
+        <Select
+          value={groupFilter}
+          onValueChange={(v) => {
+            setGroupFilter(v)
+            setPage(1)
+          }}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder={t("group")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{tc("all")}</SelectItem>
+            {groups.map((g) => (
+              <SelectItem key={g.id} value={g.id}>
+                {g.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={conditionFilter}
+          onValueChange={(v) => {
+            setConditionFilter(v)
+            setPage(1)
+          }}
+        >
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder={t("condition")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{tc("all")}</SelectItem>
+            <SelectItem value="good">Gut</SelectItem>
+            <SelectItem value="damaged">Besch&auml;digt</SelectItem>
+            <SelectItem value="repair">Reparatur</SelectItem>
+            <SelectItem value="decommissioned">Ausgemustert</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-              <Select value={conditionFilter} onValueChange={setConditionFilter}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder={t("condition")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{tc("all")} {t("condition")}</SelectItem>
-                  <SelectItem value="good">Gut</SelectItem>
-                  <SelectItem value="damaged">Beschädigt</SelectItem>
-                  <SelectItem value="repair">Reparatur</SelectItem>
-                  <SelectItem value="decommissioned">Ausgemustert</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={assignedFilter} onValueChange={setAssignedFilter}>
-                <SelectTrigger className="w-[170px]">
-                  <SelectValue placeholder={t("assignedTo")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{tc("all")}</SelectItem>
-                  <SelectItem value="assigned">{t("assignedTo")}</SelectItem>
-                  <SelectItem value="unassigned">Nicht zugewiesen</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      {/* Table */}
+      <Card className="overflow-hidden">
+        {loading ? (
+          <div className="space-y-4 p-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton className="h-10 w-10 rounded-md" />
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-4 w-40 flex-1" />
+                <Skeleton className="h-5 w-20 rounded-full" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-5 w-20 rounded-full" />
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-8 w-8" />
+              </div>
+            ))}
           </div>
-        </CardContent>
+        ) : tools.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+              <IconTool className="size-8 text-muted-foreground" />
+            </div>
+            <h3 className="mt-4 text-lg font-medium">
+              {debouncedSearch || conditionFilter !== "all" || groupFilter !== "all"
+                ? tc("noData")
+                : "Erfassen Sie Ihr erstes Werkzeug"}
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {debouncedSearch
+                ? "Versuchen Sie einen anderen Suchbegriff"
+                : conditionFilter !== "all" || groupFilter !== "all"
+                  ? "Keine Werkzeuge entsprechen dem Filter"
+                  : "Beginnen Sie mit dem Aufbau Ihrer Werkzeugverwaltung"}
+            </p>
+            {!debouncedSearch && conditionFilter === "all" && groupFilter === "all" && (
+              <Button
+                className="mt-6"
+                onClick={() => router.push("/dashboard/tools/new")}
+              >
+                <IconPlus className="size-4" />
+                {t("addTool")}
+              </Button>
+            )}
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  className="cursor-pointer"
+                  onClick={() => router.push(`/dashboard/tools/${row.original.id}`)}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell
+                      key={cell.id}
+                      onClick={
+                        cell.column.id === "actions"
+                          ? (e) => e.stopPropagation()
+                          : undefined
+                      }
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </Card>
 
-      {/* Data Table */}
-      {filteredTools.length === 0 ? (
-        <Empty className="border rounded-lg py-16">
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <IconTool />
-            </EmptyMedia>
-            <EmptyTitle>{tc("noData")}</EmptyTitle>
-            <EmptyDescription>
-              Erstellen Sie Ihr erstes Werkzeug, um es hier zu sehen.
-            </EmptyDescription>
-          </EmptyHeader>
-          <Button onClick={() => router.push("/dashboard/tools/new")}>
-            <IconPlus className="size-4" />
-            {t("addTool")}
-          </Button>
-        </Empty>
-      ) : (
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[50px]">{t("tabs.general") === "Allgemeine Daten" ? "Bild" : "Bild"}</TableHead>
-                  <TableHead>{t("number")}</TableHead>
-                  <ToolSortableHead label={t("name")} sortKeyValue="name" onSort={handleSort} sortKey={sortKey} sortDir={sortDir} />
-                  <ToolSortableHead label={t("group")} sortKeyValue="group" onSort={handleSort} sortKey={sortKey} sortDir={sortDir} />
-                  <ToolSortableHead label={t("home")} sortKeyValue="homeLocation" onSort={handleSort} sortKey={sortKey} sortDir={sortDir} />
-                  <ToolSortableHead label={t("assignedTo")} sortKeyValue="assignedTo" onSort={handleSort} sortKey={sortKey} sortDir={sortDir} />
-                  <TableHead className="text-center">{t("isHome")}</TableHead>
-                  <ToolSortableHead label={t("condition")} sortKeyValue="condition" onSort={handleSort} sortKey={sortKey} sortDir={sortDir} />
-                  <TableHead>{t("lastMaintenance")}</TableHead>
-                  <ToolSortableHead label={t("maintenanceDue")} sortKeyValue="nextMaintenance" onSort={handleSort} sortKey={sortKey} sortDir={sortDir} />
-                  <TableHead className="w-[50px]">{tc("actions")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sortedTools.map((tool) => {
-                  const cond = conditionConfig[tool.condition]
-                  return (
-                    <TableRow
-                      key={tool.id}
-                      className="cursor-pointer"
-                      onClick={() => router.push(`/dashboard/tools/${tool.id}`)}
-                    >
-                      {/* Image */}
-                      <TableCell>
-                        <div className="bg-muted flex size-10 items-center justify-center rounded-md">
-                          {tool.image ? (
-                            <Image
-                              src={tool.image}
-                              alt={tool.name}
-                              width={40}
-                              height={40}
-                              className="size-10 rounded-md object-cover"
-                              unoptimized
-                            />
-                          ) : (
-                            <IconTool className="text-muted-foreground size-5" />
-                          )}
-                        </div>
-                      </TableCell>
-
-                      {/* Nummer */}
-                      <TableCell className="text-muted-foreground font-mono text-sm">
-                        {tool.number ?? "-"}
-                      </TableCell>
-
-                      {/* Name */}
-                      <TableCell className="font-semibold">{tool.name}</TableCell>
-
-                      {/* Group */}
-                      <TableCell>
-                        {tool.group ? (
-                          <Badge
-                            variant="outline"
-                            className="border-transparent"
-                            style={{
-                              backgroundColor: tool.group.color
-                                ? `${tool.group.color}20`
-                                : undefined,
-                              color: tool.group.color ?? undefined,
-                            }}
-                          >
-                            {tool.group.name}
-                          </Badge>
-                        ) : (
-                          "-"
-                        )}
-                      </TableCell>
-
-                      {/* Home Location */}
-                      <TableCell>{tool.homeLocation ?? "-"}</TableCell>
-
-                      {/* Assigned To */}
-                      <TableCell>{tool.assignedTo ?? "-"}</TableCell>
-
-                      {/* Is Home */}
-                      <TableCell className="text-center">
-                        {tool.isHome ? (
-                          <span className="inline-flex items-center gap-1 text-secondary">
-                            <IconCheck className="size-4" />
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-destructive">
-                            <IconX className="size-4" />
-                          </span>
-                        )}
-                      </TableCell>
-
-                      {/* Condition */}
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={`border-transparent ${cond.className}`}
-                        >
-                          {cond.label}
-                        </Badge>
-                      </TableCell>
-
-                      {/* Last Maintenance */}
-                      <TableCell className="text-muted-foreground text-sm">
-                        {formatDate(tool.lastMaintenance)}
-                      </TableCell>
-
-                      {/* Next Maintenance */}
-                      <TableCell className="text-sm">
-                        <span
-                          className={
-                            tool.nextMaintenance &&
-                            new Date(tool.nextMaintenance) < new Date()
-                              ? "font-semibold text-destructive"
-                              : "text-muted-foreground"
-                          }
-                        >
-                          {formatDate(tool.nextMaintenance)}
-                        </span>
-                      </TableCell>
-
-                      {/* Actions */}
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-8"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <IconDotsVertical className="size-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                router.push(`/dashboard/tools/${tool.id}`)
-                              }}
-                            >
-                              <IconEye className="size-4" />
-                              {tc("details")}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                router.push(`/dashboard/tools/${tool.id}`)
-                              }}
-                            >
-                              <IconEdit className="size-4" />
-                              {tc("edit")}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-destructive"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <IconTrash className="size-4" />
-                              {tc("delete")}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+      {/* Pagination */}
+      {!loading && tools.length > 0 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            {(page - 1) * ITEMS_PER_PAGE + 1}&ndash;
+            {Math.min(page * ITEMS_PER_PAGE, total)} von {total}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              <IconChevronLeft className="size-4" />
+              {tc("back")}
+            </Button>
+            <span className="min-w-[3rem] text-center text-sm font-medium">
+              {page} / {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              {tc("next")}
+              <IconChevronRight className="size-4" />
+            </Button>
+          </div>
+        </div>
       )}
+
+      {/* Delete confirmation dialog */}
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(open: boolean) => {
+          if (!open) setDeleteTarget(null)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Werkzeug l&ouml;schen</DialogTitle>
+            <DialogDescription>
+              M&ouml;chten Sie &laquo;{deleteTarget?.name}&raquo; wirklich
+              l&ouml;schen? Diese Aktion kann nicht r&uuml;ckg&auml;ngig
+              gemacht werden.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteTarget(null)}
+              disabled={deleting}
+            >
+              {tc("cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting ? tc("loading") : tc("delete")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

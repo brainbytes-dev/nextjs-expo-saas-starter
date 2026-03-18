@@ -1,24 +1,33 @@
 "use client"
 
 import Image from "next/image"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, useCallback } from "react"
+import { useParams, useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
+import {
+  IconArrowLeft,
+  IconEdit,
+  IconTrash,
+  IconTool,
+  IconLogin,
+  IconLogout,
+  IconCalendar,
+  IconUser,
+  IconMapPin,
+  IconAlertTriangle,
+  IconDeviceFloppy,
+} from "@tabler/icons-react"
+import { QrCodeDisplay } from "@/components/qr-code"
+import { ZebraLabelButton } from "@/components/zebra-label-button"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Separator } from "@/components/ui/separator"
-import { Textarea } from "@/components/ui/textarea"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Table,
   TableBody,
@@ -28,238 +37,86 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog"
-import {
-  IconArrowLeft,
-  IconTool,
-  IconLogin,
-  IconLogout,
-  IconCalendar,
-  IconUser,
-  IconMapPin,
-  IconClipboardCheck,
-  IconAlertTriangle,
-} from "@tabler/icons-react"
-import { QrCodeDisplay } from "@/components/qr-code"
-import { ZebraLabelButton } from "@/components/zebra-label-button"
 
-// ── Types ──────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 type ToolCondition = "good" | "damaged" | "repair" | "decommissioned"
+
+interface ToolGroup {
+  id: string
+  name: string
+  color: string | null
+}
+
+interface Location {
+  id: string
+  name: string
+}
 
 interface ToolBooking {
   id: string
-  date: string
-  type: "checkout" | "checkin" | "transfer"
-  user: string
-  fromLocation: string | null
-  toLocation: string | null
+  toolId: string
+  fromLocationId: string | null
+  toLocationId: string | null
+  userId: string | null
   notes: string | null
+  createdAt: string
 }
 
-interface ToolTask {
+interface ToolDetail {
   id: string
-  title: string
-  status: "open" | "in_progress" | "completed"
-  assignedTo: string | null
-  dueDate: string | null
-}
-
-interface MaintenanceEntry {
-  id: string
-  date: string
-  type: string
-  performedBy: string
+  number: string | null
+  name: string
+  image: string | null
+  groupId: string | null
+  groupName: string | null
+  homeLocationId: string | null
+  homeLocationName: string | null
+  assignedToId: string | null
+  assignedUserName: string | null
+  assignedLocationId: string | null
+  barcode: string | null
+  manufacturer: string | null
+  manufacturerNumber: string | null
+  serialNumber: string | null
+  condition: ToolCondition | null
+  maintenanceIntervalDays: number | null
+  lastMaintenanceDate: string | null
+  nextMaintenanceDate: string | null
   notes: string | null
-  nextDue: string | null
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+  recentBookings: ToolBooking[]
 }
 
-// ── Mock Data ──────────────────────────────────────────────────────────
-const MOCK_TOOL = {
-  id: "1",
-  number: "WZ-001",
-  name: "Bohrmaschine Hilti TE 6-A22",
-  image: null,
-  group: { id: "1", name: "Elektrowerkzeuge", color: "#3b82f6" },
-  homeLocation: "Hauptlager",
-  homeLocationId: "loc-1",
-  assignedTo: null as string | null,
-  assignedToId: null as string | null,
-  assignedLocation: null as string | null,
-  isHome: true,
-  condition: "good" as ToolCondition,
-  barcode: "4058546345679",
-  manufacturer: "Hilti",
-  manufacturerNumber: "TE 6-A22",
-  serialNumber: "SN-2024-00456",
-  maintenanceIntervalDays: 180,
-  lastMaintenance: "2025-12-01",
-  nextMaintenance: "2026-06-01",
-  notes: "Akku-Bohrhammer, 22V Lithium-Ionen",
-  createdAt: "2024-06-15",
-}
-
-const MOCK_BOOKINGS: ToolBooking[] = [
-  {
-    id: "b1",
-    date: "2026-03-10T08:30:00",
-    type: "checkin",
-    user: "Max Müller",
-    fromLocation: "Baustelle Zürich",
-    toLocation: "Hauptlager",
-    notes: null,
-  },
-  {
-    id: "b2",
-    date: "2026-03-03T07:15:00",
-    type: "checkout",
-    user: "Max Müller",
-    fromLocation: "Hauptlager",
-    toLocation: "Baustelle Zürich",
-    notes: "Projekt Neubau Seestrasse",
-  },
-  {
-    id: "b3",
-    date: "2026-02-20T16:00:00",
-    type: "checkin",
-    user: "Anna Schmid",
-    fromLocation: "Baustelle Bern",
-    toLocation: "Hauptlager",
-    notes: null,
-  },
-  {
-    id: "b4",
-    date: "2026-02-14T06:45:00",
-    type: "checkout",
-    user: "Anna Schmid",
-    fromLocation: "Hauptlager",
-    toLocation: "Baustelle Bern",
-    notes: null,
-  },
-  {
-    id: "b5",
-    date: "2026-01-28T09:00:00",
-    type: "transfer",
-    user: "Peter Weber",
-    fromLocation: "Fahrzeug 1",
-    toLocation: "Hauptlager",
-    notes: "Rücktransfer nach Wartung",
-  },
-]
-
-const MOCK_TASKS: ToolTask[] = [
-  {
-    id: "t1",
-    title: "Akkus prüfen und laden",
-    status: "open",
-    assignedTo: "Max Müller",
-    dueDate: "2026-03-20",
-  },
-  {
-    id: "t2",
-    title: "Bohrfutter reinigen",
-    status: "completed",
-    assignedTo: "Anna Schmid",
-    dueDate: "2026-02-15",
-  },
-]
-
-const MOCK_MAINTENANCE: MaintenanceEntry[] = [
-  {
-    id: "m1",
-    date: "2025-12-01",
-    type: "Regelmässige Wartung",
-    performedBy: "Peter Weber",
-    notes: "Alle Teile in Ordnung, Akku getauscht",
-    nextDue: "2026-06-01",
-  },
-  {
-    id: "m2",
-    date: "2025-06-01",
-    type: "Regelmässige Wartung",
-    performedBy: "Peter Weber",
-    notes: "Bohrfutter leichter Verschleiss, sonst ok",
-    nextDue: "2025-12-01",
-  },
-  {
-    id: "m3",
-    date: "2024-12-01",
-    type: "Ersteinsatzprüfung",
-    performedBy: "Servicetech AG",
-    notes: "Neugerät geprüft und freigegeben",
-    nextDue: "2025-06-01",
-  },
-]
-
-// ── Helpers ────────────────────────────────────────────────────────────
-const conditionConfig: Record<
-  ToolCondition,
-  { label: string; className: string }
-> = {
-  good: {
-    label: "Gut",
-    className:
-      "bg-secondary/10 text-secondary",
-  },
-  damaged: {
-    label: "Beschädigt",
-    className:
-      "bg-primary/10 text-primary",
-  },
-  repair: {
-    label: "Reparatur",
-    className:
-      "bg-destructive/10 text-destructive",
-  },
-  decommissioned: {
-    label: "Ausgemustert",
-    className:
-      "bg-muted text-muted-foreground",
-  },
-}
-
-const bookingTypeConfig: Record<
-  string,
-  { label: string; className: string }
-> = {
-  checkout: {
-    label: "Ausgecheckt",
-    className: "bg-primary/10 text-primary",
-  },
-  checkin: {
-    label: "Eingecheckt",
-    className: "bg-secondary/10 text-secondary",
-  },
-  transfer: {
-    label: "Transfer",
-    className: "bg-muted text-muted-foreground",
-  },
-}
-
-const taskStatusConfig: Record<
-  string,
-  { label: string; className: string }
-> = {
-  open: {
-    label: "Offen",
-    className: "bg-primary/10 text-primary",
-  },
-  in_progress: {
-    label: "In Bearbeitung",
-    className: "bg-primary/10 text-primary",
-  },
-  completed: {
-    label: "Erledigt",
-    className: "bg-secondary/10 text-secondary",
-  },
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+const conditionConfig: Record<ToolCondition, { label: string; className: string }> = {
+  good: { label: "Gut", className: "bg-secondary/10 text-secondary border-transparent" },
+  damaged: { label: "Beschädigt", className: "bg-primary/10 text-primary border-transparent" },
+  repair: { label: "Reparatur", className: "bg-destructive/10 text-destructive border-transparent" },
+  decommissioned: { label: "Ausgemustert", className: "bg-muted text-muted-foreground border-transparent" },
 }
 
 function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "-"
+  if (!dateStr) return "\u2014"
   return new Date(dateStr).toLocaleDateString("de-CH", {
     day: "2-digit",
     month: "2-digit",
@@ -268,7 +125,7 @@ function formatDate(dateStr: string | null): string {
 }
 
 function formatDateTime(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("de-CH", {
+  return new Date(dateStr).toLocaleString("de-CH", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -277,44 +134,270 @@ function formatDateTime(dateStr: string): string {
   })
 }
 
-// ── Component ──────────────────────────────────────────────────────────
+function isMaintenanceOverdue(dateStr: string | null): boolean {
+  if (!dateStr) return false
+  return new Date(dateStr) < new Date()
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 export default function ToolDetailPage() {
   const t = useTranslations("tools")
   const tc = useTranslations("common")
+  const params = useParams<{ id: string }>()
   const router = useRouter()
+  const toolId = params.id
+
+  // Data state
+  const [tool, setTool] = useState<ToolDetail | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  // Edit form state
+  const [form, setForm] = useState<Partial<ToolDetail>>({})
+  const [isEditing, setIsEditing] = useState(false)
+
+  // Reference data
+  const [groups, setGroups] = useState<ToolGroup[]>([])
+  const [locations, setLocations] = useState<Location[]>([])
+
+  // Dialog state
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [checkinOpen, setCheckinOpen] = useState(false)
+  const [checkoutUserId, setCheckoutUserId] = useState("")
+  const [checkoutLocationId, setCheckoutLocationId] = useState("")
+  const [checkoutNotes, setCheckoutNotes] = useState("")
+  const [checkinCondition, setCheckinCondition] = useState("good")
+  const [checkinNotes, setCheckinNotes] = useState("")
 
-  // In production this would fetch from API using useParams().id
-  const tool = MOCK_TOOL
-  const cond = conditionConfig[tool.condition]
-  const isMaintenanceOverdue =
-    tool.nextMaintenance && new Date(tool.nextMaintenance) < new Date()
+  // Delete dialog
+  const [showDelete, setShowDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
-  return (
-    <div className="flex flex-col gap-6 px-4 py-4 md:px-6 md:py-6 lg:px-8">
-      {/* Back + Header */}
-      <div className="flex items-center gap-3">
+  // Fetch everything
+  useEffect(() => {
+    async function load() {
+      setLoading(true)
+      try {
+        const [toolRes, groupsRes, locsRes] = await Promise.all([
+          fetch(`/api/tools/${toolId}`),
+          fetch("/api/tool-groups"),
+          fetch("/api/locations"),
+        ])
+
+        if (toolRes.ok) {
+          const d = await toolRes.json()
+          setTool(d)
+          setForm(d)
+        }
+        if (groupsRes.ok) {
+          const g = await groupsRes.json()
+          setGroups(Array.isArray(g) ? g : (g.data ?? []))
+        }
+        if (locsRes.ok) {
+          const l = await locsRes.json()
+          setLocations(Array.isArray(l) ? l : (l.data ?? []))
+        }
+      } catch {
+        // TODO: handle error
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [toolId])
+
+  // Save handler
+  const handleSave = useCallback(async () => {
+    if (!tool) return
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/tools/${toolId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          number: form.number,
+          groupId: form.groupId,
+          homeLocationId: form.homeLocationId,
+          barcode: form.barcode,
+          manufacturer: form.manufacturer,
+          manufacturerNumber: form.manufacturerNumber,
+          serialNumber: form.serialNumber,
+          condition: form.condition,
+          maintenanceIntervalDays: form.maintenanceIntervalDays,
+          notes: form.notes,
+        }),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        // Re-fetch to get joined fields (groupName, homeLocationName, etc.)
+        const detailRes = await fetch(`/api/tools/${toolId}`)
+        if (detailRes.ok) {
+          const detail = await detailRes.json()
+          setTool(detail)
+          setForm(detail)
+        } else {
+          setTool((prev) => prev ? { ...prev, ...updated } : null)
+          setForm((prev) => ({ ...prev, ...updated }))
+        }
+        setIsEditing(false)
+      }
+    } catch {
+      // TODO: toast
+    } finally {
+      setSaving(false)
+    }
+  }, [tool, toolId, form])
+
+  // Delete handler
+  const handleDelete = useCallback(async () => {
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/tools/${toolId}`, { method: "DELETE" })
+      if (res.ok) {
+        router.push("/dashboard/tools")
+      }
+    } catch {
+      // TODO: toast
+    } finally {
+      setDeleting(false)
+    }
+  }, [toolId, router])
+
+  // ---------------------------------------------------------------------------
+  // Loading skeleton
+  // ---------------------------------------------------------------------------
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-6 px-4 py-6 lg:px-6">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-8 w-8 rounded" />
+          <Skeleton className="h-8 w-48" />
+        </div>
+        <Skeleton className="h-28 w-full rounded-lg" />
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-4">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-64 w-full rounded-lg" />
+          </div>
+          <div className="space-y-4">
+            <Skeleton className="h-32 w-full rounded-lg" />
+            <Skeleton className="h-32 w-full rounded-lg" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!tool) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 px-4">
+        <h2 className="text-lg font-medium">Werkzeug nicht gefunden</h2>
         <Button
-          variant="ghost"
-          size="icon"
+          variant="outline"
+          className="mt-4"
           onClick={() => router.push("/dashboard/tools")}
         >
-          <IconArrowLeft className="size-5" />
+          <IconArrowLeft className="size-4" />
+          {tc("back")}
         </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight">{tool.name}</h1>
-            <Badge
-              variant="outline"
-              className={`border-transparent ${cond.className}`}
-            >
-              {cond.label}
-            </Badge>
+      </div>
+    )
+  }
+
+  const cond = tool.condition ? conditionConfig[tool.condition] : null
+  const maintenanceOverdue = isMaintenanceOverdue(tool.nextMaintenanceDate)
+  const isHome = !tool.assignedToId && !tool.assignedLocationId
+
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
+  return (
+    <div className="flex flex-col gap-6 px-4 py-6 lg:px-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push("/dashboard/tools")}
+          >
+            <IconArrowLeft className="size-4" />
+          </Button>
+          <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border bg-muted">
+            {tool.image ? (
+              <Image
+                src={tool.image}
+                alt={tool.name}
+                width={48}
+                height={48}
+                className="h-full w-full object-cover"
+                unoptimized
+              />
+            ) : (
+              <IconTool className="size-5 text-muted-foreground" />
+            )}
           </div>
-          <p className="text-muted-foreground text-sm">
-            {tool.number} &middot; {tool.group.name}
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-semibold tracking-tight">
+                {tool.name}
+              </h1>
+              {cond && (
+                <Badge variant="outline" className={`text-xs ${cond.className}`}>
+                  {cond.label}
+                </Badge>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {tool.number && (
+                <span className="font-mono">{tool.number} &middot; </span>
+              )}
+              {tool.groupName ?? t("group")}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Separator orientation="vertical" className="mx-1 h-6" />
+          {isEditing ? (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setForm(tool)
+                  setIsEditing(false)
+                }}
+              >
+                {tc("cancel")}
+              </Button>
+              <Button size="sm" onClick={handleSave} disabled={saving}>
+                <IconDeviceFloppy className="size-4" />
+                {saving ? tc("loading") : tc("save")}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditing(true)}
+              >
+                <IconEdit className="size-4" />
+                {tc("edit")}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDelete(true)}
+                className="text-destructive hover:text-destructive"
+              >
+                <IconTrash className="size-4" />
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -322,62 +405,44 @@ export default function ToolDetailPage() {
       <Card>
         <CardContent className="p-4 sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            {/* Current Status */}
             <div className="flex items-center gap-6">
-              <div className="bg-muted flex size-16 items-center justify-center rounded-xl">
-                {tool.image ? (
-                  <Image
-                    src={tool.image}
-                    alt={tool.name}
-                    width={64}
-                    height={64}
-                    className="size-16 rounded-xl object-cover"
-                    unoptimized
-                  />
-                ) : (
-                  <IconTool className="text-muted-foreground size-8" />
-                )}
-              </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span
                     className={`inline-block size-2.5 rounded-full ${
-                      tool.isHome ? "bg-secondary" : "bg-destructive"
+                      isHome ? "bg-secondary" : "bg-primary"
                     }`}
                   />
                   <span className="text-sm font-medium">
-                    {tool.isHome ? (
+                    {isHome ? (
                       <span className="text-secondary">
-                        {t("isHome")} &mdash; {tool.homeLocation}
+                        {t("isHome")} &mdash; {tool.homeLocationName ?? "\u2014"}
                       </span>
                     ) : (
-                      <span className="text-destructive">
-                        Ausgecheckt &mdash; {tool.assignedTo}
+                      <span className="text-primary">
+                        Ausgecheckt &mdash; {tool.assignedUserName ?? "\u2014"}
                       </span>
                     )}
                   </span>
                 </div>
-                {!tool.isHome && tool.assignedLocation && (
-                  <p className="text-muted-foreground flex items-center gap-1 text-sm">
+                {!isHome && tool.assignedLocationId && (
+                  <p className="flex items-center gap-1 text-sm text-muted-foreground">
                     <IconMapPin className="size-3.5" />
-                    {tool.assignedLocation}
+                    Lagerort-ID: {tool.assignedLocationId}
                   </p>
                 )}
-                {isMaintenanceOverdue && (
+                {maintenanceOverdue && (
                   <p className="flex items-center gap-1 text-sm font-medium text-destructive">
                     <IconAlertTriangle className="size-3.5" />
-                    Wartung überfällig ({formatDate(tool.nextMaintenance)})
+                    Wartung &uuml;berf&auml;llig ({formatDate(tool.nextMaintenanceDate)})
                   </p>
                 )}
               </div>
             </div>
-
-            {/* Action Buttons */}
             <div className="flex gap-2">
-              {tool.isHome ? (
+              {isHome ? (
                 <Button
                   size="lg"
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                   onClick={() => setCheckoutOpen(true)}
                 >
                   <IconLogout className="size-5" />
@@ -386,7 +451,7 @@ export default function ToolDetailPage() {
               ) : (
                 <Button
                   size="lg"
-                  className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
+                  variant="outline"
                   onClick={() => setCheckinOpen(true)}
                 >
                   <IconLogin className="size-5" />
@@ -398,250 +463,370 @@ export default function ToolDetailPage() {
         </CardContent>
       </Card>
 
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {t("lastMaintenance")}
+            </p>
+            <p className="mt-1 text-lg font-bold">
+              {formatDate(tool.lastMaintenanceDate)}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              N&auml;chste Wartung
+            </p>
+            <p
+              className={`mt-1 text-lg font-bold ${
+                maintenanceOverdue ? "text-destructive" : ""
+              }`}
+            >
+              {formatDate(tool.nextMaintenanceDate)}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Intervall
+            </p>
+            <p className="mt-1 text-lg font-bold">
+              {tool.maintenanceIntervalDays
+                ? `${tool.maintenanceIntervalDays} Tage`
+                : "\u2014"}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Buchungen
+            </p>
+            <p className="mt-1 text-lg font-bold">
+              {tool.recentBookings?.length ?? 0}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Tabs */}
-      <Tabs defaultValue="general">
+      <Tabs defaultValue="general" className="w-full">
         <TabsList>
           <TabsTrigger value="general">{t("tabs.general")}</TabsTrigger>
           <TabsTrigger value="bookings">{t("tabs.bookingHistory")}</TabsTrigger>
-          <TabsTrigger value="tasks">{t("tabs.tasks")}</TabsTrigger>
           <TabsTrigger value="maintenance">Wartung</TabsTrigger>
           <TabsTrigger value="qr">QR-Code</TabsTrigger>
         </TabsList>
 
-        {/* ── General Tab ────────────────────────────────────────── */}
-        <TabsContent value="general" className="mt-4">
+        {/* ─── General Tab ─────────────────────────────────────────── */}
+        <TabsContent value="general">
           <Card>
-            <CardHeader>
-              <CardTitle>{t("tabs.general")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-6 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>{t("name")}</Label>
-                  <Input defaultValue={tool.name} />
-                </div>
-                <div className="space-y-2">
-                  <Label>{t("number")}</Label>
-                  <Input defaultValue={tool.number ?? ""} />
-                </div>
-                <div className="space-y-2">
-                  <Label>{t("group")}</Label>
-                  <Select defaultValue={tool.group.id}>
-                    <SelectTrigger>
-                      <SelectValue />
+            <CardContent className="grid gap-6 p-6 sm:grid-cols-2">
+              {/* Name */}
+              <div className="space-y-2">
+                <Label>{t("name")}</Label>
+                {isEditing ? (
+                  <Input
+                    value={form.name ?? ""}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, name: e.target.value }))
+                    }
+                  />
+                ) : (
+                  <p className="text-sm">{tool.name}</p>
+                )}
+              </div>
+
+              {/* Nummer */}
+              <div className="space-y-2">
+                <Label>{t("number")}</Label>
+                {isEditing ? (
+                  <Input
+                    value={form.number ?? ""}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, number: e.target.value }))
+                    }
+                  />
+                ) : (
+                  <p className="text-sm font-mono">
+                    {tool.number || "\u2014"}
+                  </p>
+                )}
+              </div>
+
+              {/* Gruppe */}
+              <div className="space-y-2">
+                <Label>{t("group")}</Label>
+                {isEditing ? (
+                  <Select
+                    value={form.groupId ?? ""}
+                    onValueChange={(v) =>
+                      setForm((f) => ({ ...f, groupId: v || null }))
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={t("group")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">Elektrowerkzeuge</SelectItem>
-                      <SelectItem value="2">Handwerkzeuge</SelectItem>
-                      <SelectItem value="3">Messinstrumente</SelectItem>
+                      {groups.map((g) => (
+                        <SelectItem key={g.id} value={g.id}>
+                          {g.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>{t("home")}</Label>
-                  <Select defaultValue={tool.homeLocationId}>
-                    <SelectTrigger>
-                      <SelectValue />
+                ) : (
+                  <p className="text-sm">
+                    {tool.groupName ? (
+                      <Badge
+                        variant="secondary"
+                        style={
+                          groups.find((g) => g.id === tool.groupId)?.color
+                            ? {
+                                backgroundColor: `${groups.find((g) => g.id === tool.groupId)!.color}18`,
+                                color: groups.find((g) => g.id === tool.groupId)!.color ?? undefined,
+                                borderColor: `${groups.find((g) => g.id === tool.groupId)!.color}30`,
+                              }
+                            : undefined
+                        }
+                      >
+                        {tool.groupName}
+                      </Badge>
+                    ) : (
+                      "\u2014"
+                    )}
+                  </p>
+                )}
+              </div>
+
+              {/* Heimstandort */}
+              <div className="space-y-2">
+                <Label>{t("home")}</Label>
+                {isEditing ? (
+                  <Select
+                    value={form.homeLocationId ?? ""}
+                    onValueChange={(v) =>
+                      setForm((f) => ({ ...f, homeLocationId: v || null }))
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={t("home")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="loc-1">Hauptlager</SelectItem>
-                      <SelectItem value="loc-2">Fahrzeug 1</SelectItem>
-                      <SelectItem value="loc-3">Fahrzeug 2</SelectItem>
+                      {locations.map((l) => (
+                        <SelectItem key={l.id} value={l.id}>
+                          {l.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
-                </div>
+                ) : (
+                  <p className="text-sm">
+                    {tool.homeLocationName ?? "\u2014"}
+                  </p>
+                )}
+              </div>
 
-                <Separator className="sm:col-span-2" />
+              <Separator className="sm:col-span-2" />
 
-                <div className="space-y-2">
-                  <Label>Barcode</Label>
-                  <Input defaultValue={tool.barcode ?? ""} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Hersteller</Label>
-                  <Input defaultValue={tool.manufacturer ?? ""} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Herstellernummer</Label>
-                  <Input defaultValue={tool.manufacturerNumber ?? ""} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Seriennummer</Label>
-                  <Input defaultValue={tool.serialNumber ?? ""} />
-                </div>
+              {/* Barcode */}
+              <div className="space-y-2">
+                <Label>Barcode</Label>
+                {isEditing ? (
+                  <Input
+                    value={form.barcode ?? ""}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, barcode: e.target.value }))
+                    }
+                  />
+                ) : (
+                  <p className="text-sm font-mono">
+                    {tool.barcode || "\u2014"}
+                  </p>
+                )}
+              </div>
 
-                <Separator className="sm:col-span-2" />
+              {/* Hersteller */}
+              <div className="space-y-2">
+                <Label>Hersteller</Label>
+                {isEditing ? (
+                  <Input
+                    value={form.manufacturer ?? ""}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, manufacturer: e.target.value }))
+                    }
+                  />
+                ) : (
+                  <p className="text-sm">{tool.manufacturer || "\u2014"}</p>
+                )}
+              </div>
 
-                <div className="space-y-2">
-                  <Label>{t("condition")}</Label>
-                  <Select defaultValue={tool.condition}>
-                    <SelectTrigger>
+              {/* Herstellernummer */}
+              <div className="space-y-2">
+                <Label>Herstellernummer</Label>
+                {isEditing ? (
+                  <Input
+                    value={form.manufacturerNumber ?? ""}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        manufacturerNumber: e.target.value,
+                      }))
+                    }
+                  />
+                ) : (
+                  <p className="text-sm font-mono">
+                    {tool.manufacturerNumber || "\u2014"}
+                  </p>
+                )}
+              </div>
+
+              {/* Seriennummer */}
+              <div className="space-y-2">
+                <Label>Seriennummer</Label>
+                {isEditing ? (
+                  <Input
+                    value={form.serialNumber ?? ""}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, serialNumber: e.target.value }))
+                    }
+                  />
+                ) : (
+                  <p className="text-sm font-mono">
+                    {tool.serialNumber || "\u2014"}
+                  </p>
+                )}
+              </div>
+
+              <Separator className="sm:col-span-2" />
+
+              {/* Zustand */}
+              <div className="space-y-2">
+                <Label>{t("condition")}</Label>
+                {isEditing ? (
+                  <Select
+                    value={form.condition ?? "good"}
+                    onValueChange={(v) =>
+                      setForm((f) => ({
+                        ...f,
+                        condition: v as ToolCondition,
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="good">Gut</SelectItem>
-                      <SelectItem value="damaged">Beschädigt</SelectItem>
+                      <SelectItem value="damaged">Besch&auml;digt</SelectItem>
                       <SelectItem value="repair">Reparatur</SelectItem>
                       <SelectItem value="decommissioned">Ausgemustert</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Wartungsintervall (Tage)</Label>
+                ) : (
+                  <p className="text-sm">
+                    {tool.condition
+                      ? conditionConfig[tool.condition].label
+                      : "\u2014"}
+                  </p>
+                )}
+              </div>
+
+              {/* Wartungsintervall */}
+              <div className="space-y-2">
+                <Label>Wartungsintervall (Tage)</Label>
+                {isEditing ? (
                   <Input
                     type="number"
-                    defaultValue={tool.maintenanceIntervalDays ?? ""}
+                    min={0}
+                    value={form.maintenanceIntervalDays ?? ""}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        maintenanceIntervalDays:
+                          parseInt(e.target.value) || null,
+                      }))
+                    }
                   />
-                </div>
-                <div className="space-y-2 sm:col-span-2">
-                  <Label>Notizen</Label>
-                  <Textarea defaultValue={tool.notes ?? ""} rows={3} />
-                </div>
+                ) : (
+                  <p className="text-sm">
+                    {tool.maintenanceIntervalDays
+                      ? `${tool.maintenanceIntervalDays} Tage`
+                      : "\u2014"}
+                  </p>
+                )}
               </div>
 
-              <div className="mt-6 flex justify-end gap-2">
-                <Button variant="outline">{tc("cancel")}</Button>
-                <Button>{tc("save")}</Button>
+              {/* Notizen */}
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Notizen</Label>
+                {isEditing ? (
+                  <textarea
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                    value={form.notes ?? ""}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, notes: e.target.value }))
+                    }
+                  />
+                ) : (
+                  <p className="whitespace-pre-wrap text-sm">
+                    {tool.notes || "\u2014"}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* ── Booking History Tab ────────────────────────────────── */}
-        <TabsContent value="bookings" className="mt-4">
+        {/* ─── Booking History Tab ─────────────────────────────────── */}
+        <TabsContent value="bookings">
           <Card>
-            <CardHeader>
-              <CardTitle>{t("tabs.bookingHistory")}</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              {/* Timeline View */}
+            {!tool.recentBookings || tool.recentBookings.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16">
+                <p className="text-sm text-muted-foreground">
+                  Keine Buchungen vorhanden
+                </p>
+              </div>
+            ) : (
               <div className="divide-y">
-                {MOCK_BOOKINGS.map((booking) => {
-                  const bConfig = bookingTypeConfig[booking.type]
-                  return (
-                    <div
-                      key={booking.id}
-                      className="flex gap-4 px-6 py-4"
-                    >
-                      {/* Timeline Dot */}
-                      <div className="flex flex-col items-center pt-1">
-                        <div
-                          className={`size-3 rounded-full ${
-                            booking.type === "checkin"
-                              ? "bg-secondary"
-                              : booking.type === "checkout"
-                                ? "bg-primary"
-                                : "bg-muted-foreground"
-                          }`}
-                        />
-                        <div className="bg-border mt-1 w-px flex-1" />
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant="outline"
-                            className={`border-transparent text-xs ${bConfig?.className}`}
-                          >
-                            {bConfig?.label}
-                          </Badge>
-                          <span className="text-muted-foreground text-xs">
-                            {formatDateTime(booking.date)}
-                          </span>
-                        </div>
-                        <p className="text-sm">
-                          <span className="font-medium">{booking.user}</span>
-                        </p>
-                        <p className="text-muted-foreground flex items-center gap-1 text-xs">
-                          <IconMapPin className="size-3" />
-                          {booking.fromLocation ?? "-"}
-                          <span className="mx-1">&rarr;</span>
-                          {booking.toLocation ?? "-"}
-                        </p>
-                        {booking.notes && (
-                          <p className="text-muted-foreground text-xs italic">
-                            {booking.notes}
-                          </p>
-                        )}
-                      </div>
+                {tool.recentBookings.map((booking) => (
+                  <div key={booking.id} className="flex gap-4 px-6 py-4">
+                    <div className="flex flex-col items-center pt-1">
+                      <div className="size-3 rounded-full bg-muted-foreground" />
+                      <div className="mt-1 w-px flex-1 bg-border" />
                     </div>
-                  )
-                })}
+                    <div className="flex-1 space-y-1">
+                      <span className="text-xs text-muted-foreground">
+                        {formatDateTime(booking.createdAt)}
+                      </span>
+                      {booking.notes && (
+                        <p className="text-xs italic text-muted-foreground">
+                          {booking.notes}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
-            </CardContent>
+            )}
           </Card>
         </TabsContent>
 
-        {/* ── Tasks Tab ──────────────────────────────────────────── */}
-        <TabsContent value="tasks" className="mt-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>{t("tabs.tasks")}</CardTitle>
-              <Button size="sm">
-                <IconClipboardCheck className="size-4" />
-                Aufgabe erstellen
-              </Button>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Titel</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>{t("assignedTo")}</TableHead>
-                    <TableHead>Fällig am</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {MOCK_TASKS.map((task) => {
-                    const ts = taskStatusConfig[task.status]
-                    return (
-                      <TableRow key={task.id}>
-                        <TableCell className="font-medium">
-                          {task.title}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={`border-transparent ${ts?.className}`}
-                          >
-                            {ts?.label}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{task.assignedTo ?? "-"}</TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {formatDate(task.dueDate)}
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                  {MOCK_TASKS.length === 0 && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={4}
-                        className="text-muted-foreground py-8 text-center"
-                      >
-                        Keine Aufgaben vorhanden
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* ── Maintenance Tab ────────────────────────────────────── */}
-        <TabsContent value="maintenance" className="mt-4 space-y-4">
-          {/* Maintenance Summary */}
+        {/* ─── Maintenance Tab ─────────────────────────────────────── */}
+        <TabsContent value="maintenance" className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-3">
             <Card>
               <CardContent className="flex flex-col items-center p-4 text-center">
-                <IconCalendar className="text-muted-foreground mb-2 size-6" />
-                <p className="text-muted-foreground text-xs">{t("lastMaintenance")}</p>
+                <IconCalendar className="mb-2 size-6 text-muted-foreground" />
+                <p className="text-xs text-muted-foreground">
+                  {t("lastMaintenance")}
+                </p>
                 <p className="text-lg font-semibold">
-                  {formatDate(tool.lastMaintenance)}
+                  {formatDate(tool.lastMaintenanceDate)}
                 </p>
               </CardContent>
             </Card>
@@ -649,75 +834,48 @@ export default function ToolDetailPage() {
               <CardContent className="flex flex-col items-center p-4 text-center">
                 <IconCalendar
                   className={`mb-2 size-6 ${
-                    isMaintenanceOverdue
+                    maintenanceOverdue
                       ? "text-destructive"
                       : "text-muted-foreground"
                   }`}
                 />
-                <p className="text-muted-foreground text-xs">Nächste Wartung</p>
+                <p className="text-xs text-muted-foreground">N&auml;chste Wartung</p>
                 <p
                   className={`text-lg font-semibold ${
-                    isMaintenanceOverdue ? "text-destructive" : ""
+                    maintenanceOverdue ? "text-destructive" : ""
                   }`}
                 >
-                  {formatDate(tool.nextMaintenance)}
+                  {formatDate(tool.nextMaintenanceDate)}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="flex flex-col items-center p-4 text-center">
-                <IconTool className="text-muted-foreground mb-2 size-6" />
-                <p className="text-muted-foreground text-xs">Intervall</p>
+                <IconTool className="mb-2 size-6 text-muted-foreground" />
+                <p className="text-xs text-muted-foreground">Intervall</p>
                 <p className="text-lg font-semibold">
                   {tool.maintenanceIntervalDays
                     ? `${tool.maintenanceIntervalDays} Tage`
-                    : "-"}
+                    : "\u2014"}
                 </p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Maintenance History */}
           <Card>
-            <CardHeader>
-              <CardTitle>Wartungshistorie</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Datum</TableHead>
-                    <TableHead>Art</TableHead>
-                    <TableHead>Durchgeführt von</TableHead>
-                    <TableHead>Notizen</TableHead>
-                    <TableHead>Nächste fällig</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {MOCK_MAINTENANCE.map((entry) => (
-                    <TableRow key={entry.id}>
-                      <TableCell className="font-medium">
-                        {formatDate(entry.date)}
-                      </TableCell>
-                      <TableCell>{entry.type}</TableCell>
-                      <TableCell>{entry.performedBy}</TableCell>
-                      <TableCell className="text-muted-foreground max-w-[300px] truncate">
-                        {entry.notes ?? "-"}
-                      </TableCell>
-                      <TableCell>{formatDate(entry.nextDue)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
+            <div className="flex flex-col items-center justify-center py-16">
+              <p className="text-sm text-muted-foreground">
+                Wartungshistorie wird in einer zuk&uuml;nftigen Version verf&uuml;gbar sein.
+              </p>
+            </div>
           </Card>
         </TabsContent>
 
-        {/* ── QR-Code Tab ────────────────────────────────────────── */}
-        <TabsContent value="qr" className="mt-4">
+        {/* ─── QR-Code Tab ─────────────────────────────────────────── */}
+        <TabsContent value="qr">
           <div className="flex flex-col items-center gap-6 py-8">
-            <p className="text-sm text-muted-foreground font-mono text-center max-w-sm">
-              QR-Code für schnelles Ein-/Auschecken. Am Werkzeug anbringen oder im Werkzeugkasten befestigen.
+            <p className="max-w-sm text-center font-mono text-sm text-muted-foreground">
+              QR-Code f&uuml;r schnelles Ein-/Auschecken. Am Werkzeug anbringen oder im Werkzeugkasten befestigen.
             </p>
             <QrCodeDisplay
               value={
@@ -732,65 +890,79 @@ export default function ToolDetailPage() {
               data={{
                 name: tool.name,
                 number: tool.number,
-                qrValue: typeof window !== "undefined" ? `${window.location.origin}/dashboard/tools/${tool.id}` : `/dashboard/tools/${tool.id}`,
-                extra: tool.condition,
+                qrValue:
+                  typeof window !== "undefined"
+                    ? `${window.location.origin}/dashboard/tools/${tool.id}`
+                    : `/dashboard/tools/${tool.id}`,
+                extra: tool.condition ?? undefined,
               }}
             />
           </div>
         </TabsContent>
       </Tabs>
 
-      {/* ── Checkout Dialog ──────────────────────────────────────── */}
+      {/* ─── Checkout Dialog ─────────────────────────────────────────── */}
       <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("checkOut")}: {tool.name}</DialogTitle>
+            <DialogTitle>
+              {t("checkOut")}: {tool.name}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label>
                 <IconUser className="inline size-4" /> {t("assignedTo")}
               </Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Person auswählen..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="u1">Max Müller</SelectItem>
-                  <SelectItem value="u2">Anna Schmid</SelectItem>
-                  <SelectItem value="u3">Peter Weber</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input
+                value={checkoutUserId}
+                onChange={(e) => setCheckoutUserId(e.target.value)}
+                placeholder="Benutzer-ID oder Name..."
+              />
             </div>
             <div className="space-y-2">
               <Label>
                 <IconMapPin className="inline size-4" /> Ziel-Lagerort
               </Label>
-              <Select>
+              <Select
+                value={checkoutLocationId}
+                onValueChange={setCheckoutLocationId}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Lagerort auswählen..." />
+                  <SelectValue placeholder="Lagerort w&auml;hlen..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="loc-2">Fahrzeug 1</SelectItem>
-                  <SelectItem value="loc-3">Fahrzeug 2</SelectItem>
-                  <SelectItem value="loc-4">Baustelle Zürich</SelectItem>
-                  <SelectItem value="loc-5">Baustelle Bern</SelectItem>
+                  {locations.map((l) => (
+                    <SelectItem key={l.id} value={l.id}>
+                      {l.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label>Notiz (optional)</Label>
-              <Textarea rows={2} placeholder="Bemerkung zur Ausbuchung..." />
+              <textarea
+                className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none"
+                value={checkoutNotes}
+                onChange={(e) => setCheckoutNotes(e.target.value)}
+                placeholder="Bemerkung zur Ausbuchung..."
+              />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCheckoutOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCheckoutOpen(false)
+                setCheckoutUserId("")
+                setCheckoutLocationId("")
+                setCheckoutNotes("")
+              }}
+            >
               {tc("cancel")}
             </Button>
-            <Button
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              onClick={() => setCheckoutOpen(false)}
-            >
+            <Button onClick={() => setCheckoutOpen(false)}>
               <IconLogout className="size-4" />
               {t("checkOut")}
             </Button>
@@ -798,55 +970,101 @@ export default function ToolDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Checkin Dialog ───────────────────────────────────────── */}
+      {/* ─── Checkin Dialog ──────────────────────────────────────────── */}
       <Dialog open={checkinOpen} onOpenChange={setCheckinOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("checkIn")}: {tool.name}</DialogTitle>
+            <DialogTitle>
+              {t("checkIn")}: {tool.name}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="rounded-lg border p-3 space-y-1">
               <p className="text-sm">
                 <span className="text-muted-foreground">Aktuell bei:</span>{" "}
-                <span className="font-medium">{tool.assignedTo ?? "-"}</span>
+                <span className="font-medium">
+                  {tool.assignedUserName ?? "\u2014"}
+                </span>
               </p>
               <p className="text-sm">
-                <span className="text-muted-foreground">Standort:</span>{" "}
-                <span className="font-medium">{tool.assignedLocation ?? "-"}</span>
-              </p>
-              <p className="text-sm">
-                <span className="text-muted-foreground">Zurück an:</span>{" "}
-                <span className="font-medium">{tool.homeLocation}</span>
+                <span className="text-muted-foreground">Zur&uuml;ck an:</span>{" "}
+                <span className="font-medium">
+                  {tool.homeLocationName ?? "\u2014"}
+                </span>
               </p>
             </div>
             <div className="space-y-2">
               <Label>{t("condition")}</Label>
-              <Select defaultValue="good">
+              <Select
+                value={checkinCondition}
+                onValueChange={setCheckinCondition}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="good">Gut</SelectItem>
-                  <SelectItem value="damaged">Beschädigt</SelectItem>
-                  <SelectItem value="repair">Reparatur nötig</SelectItem>
+                  <SelectItem value="damaged">Besch&auml;digt</SelectItem>
+                  <SelectItem value="repair">Reparatur n&ouml;tig</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label>Notiz (optional)</Label>
-              <Textarea rows={2} placeholder="Bemerkung zur Rückgabe..." />
+              <textarea
+                className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none"
+                value={checkinNotes}
+                onChange={(e) => setCheckinNotes(e.target.value)}
+                placeholder="Bemerkung zur R&uuml;ckgabe..."
+              />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCheckinOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCheckinOpen(false)
+                setCheckinCondition("good")
+                setCheckinNotes("")
+              }}
+            >
               {tc("cancel")}
             </Button>
             <Button
-              className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
+              variant="outline"
               onClick={() => setCheckinOpen(false)}
             >
               <IconLogin className="size-4" />
               {t("checkIn")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── Delete Dialog ─────────────────────────────────────────────── */}
+      <Dialog open={showDelete} onOpenChange={setShowDelete}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Werkzeug l&ouml;schen</DialogTitle>
+            <DialogDescription>
+              M&ouml;chten Sie &laquo;{tool.name}&raquo; wirklich l&ouml;schen?
+              Diese Aktion kann nicht r&uuml;ckg&auml;ngig gemacht werden.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowDelete(false)}
+              disabled={deleting}
+            >
+              {tc("cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting ? tc("loading") : tc("delete")}
             </Button>
           </DialogFooter>
         </DialogContent>

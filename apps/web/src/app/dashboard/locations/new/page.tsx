@@ -1,10 +1,11 @@
 "use client"
 
-import * as React from "react"
+import { useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 import {
   IconArrowLeft,
+  IconDeviceFloppy,
   IconBuildingWarehouse,
   IconTruck,
   IconBuildingFactory,
@@ -12,13 +13,13 @@ import {
   IconStethoscope,
   IconHeartbeat,
   IconUser,
-  IconDeviceFloppy,
 } from "@tabler/icons-react"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 import {
   Select,
   SelectContent,
@@ -27,14 +28,20 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-// ─── Type config ─────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
 const LOCATION_TYPES = [
   { value: "warehouse", icon: IconBuildingWarehouse, color: "text-primary" },
   { value: "vehicle", icon: IconTruck, color: "text-primary" },
   { value: "site", icon: IconBuildingFactory, color: "text-primary" },
   { value: "station", icon: IconAmbulance, color: "text-destructive" },
   { value: "practice", icon: IconStethoscope, color: "text-secondary" },
-  { value: "operating_room", icon: IconHeartbeat, color: "text-muted-foreground" },
+  {
+    value: "operating_room",
+    icon: IconHeartbeat,
+    color: "text-muted-foreground",
+  },
   { value: "user", icon: IconUser, color: "text-muted-foreground" },
 ] as const
 
@@ -50,7 +57,6 @@ const TYPE_I18N_MAP: Record<LocationTypeValue, string> = {
   user: "user",
 }
 
-// ─── Template options ────────────────────────────────────────────────
 const TEMPLATES = [
   { value: "none", label: "Kein Template" },
   { value: "rettungswagen", label: "Rettungswagen (Standard)" },
@@ -60,88 +66,157 @@ const TEMPLATES = [
   { value: "lager", label: "Lager (Standard)" },
 ]
 
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+interface FormState {
+  name: string
+  type: string
+  category: string
+  address: string
+  template: string
+}
+
+const initialForm: FormState = {
+  name: "",
+  type: "",
+  category: "",
+  address: "",
+  template: "none",
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 export default function NewLocationPage() {
   const t = useTranslations("locations")
-  const tCommon = useTranslations("common")
+  const tc = useTranslations("common")
   const router = useRouter()
 
-  const [name, setName] = React.useState("")
-  const [type, setType] = React.useState<string>("")
-  const [category, setCategory] = React.useState("")
-  const [address, setAddress] = React.useState("")
-  const [template, setTemplate] = React.useState("none")
-  const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [form, setForm] = useState<FormState>(initialForm)
+  const [saving, setSaving] = useState(false)
+  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>(
+    {}
+  )
 
-  const isValid = name.trim() !== "" && type !== ""
+  const updateField = useCallback(
+    <K extends keyof FormState>(key: K, value: FormState[K]) => {
+      setForm((f) => ({ ...f, [key]: value }))
+      setErrors((e) => ({ ...e, [key]: undefined }))
+    },
+    []
+  )
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!isValid) return
+  const validate = useCallback((): boolean => {
+    const errs: Partial<Record<keyof FormState, string>> = {}
+    if (!form.name.trim()) errs.name = "Name ist erforderlich"
+    if (!form.type) errs.type = "Typ ist erforderlich"
+    setErrors(errs)
+    return Object.keys(errs).length === 0
+  }, [form])
 
-    setIsSubmitting(true)
+  const handleSave = useCallback(async () => {
+    if (!validate()) return
+    setSaving(true)
     try {
-      // TODO: API call to create location
-      // await createLocation({ name, type, category, address, template: template === "none" ? null : template })
-      router.push("/dashboard/locations")
+      const body = {
+        name: form.name.trim(),
+        type: form.type,
+        category: form.category.trim() || null,
+        address: form.address.trim() || null,
+        template: form.template !== "none" ? form.template : null,
+      }
+
+      const res = await fetch("/api/locations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+      if (res.ok) {
+        const created = await res.json()
+        router.push(`/dashboard/locations/${created.id}`)
+      }
     } catch {
-      // TODO: error handling
+      // TODO: toast error
     } finally {
-      setIsSubmitting(false)
+      setSaving(false)
     }
-  }
+  }, [form, validate, router])
 
+  const selectedTypeConfig = LOCATION_TYPES.find((lt) => lt.value === form.type)
+
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
   return (
-    <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+    <div className="flex flex-col gap-6 px-4 py-6 lg:px-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 px-4 lg:px-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-fit"
-          onClick={() => router.push("/dashboard/locations")}
-        >
-          <IconArrowLeft className="size-4" />
-          {tCommon("back")}
-        </Button>
-
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t("addLocation")}</h1>
-          <p className="text-sm text-muted-foreground">
-            Erstellen Sie einen neuen Lagerort für Ihre Organisation.
-          </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push("/dashboard/locations")}
+          >
+            <IconArrowLeft className="size-4" />
+          </Button>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {t("addLocation")}
+          </h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => router.push("/dashboard/locations")}
+          >
+            {tc("cancel")}
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={saving || !form.name.trim() || !form.type}
+          >
+            <IconDeviceFloppy className="size-4" />
+            {saving ? tc("loading") : tc("save")}
+          </Button>
         </div>
       </div>
 
-      {/* Form */}
-      <div className="px-4 lg:px-6">
-        <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Main form */}
+        <div className="space-y-6 lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Allgemeine Informationen</CardTitle>
+              <CardTitle className="text-base">Allgemeine Informationen</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="grid gap-5 sm:grid-cols-2">
               {/* Name */}
-              <div className="space-y-2">
+              <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="name">
                   {t("name")} <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="z.B. Hauptlager Zürich"
-                  required
+                  value={form.name}
+                  onChange={(e) => updateField("name", e.target.value)}
+                  placeholder="z.B. Hauptlager Z\u00fcrich"
+                  aria-invalid={!!errors.name}
                 />
+                {errors.name && (
+                  <p className="text-xs text-destructive">{errors.name}</p>
+                )}
               </div>
 
               {/* Type */}
-              <div className="space-y-2">
+              <div className="space-y-2 sm:col-span-2">
                 <Label>
                   {t("type")} <span className="text-destructive">*</span>
                 </Label>
-                <Select value={type} onValueChange={setType}>
+                <Select
+                  value={form.type}
+                  onValueChange={(v) => updateField("type", v)}
+                >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Typ auswählen..." />
+                    <SelectValue placeholder="Typ ausw\u00e4hlen..." />
                   </SelectTrigger>
                   <SelectContent>
                     {LOCATION_TYPES.map((lt) => {
@@ -155,23 +230,20 @@ export default function NewLocationPage() {
                     })}
                   </SelectContent>
                 </Select>
-
-                {/* Type preview */}
-                {type && (
+                {errors.type && (
+                  <p className="text-xs text-destructive">{errors.type}</p>
+                )}
+                {selectedTypeConfig && (
                   <div className="flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2 text-sm">
-                    {(() => {
-                      const found = LOCATION_TYPES.find((lt) => lt.value === type)
-                      if (!found) return null
-                      const Icon = found.icon
-                      return (
-                        <>
-                          <Icon className={`size-5 ${found.color}`} />
-                          <span className="text-muted-foreground">
-                            Typ: {t(`types.${TYPE_I18N_MAP[type as LocationTypeValue]}`)}
-                          </span>
-                        </>
-                      )
-                    })()}
+                    <selectedTypeConfig.icon
+                      className={`size-5 ${selectedTypeConfig.color}`}
+                    />
+                    <span className="text-muted-foreground">
+                      Typ:{" "}
+                      {t(
+                        `types.${TYPE_I18N_MAP[form.type as LocationTypeValue]}`
+                      )}
+                    </span>
                   </div>
                 )}
               </div>
@@ -181,8 +253,8 @@ export default function NewLocationPage() {
                 <Label htmlFor="category">{t("category")}</Label>
                 <Input
                   id="category"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
+                  value={form.category}
+                  onChange={(e) => updateField("category", e.target.value)}
                   placeholder="z.B. Zentral, Transporter, Chirurgie"
                 />
               </div>
@@ -192,16 +264,25 @@ export default function NewLocationPage() {
                 <Label htmlFor="address">Adresse</Label>
                 <Input
                   id="address"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="z.B. Bahnhofstrasse 10, 8001 Zürich"
+                  value={form.address}
+                  onChange={(e) => updateField("address", e.target.value)}
+                  placeholder="z.B. Bahnhofstrasse 10, 8001 Z\u00fcrich"
                 />
               </div>
+            </CardContent>
+          </Card>
 
-              {/* Template */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Template</CardTitle>
+            </CardHeader>
+            <CardContent>
               <div className="space-y-2">
-                <Label>Template</Label>
-                <Select value={template} onValueChange={setTemplate}>
+                <Label>Vorlage</Label>
+                <Select
+                  value={form.template}
+                  onValueChange={(v) => updateField("template", v)}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
@@ -214,27 +295,77 @@ export default function NewLocationPage() {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  Ein Template füllt den Lagerort automatisch mit einem vordefinierten Materialset.
+                  Ein Template f\u00fcllt den Lagerort automatisch mit einem
+                  vordefinierten Materialset.
                 </p>
               </div>
             </CardContent>
           </Card>
+        </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-3">
-            <Button type="submit" disabled={!isValid || isSubmitting}>
-              <IconDeviceFloppy className="size-4" />
-              {isSubmitting ? tCommon("loading") : tCommon("save")}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.push("/dashboard/locations")}
-            >
-              {tCommon("cancel")}
-            </Button>
-          </div>
-        </form>
+        {/* Sidebar: live preview */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">\u00dcbersicht</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">{t("name")}</span>
+                <span className="max-w-[160px] truncate font-medium">
+                  {form.name || "\u2014"}
+                </span>
+              </div>
+              <Separator />
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">{t("type")}</span>
+                <span className="font-medium">
+                  {form.type
+                    ? t(
+                        `types.${TYPE_I18N_MAP[form.type as LocationTypeValue]}`
+                      )
+                    : "\u2014"}
+                </span>
+              </div>
+              {form.category && (
+                <>
+                  <Separator />
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">
+                      {t("category")}
+                    </span>
+                    <span className="max-w-[160px] truncate">
+                      {form.category}
+                    </span>
+                  </div>
+                </>
+              )}
+              {form.address && (
+                <>
+                  <Separator />
+                  <div className="flex justify-between gap-2">
+                    <span className="shrink-0 text-muted-foreground">
+                      Adresse
+                    </span>
+                    <span className="text-right text-xs">{form.address}</span>
+                  </div>
+                </>
+              )}
+              {form.template !== "none" && (
+                <>
+                  <Separator />
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Vorlage</span>
+                    <span className="max-w-[160px] truncate">
+                      {TEMPLATES.find((t) => t.value === form.template)
+                        ?.label ?? form.template}
+                    </span>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )
