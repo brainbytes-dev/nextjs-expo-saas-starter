@@ -129,3 +129,54 @@ export async function sendTeamInviteEmail(
     throw error;
   }
 }
+
+export async function sendAlertSummaryEmail(
+  recipientName: string,
+  recipientEmail: string,
+  lowStockCount: number,
+  maintenanceCount: number,
+  orgName: string
+) {
+  if (DEMO_MODE) {
+    console.log(`[DEMO] Would send alert summary to ${recipientEmail}`);
+    return { data: { id: 'demo-email-id' }, error: null };
+  }
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.logistikapp.ch';
+  const parts: string[] = [];
+  if (lowStockCount > 0) {
+    parts.push(`<li>${lowStockCount} Material${lowStockCount !== 1 ? 'ien' : ''} unter Meldebestand</li>`);
+  }
+  if (maintenanceCount > 0) {
+    parts.push(`<li>${maintenanceCount} Werkzeug${maintenanceCount !== 1 ? 'e' : ''} mit fälliger Wartung</li>`);
+  }
+
+  try {
+    const result = await getResend().emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'noreply@example.com',
+      to: recipientEmail,
+      subject: `Logistik-Alarm: ${orgName} — Handlungsbedarf`,
+      html: `
+        <h2>Logistik-Alarm von LogistikApp</h2>
+        <p>Hallo ${escapeHtml(recipientName)},</p>
+        <p>Es gibt Handlungsbedarf in deiner Organisation <strong>${escapeHtml(orgName)}</strong>:</p>
+        <ul>${parts.join('')}</ul>
+        <p>
+          <a href="${appUrl}/dashboard"
+             style="display:inline-block;background:#000;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">
+            Dashboard öffnen
+          </a>
+        </p>
+        <p style="color:#999;font-size:12px;">
+          Diese Benachrichtigung wird täglich um 07:00 Uhr CET verschickt,
+          sofern Handlungsbedarf besteht. Du kannst die Einstellungen unter
+          Einstellungen &rarr; Benachrichtigungen anpassen.
+        </p>
+      `,
+    });
+    return result;
+  } catch (error) {
+    console.error('Failed to send alert summary email:', error);
+    throw error;
+  }
+}

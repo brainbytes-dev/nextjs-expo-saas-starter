@@ -1,10 +1,14 @@
-// Removes the stored bexio OAuth token, effectively disconnecting the integration.
+// Removes the stored bexio token from the DB, disconnecting the integration.
 
-import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
+import { NextRequest, NextResponse } from "next/server";
+import { getSessionAndOrg } from "@/app/api/_helpers/auth";
+import { deleteBexioToken } from "@/lib/integrations/bexio";
 
-export async function POST() {
-  const cookieStore = await cookies()
-  cookieStore.delete("bexio_token")
-  return NextResponse.json({ ok: true })
+export async function POST(req: NextRequest) {
+  const result = await getSessionAndOrg(req);
+  if (result.error) return result.error;
+  const { orgId } = result;
+
+  await deleteBexioToken(orgId);
+  return NextResponse.json({ ok: true });
 }

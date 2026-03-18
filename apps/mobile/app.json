@@ -24,6 +24,9 @@
         "light": "./assets/images/icon.png",
         "dark": "./assets/images/icon.png",
         "tinted": true
+      },
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {

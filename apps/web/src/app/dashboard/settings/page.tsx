@@ -15,9 +15,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { LanguageSwitcher } from "@/components/language-switcher"
+import { useTranslations } from "next-intl"
 
 export default function SettingsPage() {
   const { data: session } = useSession()
+  const t = useTranslations("settings")
   const [isLoading, setIsLoading] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -99,7 +102,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-8 px-4 py-4 md:px-6 md:py-6 lg:px-8 lg:py-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
         <p className="text-muted-foreground mt-2">Manage your account settings and preferences</p>
       </div>
 
@@ -165,6 +168,21 @@ export default function SettingsPage() {
               <p className="text-sm text-secondary">Profile updated successfully</p>
             )}
           </form>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      {/* Language Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("language")}</CardTitle>
+          <CardDescription>{t("languageDescription")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4">
+            <LanguageSwitcher />
+          </div>
         </CardContent>
       </Card>
 

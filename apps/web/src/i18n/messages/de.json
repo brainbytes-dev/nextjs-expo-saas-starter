@@ -75,7 +75,10 @@
     "help": "Hilfe",
     "reports": "Berichte",
     "team": "Team",
-    "customFields": "Zusatzfelder"
+    "customFields": "Zusatzfelder",
+    "alerts": "Benachrichtigungen",
+    "analytics": "Analytik",
+    "sso": "Enterprise SSO"
   },
   "dashboard": {
     "title": "Übersicht",
@@ -364,7 +367,9 @@
     "permissions": "Berechtigungsgruppen",
     "sites": "Standorte",
     "integrations": "Schnittstellen",
-    "administration": "Administration"
+    "administration": "Administration",
+    "language": "Sprache",
+    "languageDescription": "Wählen Sie die Anzeigesprache der Anwendung"
   },
   "reports": {
     "title": "Berichte",
@@ -373,5 +378,11 @@
     "tools": "Werkzeugbericht",
     "movements": "Bewegungsbericht",
     "commissions": "Lieferschein-Bericht"
+  },
+  "languageSwitcher": {
+    "label": "Sprache",
+    "de": "Deutsch",
+    "fr": "Français",
+    "en": "English"
   }
 }

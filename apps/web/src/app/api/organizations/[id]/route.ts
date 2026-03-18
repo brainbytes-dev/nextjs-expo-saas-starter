@@ -63,7 +63,7 @@ export async function PATCH(
       );
     }
 
-    const { name, slug, industry, address, zip, city, country, currency, logo } = body;
+    const { name, slug, industry, address, zip, city, country, currency, logo, primaryColor, accentColor } = body;
 
     const [updated] = await db
       .update(organizations)
@@ -77,6 +77,8 @@ export async function PATCH(
         ...(country !== undefined && { country }),
         ...(currency !== undefined && { currency }),
         ...(logo !== undefined && { logo }),
+        ...(primaryColor !== undefined && { primaryColor }),
+        ...(accentColor !== undefined && { accentColor }),
         updatedAt: new Date(),
       })
       .where(eq(organizations.id, orgId))

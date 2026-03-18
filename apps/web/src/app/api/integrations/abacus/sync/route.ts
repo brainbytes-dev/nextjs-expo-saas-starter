@@ -1,100 +1,68 @@
-// Syncs LogistikApp materials to AbaNinja articles via the AbaNinja REST API.
+// Abacus sync endpoint.
 //
-// GET  — lightweight connection check: 200 if token cookie exists, 401 if not.
-// POST — performs the actual sync, creating articles in AbaNinja for each material.
+// GET   — connection status, last sync timestamp, and last result.
+// POST  — trigger sync. Body: { direction?: "import" | "export" | "both" }
+// PATCH — update sync direction preference.
 
-import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
+import { NextRequest, NextResponse } from "next/server";
+import { getSessionAndOrg } from "@/app/api/_helpers/auth";
+import {
+  syncAbacus,
+  getAbacusStatus,
+  updateAbacusSyncDirection,
+} from "@/lib/integrations/abacus";
 
-interface AbacusToken {
-  access_token: string
-  expires_in?: number
-  token_type?: string
+export async function GET(req: NextRequest) {
+  const result = await getSessionAndOrg(req);
+  if (result.error) return result.error;
+  const { orgId } = result;
+
+  const status = await getAbacusStatus(orgId);
+  if (!status.connected) {
+    return NextResponse.json({ connected: false }, { status: 401 });
+  }
+  return NextResponse.json(status);
 }
 
-async function getAbacusToken(): Promise<AbacusToken | null> {
-  const cookieStore = await cookies()
-  const raw = cookieStore.get("abacus_token")?.value
-  if (!raw) return null
+export async function POST(req: NextRequest) {
+  const result = await getSessionAndOrg(req);
+  if (result.error) return result.error;
+  const { orgId } = result;
+
+  const body = await req.json().catch(() => ({})) as { direction?: string };
+  const direction = (body.direction ?? "both") as "import" | "export" | "both";
+
+  if (!["import", "export", "both"].includes(direction)) {
+    return NextResponse.json(
+      { error: "Ungültige Sync-Richtung. Erlaubt: import | export | both" },
+      { status: 400 }
+    );
+  }
+
   try {
-    return JSON.parse(raw) as AbacusToken
-  } catch {
-    return null
+    const syncResult = await syncAbacus(orgId, direction);
+    return NextResponse.json(syncResult);
+  } catch (err) {
+    console.error("Abacus sync error:", err);
+    return NextResponse.json(
+      { error: (err as Error).message ?? "Synchronisation fehlgeschlagen" },
+      { status: 500 }
+    );
   }
 }
 
-// GET — connection status check used by the frontend card on mount
-export async function GET() {
-  const token = await getAbacusToken()
-  if (!token) {
-    return NextResponse.json({ connected: false }, { status: 401 })
-  }
-  return NextResponse.json({ connected: true })
-}
+export async function PATCH(req: NextRequest) {
+  const result = await getSessionAndOrg(req);
+  if (result.error) return result.error;
+  const { orgId } = result;
 
-// POST — trigger a full materials → AbaNinja articles sync
-export async function POST() {
-  const token = await getAbacusToken()
-  if (!token) {
-    return NextResponse.json({ error: "Not connected to Abacus" }, { status: 401 })
+  const body = await req.json().catch(() => ({})) as { direction?: string };
+  const direction = body.direction as "import" | "export" | "both";
+
+  if (!["import", "export", "both"].includes(direction)) {
+    return NextResponse.json({ error: "Ungültige Sync-Richtung" }, { status: 400 });
   }
 
-  // Fetch materials from the internal materials API
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3003"
-  const materialsRes = await fetch(`${appUrl}/api/materials?limit=500`, {
-    headers: {
-      // Forward internal request marker so the materials route can skip auth if needed
-      "x-internal-request": "1",
-    },
-  })
-
-  if (!materialsRes.ok) {
-    return NextResponse.json({ error: "Failed to fetch materials" }, { status: 500 })
-  }
-
-  const { materials } = (await materialsRes.json()) as {
-    materials?: Array<{
-      id: string
-      name: string
-      number?: string
-      unit?: string
-    }>
-  }
-
-  let synced = 0
-  const errors: string[] = []
-
-  for (const mat of materials ?? []) {
-    try {
-      const abacusRes = await fetch("https://abaninja.ch/api/accounting/v1/articles", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token.access_token}`,
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          nr: mat.number ?? mat.id,
-          name: mat.name,
-          unit: { name: mat.unit ?? "Stk" },
-          stock: { enabled: true },
-        }),
-      })
-
-      if (abacusRes.ok) {
-        synced++
-      } else {
-        const errBody = await abacusRes.text().catch(() => String(abacusRes.status))
-        errors.push(`${mat.name}: ${abacusRes.status} ${errBody}`.slice(0, 120))
-      }
-    } catch {
-      errors.push(`${mat.name}: network error`)
-    }
-  }
-
-  return NextResponse.json({
-    synced,
-    errors,
-    total: materials?.length ?? 0,
-  })
+  await updateAbacusSyncDirection(orgId, direction);
+  return NextResponse.json({ ok: true, direction });
 }

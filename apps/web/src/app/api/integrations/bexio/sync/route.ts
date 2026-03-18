@@ -1,100 +1,71 @@
-// Syncs LogistikApp materials to bexio articles via the bexio REST API v2.
+// bexio sync endpoint.
 //
-// GET  — lightweight connection check: 200 if token cookie exists, 401 if not.
-// POST — performs the actual sync, creating articles in bexio for each material.
+// GET  — returns connection status, last sync timestamp, and last sync result.
+// POST — triggers a sync. Body: { direction?: "import" | "export" | "both" }
+// PATCH — update sync direction preference.
 
-import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
+import { NextRequest, NextResponse } from "next/server";
+import { getSessionAndOrg } from "@/app/api/_helpers/auth";
+import {
+  syncBexio,
+  getBexioStatus,
+  updateBexioSyncDirection,
+} from "@/lib/integrations/bexio";
 
-interface BexioToken {
-  access_token: string
-  expires_in?: number
-  token_type?: string
+export async function GET(req: NextRequest) {
+  const result = await getSessionAndOrg(req);
+  if (result.error) return result.error;
+  const { orgId } = result;
+
+  const status = await getBexioStatus(orgId);
+  if (!status.connected) {
+    return NextResponse.json({ connected: false }, { status: 401 });
+  }
+  return NextResponse.json(status);
 }
 
-async function getBexioToken(): Promise<BexioToken | null> {
-  const cookieStore = await cookies()
-  const raw = cookieStore.get("bexio_token")?.value
-  if (!raw) return null
+export async function POST(req: NextRequest) {
+  const result = await getSessionAndOrg(req);
+  if (result.error) return result.error;
+  const { orgId } = result;
+
+  const body = await req.json().catch(() => ({})) as { direction?: string };
+  const direction = (body.direction ?? "both") as "import" | "export" | "both";
+
+  if (!["import", "export", "both"].includes(direction)) {
+    return NextResponse.json(
+      { error: "Ungültige Sync-Richtung. Erlaubt: import | export | both" },
+      { status: 400 }
+    );
+  }
+
   try {
-    return JSON.parse(raw) as BexioToken
-  } catch {
-    return null
+    const syncResult = await syncBexio(orgId, direction);
+    return NextResponse.json(syncResult);
+  } catch (err) {
+    console.error("bexio sync error:", err);
+    return NextResponse.json(
+      { error: (err as Error).message ?? "Synchronisation fehlgeschlagen" },
+      { status: 500 }
+    );
   }
 }
 
-// HEAD/GET — connection status check used by the frontend card on mount
-export async function GET() {
-  const token = await getBexioToken()
-  if (!token) {
-    return NextResponse.json({ connected: false }, { status: 401 })
-  }
-  return NextResponse.json({ connected: true })
-}
+export async function PATCH(req: NextRequest) {
+  const result = await getSessionAndOrg(req);
+  if (result.error) return result.error;
+  const { orgId } = result;
 
-// POST — trigger a full materials → bexio articles sync
-export async function POST() {
-  const token = await getBexioToken()
-  if (!token) {
-    return NextResponse.json({ error: "Not connected to bexio" }, { status: 401 })
-  }
+  const body = await req.json().catch(() => ({})) as { direction?: string };
+  const direction = body.direction as "import" | "export" | "both";
 
-  // Fetch materials from the internal materials API
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3003"
-  const materialsRes = await fetch(`${appUrl}/api/materials?limit=500`, {
-    headers: {
-      // Forward internal request marker so the materials route can skip auth if needed
-      "x-internal-request": "1",
-    },
-  })
-
-  if (!materialsRes.ok) {
-    return NextResponse.json({ error: "Failed to fetch materials" }, { status: 500 })
+  if (!["import", "export", "both"].includes(direction)) {
+    return NextResponse.json(
+      { error: "Ungültige Sync-Richtung" },
+      { status: 400 }
+    );
   }
 
-  const { materials } = (await materialsRes.json()) as {
-    materials?: Array<{
-      id: string
-      name: string
-      number?: string
-    }>
-  }
-
-  let synced = 0
-  const errors: string[] = []
-
-  for (const mat of materials ?? []) {
-    try {
-      const bexioRes = await fetch("https://api.bexio.com/2.0/article", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token.access_token}`,
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          intern_code: mat.number ?? mat.id,
-          intern_name: mat.name,
-          unit_id: 1, // default unit — can be configured per tenant in the future
-          stock_management: true,
-          stock_nr: mat.number ?? "",
-        }),
-      })
-
-      if (bexioRes.ok) {
-        synced++
-      } else {
-        const errBody = await bexioRes.text().catch(() => String(bexioRes.status))
-        errors.push(`${mat.name}: ${bexioRes.status} ${errBody}`.slice(0, 120))
-      }
-    } catch {
-      errors.push(`${mat.name}: network error`)
-    }
-  }
-
-  return NextResponse.json({
-    synced,
-    errors,
-    total: materials?.length ?? 0,
-  })
+  await updateBexioSyncDirection(orgId, direction);
+  return NextResponse.json({ ok: true, direction });
 }

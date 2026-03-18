@@ -181,6 +181,8 @@ export const organizations = pgTable("organizations", {
   country: text("country").default("CH"),
   currency: text("currency").default("CHF"),
   logo: text("logo"),
+  primaryColor: text("primary_color"),
+  accentColor: text("accent_color"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -721,6 +723,52 @@ export const customFieldValues = pgTable(
   ]
 );
 
+
+// ─── Inventory Counts (Inventuren) ──────────────────────────────────
+export const inventoryCounts = pgTable("inventory_counts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  name: text("name").notNull(), // e.g. "Inventur Q1 2026"
+  locationId: uuid("location_id").references(() => locations.id),
+  status: text("status").default("draft").notNull(), // draft, in_progress, completed, cancelled
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  completedBy: uuid("completed_by").references(() => users.id),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+},
+(table) => [
+  index("idx_inventory_counts_org_id").on(table.organizationId),
+  index("idx_inventory_counts_status").on(table.status),
+]);
+
+// ─── Inventory Count Items ───────────────────────────────────────────
+export const inventoryCountItems = pgTable("inventory_count_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  countId: uuid("count_id")
+    .notNull()
+    .references(() => inventoryCounts.id, { onDelete: "cascade" }),
+  materialId: uuid("material_id")
+    .notNull()
+    .references(() => materials.id),
+  locationId: uuid("location_id")
+    .notNull()
+    .references(() => locations.id),
+  expectedQuantity: integer("expected_quantity").notNull(),
+  countedQuantity: integer("counted_quantity"),
+  difference: integer("difference"),
+  countedBy: uuid("counted_by").references(() => users.id),
+  countedAt: timestamp("counted_at"),
+  notes: text("notes"),
+},
+(table) => [
+  index("idx_inventory_count_items_count_id").on(table.countId),
+  index("idx_inventory_count_items_material_id").on(table.materialId),
+]);
+
 // ─── Type Exports ───────────────────────────────────────────────────
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -851,3 +899,106 @@ export const eanCache = pgTable("ean_cache", {
 
 export type EanCacheEntry = typeof eanCache.$inferSelect;
 export type NewEanCacheEntry = typeof eanCache.$inferInsert;
+
+// ─── Alert Settings (Benachrichtigungseinstellungen) ─────────────────
+export const alertSettings = pgTable("alert_settings", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .unique(),
+  whatsappPhone: text("whatsapp_phone"),
+  emailAlerts: boolean("email_alerts").default(true).notNull(),
+  whatsappAlerts: boolean("whatsapp_alerts").default(false).notNull(),
+  lowStockThreshold: integer("low_stock_threshold").default(1).notNull(),
+  maintenanceAlertDays: integer("maintenance_alert_days").default(7).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type AlertSettings = typeof alertSettings.$inferSelect;
+export type NewAlertSettings = typeof alertSettings.$inferInsert;
+
+// ─── Maintenance Events (Wartungshistorie) ───────────────────────────
+export const maintenanceEvents = pgTable(
+  "maintenance_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    toolId: uuid("tool_id")
+      .notNull()
+      .references(() => tools.id, { onDelete: "cascade" }),
+    performedById: uuid("performed_by_id").references(() => users.id),
+    performedAt: timestamp("performed_at").defaultNow().notNull(),
+    notes: text("notes"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_maintenance_events_org_id").on(table.organizationId),
+    index("idx_maintenance_events_tool_id").on(table.toolId),
+    index("idx_maintenance_events_performed_at").on(table.performedAt),
+  ]
+);
+
+export type MaintenanceEvent = typeof maintenanceEvents.$inferSelect;
+export type NewMaintenanceEvent = typeof maintenanceEvents.$inferInsert;
+export type InventoryCount = typeof inventoryCounts.$inferSelect;
+export type NewInventoryCount = typeof inventoryCounts.$inferInsert;
+export type InventoryCountItem = typeof inventoryCountItems.$inferSelect;
+export type NewInventoryCountItem = typeof inventoryCountItems.$inferInsert;
+
+// ─── SSO Configurations (Enterprise SSO/SAML) ────────────────────────
+export const ssoConfigs = pgTable("sso_configs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .unique(),
+  provider: text("provider").notNull(), // "azure_ad" | "google_workspace" | "okta" | "custom_oidc"
+  clientId: text("client_id").notNull(),
+  clientSecret: text("client_secret").notNull(),
+  issuerUrl: text("issuer_url"),
+  domain: text("domain"), // auto-assign users with this email domain
+  isActive: boolean("is_active").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type SsoConfig = typeof ssoConfigs.$inferSelect;
+export type NewSsoConfig = typeof ssoConfigs.$inferInsert;
+
+// ─── Integration Tokens (ERP/Buchhaltungs-Integrationen) ─────────────────────
+export const integrationTokens = pgTable(
+  "integration_tokens",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    provider: text("provider").notNull(), // "bexio" | "abacus" | "vertec"
+    accessToken: text("access_token").notNull(),
+    refreshToken: text("refresh_token"),
+    expiresAt: timestamp("expires_at"),
+    scope: text("scope"),
+    metadata: jsonb("metadata"),
+    // Sync state
+    lastSyncAt: timestamp("last_sync_at"),
+    lastSyncResult: jsonb("last_sync_result"), // { created, updated, skipped, errors }
+    syncDirection: text("sync_direction").default("both"), // "import" | "export" | "both"
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("idx_integration_tokens_org_provider").on(
+      table.organizationId,
+      table.provider
+    ),
+    index("idx_integration_tokens_org_id").on(table.organizationId),
+    index("idx_integration_tokens_provider").on(table.provider),
+  ]
+);
+
+export type IntegrationToken = typeof integrationTokens.$inferSelect;
+export type NewIntegrationToken = typeof integrationTokens.$inferInsert;

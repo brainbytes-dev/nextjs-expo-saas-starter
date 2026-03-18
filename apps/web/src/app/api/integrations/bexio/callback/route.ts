@@ -1,19 +1,33 @@
-// Handles the OAuth 2.0 authorization code callback from bexio.
-// Exchanges the authorization code for an access token and stores it in an
-// httpOnly cookie so subsequent API calls can use it server-side.
+// bexio OAuth 2.0 callback — exchanges authorization code for tokens
+// and persists them in the integration_tokens table.
 
-import { NextRequest, NextResponse } from "next/server"
-import { cookies } from "next/headers"
+import { NextRequest, NextResponse } from "next/server";
+import { storeBexioToken } from "@/lib/integrations/bexio";
 
 export async function GET(req: NextRequest) {
-  const code = req.nextUrl.searchParams.get("code")
+  const { searchParams } = req.nextUrl;
+  const code = searchParams.get("code");
+  const state = searchParams.get("state") ?? "";
+  const errorParam = searchParams.get("error");
 
-  if (!code) {
-    return NextResponse.redirect(
-      new URL("/dashboard/settings/integrations?error=cancelled", req.url)
-    )
+  const redirectBase = "/dashboard/settings/integrations";
+
+  if (errorParam || !code) {
+    const reason = errorParam === "access_denied" ? "cancelled" : "token_failed";
+    return NextResponse.redirect(new URL(`${redirectBase}?error=${reason}`, req.url));
   }
 
+  // Extract orgId from state: "<nonce>.<orgId>"
+  const dotIdx = state.indexOf(".");
+  const orgId = dotIdx !== -1 ? state.slice(dotIdx + 1) : "";
+
+  if (!orgId) {
+    return NextResponse.redirect(
+      new URL(`${redirectBase}?error=invalid_state`, req.url)
+    );
+  }
+
+  // Exchange code for tokens
   const tokenRes = await fetch(
     "https://idp.bexio.com/auth/realms/bexio/protocol/openid-connect/token",
     {
@@ -27,26 +41,36 @@ export async function GET(req: NextRequest) {
         code,
       }),
     }
-  )
+  );
 
   if (!tokenRes.ok) {
+    console.error(
+      "bexio token exchange failed:",
+      tokenRes.status,
+      await tokenRes.text().catch(() => "")
+    );
     return NextResponse.redirect(
-      new URL("/dashboard/settings/integrations?error=token_failed", req.url)
-    )
+      new URL(`${redirectBase}?error=token_failed`, req.url)
+    );
   }
 
-  const token = await tokenRes.json()
+  const token = (await tokenRes.json()) as {
+    access_token: string;
+    refresh_token?: string;
+    expires_in?: number;
+    scope?: string;
+  };
 
-  const cookieStore = await cookies()
-  cookieStore.set("bexio_token", JSON.stringify(token), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    maxAge: token.expires_in ?? 3600,
-    path: "/",
-    sameSite: "lax",
-  })
+  try {
+    await storeBexioToken(orgId, token);
+  } catch (err) {
+    console.error("Failed to store bexio token:", err);
+    return NextResponse.redirect(
+      new URL(`${redirectBase}?error=db_error`, req.url)
+    );
+  }
 
   return NextResponse.redirect(
-    new URL("/dashboard/settings/integrations?connected=true", req.url)
-  )
+    new URL(`${redirectBase}?connected=bexio`, req.url)
+  );
 }

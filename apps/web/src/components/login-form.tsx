@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
+import { useState, useCallback } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -18,6 +19,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import * as Sentry from "@sentry/nextjs"
+import { IconBuildingSkyscraper, IconLoader2 } from "@tabler/icons-react"
 
 const loginSchema = z.object({
   email: z.string().email("Ungültige E-Mail-Adresse"),
@@ -26,12 +28,27 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>
 
+interface SsoInfo {
+  provider: string
+  orgName: string
+  orgId: string
+}
+
+const PROVIDER_LABELS: Record<string, string> = {
+  azure_ad: "Azure AD",
+  google_workspace: "Google Workspace",
+  okta: "Okta",
+  custom_oidc: "SSO",
+}
+
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
   const router = useRouter()
   const t = useTranslations("auth")
+  const [ssoInfo, setSsoInfo] = useState<SsoInfo | null>(null)
+  const [ssoChecking, setSsoChecking] = useState(false)
   const {
     register,
     handleSubmit,
@@ -61,6 +78,45 @@ export function LoginForm({
       return
     }
     signIn.social({ provider, callbackURL: "/dashboard" })
+  }
+
+  // Check SSO when the user blurs the email field
+  const handleEmailBlur = useCallback(async (email: string) => {
+    const atIdx = email.indexOf("@")
+    if (atIdx < 0) return
+
+    const domain = email.slice(atIdx + 1).toLowerCase()
+    if (!domain || !domain.includes(".")) return
+
+    setSsoChecking(true)
+    setSsoInfo(null)
+    try {
+      const res = await fetch(
+        `/api/auth/sso-lookup?domain=${encodeURIComponent(domain)}`
+      )
+      if (!res.ok) return
+      const { sso } = await res.json()
+      setSsoInfo(sso ?? null)
+    } catch {
+      // Fail silently — SSO detection is best-effort
+    } finally {
+      setSsoChecking(false)
+    }
+  }, [])
+
+  const handleSsoSignIn = () => {
+    if (DEMO_MODE) {
+      toast.info("Im Demo-Modus nicht verfügbar", {
+        description: "SSO ist in der Demo deaktiviert.",
+        duration: 5000,
+      })
+      return
+    }
+    // Redirect to the OIDC provider via Better-Auth's generic OIDC flow
+    // The orgId is passed so the server can look up the correct SSO config
+    if (ssoInfo) {
+      window.location.href = `/api/auth/sign-in/oidc?orgId=${encodeURIComponent(ssoInfo.orgId)}&callbackURL=/dashboard`
+    }
   }
 
   const onSubmit = async (data: LoginFormData) => {
@@ -164,14 +220,47 @@ export function LoginForm({
         {/* Email/Password */}
         <Field>
           <FieldLabel htmlFor="email">{t("email")}</FieldLabel>
-          <Input
-            id="email"
-            type="email"
-            placeholder="name@firma.ch"
-            {...register("email")}
-            disabled={isSubmitting}
-          />
+          <div className="relative">
+            <Input
+              id="email"
+              type="email"
+              placeholder="name@firma.ch"
+              {...register("email", {
+                onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
+                  handleEmailBlur(e.target.value)
+                },
+              })}
+              disabled={isSubmitting}
+            />
+            {ssoChecking && (
+              <IconLoader2 className="absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+            )}
+          </div>
         </Field>
+
+        {/* SSO Banner — shown when a matching SSO org is found */}
+        {ssoInfo && (
+          <div className="flex flex-col gap-2 rounded-lg border border-primary/20 bg-primary/5 p-3">
+            <div className="flex items-center gap-2 text-sm">
+              <IconBuildingSkyscraper className="size-4 shrink-0 text-primary" />
+              <span className="font-medium">{ssoInfo.orgName}</span>
+              <span className="text-muted-foreground">
+                verwendet {PROVIDER_LABELS[ssoInfo.provider] ?? ssoInfo.provider}
+              </span>
+            </div>
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              className="w-full gap-2"
+              onClick={handleSsoSignIn}
+            >
+              <IconBuildingSkyscraper className="size-4" />
+              Mit Firmen-SSO anmelden
+            </Button>
+          </div>
+        )}
+
         <Field>
           <div className="flex items-center">
             <FieldLabel htmlFor="password">{t("password")}</FieldLabel>

@@ -3,10 +3,12 @@
 import * as React from "react"
 import { usePathname } from "next/navigation"
 import { LogoMark } from "@/components/logo"
+import { useBrand } from "@/components/brand-provider"
 import {
   IconCalendar,
   IconChecklist,
   IconChevronRight,
+  IconClipboardCheck,
   IconClipboardList,
   IconDashboard,
   IconDatabase,
@@ -20,6 +22,7 @@ import {
   IconReportAnalytics,
   IconUsers,
   IconSettings,
+  IconBell,
   IconListDetails,
   IconShoppingCart,
   IconTool,
@@ -49,6 +52,7 @@ import {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const t = useTranslations("nav")
+  const { logo, orgName } = useBrand()
 
   const data = {
     user: {
@@ -81,6 +85,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: t("tasks"),
         url: "/dashboard/tasks",
         icon: IconChecklist,
+      },
+      {
+        title: "Inventur",
+        url: "/dashboard/inventory",
+        icon: IconClipboardCheck,
       },
       {
         title: t("calendar"),
@@ -179,6 +188,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: IconListDetails,
       },
       {
+        title: t("alerts"),
+        url: "/dashboard/settings/alerts",
+        icon: IconBell,
+      },
+      {
+        title: "Branding",
+        url: "/dashboard/settings/branding",
+        icon: IconSettings,
+      },
+      {
         title: t("team"),
         url: "/dashboard/settings/team",
         icon: IconUsers,
@@ -206,8 +225,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:p-1.5!"
             >
               <a href="/dashboard">
-                <LogoMark size={20} />
-                <span className="text-base font-semibold">Logistik<span className="text-primary">App</span></span>
+                {logo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={logo}
+                    alt={orgName || "Logo"}
+                    className="h-5 w-5 rounded-sm object-contain"
+                  />
+                ) : (
+                  <LogoMark size={20} />
+                )}
+                <span className="text-base font-semibold">
+                  {orgName || (
+                    <>
+                      Logistik<span className="text-primary">App</span>
+                    </>
+                  )}
+                </span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

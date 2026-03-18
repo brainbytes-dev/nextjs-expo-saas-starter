@@ -20,6 +20,8 @@ import {
   IconBoxSeam,
   IconRepeat,
   IconEdit,
+  IconWrench,
+  IconCheck,
 } from "@tabler/icons-react"
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import {
@@ -53,6 +55,18 @@ interface DashboardStats {
   lowStockCount: number
   expiringCount: number
   overdueToolsCount: number
+}
+
+
+interface MaintenanceItem {
+  id: string
+  name: string
+  number: string | null
+  nextMaintenanceDate: string
+  assignedUserName: string | null
+  homeLocationName: string | null
+  status: "overdue" | "this-week" | "upcoming"
+  daysUntil: number
 }
 
 interface ChartDataPoint {
@@ -272,6 +286,8 @@ export default function DashboardPage() {
   const [loading, setLoading]     = useState(true)
   const [activityLoading, setActivityLoading] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [upcomingMaintenance, setUpcomingMaintenance] = useState<MaintenanceItem[]>([])
+  const [maintenanceLoading, setMaintenanceLoading] = useState(true)
   const isMounted = useRef(false)
 
   useEffect(() => {
@@ -304,6 +320,25 @@ export default function DashboardPage() {
         if (isMounted.current) setActivity([])
       } finally {
         if (isMounted.current) setActivityLoading(false)
+      }
+    }
+    void run()
+    return () => { isMounted.current = false }
+  }, [refreshKey])
+
+
+  useEffect(() => {
+    isMounted.current = true
+    const run = async () => {
+      setMaintenanceLoading(true)
+      try {
+        const r = await fetch("/api/maintenance?days=7")
+        const data: MaintenanceItem[] = await r.json()
+        if (isMounted.current) setUpcomingMaintenance(data)
+      } catch {
+        if (isMounted.current) setUpcomingMaintenance([])
+      } finally {
+        if (isMounted.current) setMaintenanceLoading(false)
       }
     }
     void run()
@@ -586,6 +621,73 @@ export default function DashboardPage() {
           </CardFooter>
         </Card>
       </div>
+
+      {/* ── Anstehende Wartungen Widget ──────────────────────────────── */}
+      {(maintenanceLoading || upcomingMaintenance.length > 0) && (
+        <section aria-label="Anstehende Wartungen" className="px-4 lg:px-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div>
+                <CardTitle>Anstehende Wartungen</CardTitle>
+                <CardDescription>Werkzeuge mit Wartungsfälligkeit in den nächsten 7 Tagen</CardDescription>
+              </div>
+              <Button variant="ghost" size="sm" asChild className="gap-1.5 text-xs text-muted-foreground">
+                <Link href="/dashboard/calendar">
+                  Alle anzeigen
+                  <IconArrowRight className="size-3.5" />
+                </Link>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {maintenanceLoading ? (
+                <div className="space-y-3">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <Skeleton className="size-9 rounded-xl" />
+                      <div className="flex-1 space-y-1.5">
+                        <Skeleton className="h-4 w-40" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                      <Skeleton className="h-8 w-28" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {upcomingMaintenance.slice(0, 5).map((item) => {
+                    const isOverdue = item.status === "overdue"
+                    const isThisWeek = item.status === "this-week"
+                    return (
+                      <div key={item.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+                        <div className={`flex size-9 shrink-0 items-center justify-center rounded-xl
+                          ${isOverdue ? "bg-destructive/10" : isThisWeek ? "bg-amber-500/10" : "bg-emerald-500/10"}`}>
+                          <IconWrench className={`size-4
+                            ${isOverdue ? "text-destructive" : isThisWeek ? "text-amber-600" : "text-emerald-600"}`} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium">{item.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {isOverdue
+                              ? `${Math.abs(item.daysUntil)} Tag${Math.abs(item.daysUntil) !== 1 ? "e" : ""} überfällig`
+                              : `Fällig: ${new Date(item.nextMaintenanceDate + "T00:00:00").toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit", year: "numeric" })}`}
+                            {item.assignedUserName && ` — ${item.assignedUserName}`}
+                          </p>
+                        </div>
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={`/dashboard/tools/${item.id}`}>
+                            <IconCheck className="size-3.5 mr-1" />
+                            Wartung
+                          </Link>
+                        </Button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </section>
+      )}
 
       {/* ── Area Chart ───────────────────────────────────────────────── */}
       <div className="px-4 lg:px-6">

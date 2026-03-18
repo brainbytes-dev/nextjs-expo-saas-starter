@@ -7,6 +7,7 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { CommandPalette } from "@/components/command-palette"
 import { DemoBanner } from "@/components/demo-banner"
 import { SiteHeader } from "@/components/site-header"
+import { BrandProvider } from "@/components/brand-provider"
 import {
   SidebarInset,
   SidebarProvider,
@@ -71,23 +72,25 @@ export default function DashboardLayout({
   }
 
   return (
-    <SidebarProvider
-      style={{
-        "--sidebar-width": "calc(var(--spacing) * 72)",
-        "--header-height": "calc(var(--spacing) * 12)",
-      } as React.CSSProperties}
-    >
-      <AppSidebar variant="inset" />
-      <SidebarInset>
-        <DemoBanner />
-        <SiteHeader />
-        <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            {children}
+    <BrandProvider>
+      <SidebarProvider
+        style={{
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties}
+      >
+        <AppSidebar variant="inset" />
+        <SidebarInset>
+          <DemoBanner />
+          <SiteHeader />
+          <div className="flex flex-1 flex-col">
+            <div className="@container/main flex flex-1 flex-col gap-2">
+              {children}
+            </div>
           </div>
-        </div>
-      </SidebarInset>
-      <CommandPalette />
-    </SidebarProvider>
+        </SidebarInset>
+        <CommandPalette />
+      </SidebarProvider>
+    </BrandProvider>
   )
 }

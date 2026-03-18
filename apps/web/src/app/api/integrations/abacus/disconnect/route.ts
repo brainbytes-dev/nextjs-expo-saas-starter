@@ -1,10 +1,14 @@
-// Removes the stored Abacus OAuth token, effectively disconnecting the integration.
+// Removes the stored Abacus token from the DB, disconnecting the integration.
 
-import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
+import { NextRequest, NextResponse } from "next/server";
+import { getSessionAndOrg } from "@/app/api/_helpers/auth";
+import { deleteAbacusToken } from "@/lib/integrations/abacus";
 
-export async function POST() {
-  const cookieStore = await cookies()
-  cookieStore.delete("abacus_token")
-  return NextResponse.json({ ok: true })
+export async function POST(req: NextRequest) {
+  const result = await getSessionAndOrg(req);
+  if (result.error) return result.error;
+  const { orgId } = result;
+
+  await deleteAbacusToken(orgId);
+  return NextResponse.json({ ok: true });
 }

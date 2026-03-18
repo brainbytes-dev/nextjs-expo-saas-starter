@@ -1,10 +1,16 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
+import { useState, useEffect, useCallback } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import {
   IconRefresh,
   IconLink,
@@ -13,70 +19,154 @@ import {
   IconAlertCircle,
   IconAlertTriangle,
   IconLoader2,
+  IconArrowsLeftRight,
+  IconArrowDown,
+  IconArrowUp,
+  IconClock,
 } from "@tabler/icons-react"
 import { BrandLogo } from "@/components/integrations/brand-logo"
+import { useOrganization } from "@/hooks/use-organization"
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type SyncDirection = "import" | "export" | "both"
 
 type SyncResult = {
-  synced: number
-  total: number
+  created: number
+  updated: number
+  skipped: number
   errors: string[]
+  direction: SyncDirection
+  durationMs: number
 }
 
+type ConnectionStatus = {
+  connected: boolean
+  lastSyncAt: string | null
+  lastSyncResult: SyncResult | null
+  syncDirection: SyncDirection
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatRelativeTime(isoString: string | null): string {
+  if (!isoString) return "Noch nie"
+  const diff = Date.now() - new Date(isoString).getTime()
+  const minutes = Math.floor(diff / 60_000)
+  if (minutes < 1) return "Gerade eben"
+  if (minutes < 60) return `vor ${minutes} Min.`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `vor ${hours} Std.`
+  const days = Math.floor(hours / 24)
+  return `vor ${days} Tag${days !== 1 ? "en" : ""}`
+}
+
+const DIRECTION_OPTIONS: { value: SyncDirection; label: string; icon: React.ReactNode }[] = [
+  { value: "import", label: "Import", icon: <IconArrowDown className="size-3" /> },
+  { value: "export", label: "Export", icon: <IconArrowUp className="size-3" /> },
+  { value: "both",   label: "Beides", icon: <IconArrowsLeftRight className="size-3" /> },
+]
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 export function BexioCard() {
-  const [connected, setConnected] = useState(false)
+  const { orgId } = useOrganization()
+
+  const [status, setStatus] = useState<ConnectionStatus>({
+    connected: false,
+    lastSyncAt: null,
+    lastSyncResult: null,
+    syncDirection: "both",
+  })
   const [checking, setChecking] = useState(true)
   const [syncing, setSyncing] = useState(false)
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null)
   const [syncError, setSyncError] = useState<string | null>(null)
+  const [direction, setDirection] = useState<SyncDirection>("both")
+  const [updatingDirection, setUpdatingDirection] = useState(false)
+
   const searchParams = useSearchParams()
+  const router = useRouter()
 
-  // Reflect OAuth redirect outcome via query params
-  useEffect(() => {
-    const param = searchParams.get("connected")
-    const error = searchParams.get("error")
-    if (param === "true") {
-      setConnected(true)
-      setChecking(false)
-    } else if (error) {
-      setConnected(false)
-      setChecking(false)
-      if (error === "cancelled") {
-        setSyncError("Verbindung wurde abgebrochen.")
-      } else if (error === "token_failed") {
-        setSyncError("Token-Austausch fehlgeschlagen. Bitte erneut versuchen.")
+  // Build headers with orgId for authenticated API calls
+  const authHeaders = useCallback((): HeadersInit => {
+    const h: HeadersInit = { "Content-Type": "application/json" }
+    if (orgId) h["x-organization-id"] = orgId
+    return h
+  }, [orgId])
+
+  const loadStatus = useCallback(async () => {
+    if (!orgId) return
+    setChecking(true)
+    try {
+      const res = await fetch("/api/integrations/bexio/sync", {
+        method: "GET",
+        headers: orgId ? { "x-organization-id": orgId } : {},
+      })
+      if (res.ok) {
+        const data = (await res.json()) as ConnectionStatus
+        setStatus(data)
+        setDirection((data.syncDirection ?? "both") as SyncDirection)
+        if (data.lastSyncResult) setSyncResult(data.lastSyncResult)
+      } else {
+        setStatus((prev) => ({ ...prev, connected: false }))
       }
+    } catch {
+      setStatus((prev) => ({ ...prev, connected: false }))
+    } finally {
+      setChecking(false)
     }
-  }, [searchParams])
+  }, [orgId])
 
-  // Probe token existence on mount (unless query param already set outcome)
+  // Handle OAuth redirect outcome
   useEffect(() => {
-    const hasOutcome =
-      searchParams.get("connected") === "true" || !!searchParams.get("error")
-    if (hasOutcome) return
+    const connected = searchParams.get("connected")
+    const error = searchParams.get("error")
 
-    fetch("/api/integrations/bexio/sync", { method: "GET" })
-      .then((r) => {
-        setConnected(r.status !== 401)
-      })
-      .catch(() => {
-        setConnected(false)
-      })
-      .finally(() => {
-        setChecking(false)
-      })
+    if (connected === "bexio") {
+      router.replace("/dashboard/settings/integrations")
+      void loadStatus()
+    } else if (error) {
+      setChecking(false)
+      const messages: Record<string, string> = {
+        cancelled: "Verbindung wurde abgebrochen.",
+        token_failed: "Token-Austausch fehlgeschlagen. Bitte erneut versuchen.",
+        db_error: "Datenbankfehler beim Speichern des Tokens.",
+        invalid_state: "Ungültiger OAuth-State. Bitte erneut versuchen.",
+      }
+      setSyncError(messages[error] ?? `Verbindungsfehler: ${error}`)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
+
+  // Load status when orgId becomes available
+  useEffect(() => {
+    if (!orgId) return
+    const hasOutcome =
+      searchParams.get("connected") === "bexio" || !!searchParams.get("error")
+    if (!hasOutcome) void loadStatus()
+  }, [orgId, loadStatus, searchParams])
 
   async function handleSync() {
     setSyncing(true)
     setSyncResult(null)
     setSyncError(null)
     try {
-      const res = await fetch("/api/integrations/bexio/sync", { method: "POST" })
+      const res = await fetch("/api/integrations/bexio/sync", {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ direction }),
+      })
       const data = (await res.json()) as SyncResult & { error?: string }
       if (!res.ok || data.error) {
         setSyncError(data.error ?? "Synchronisation fehlgeschlagen.")
       } else {
         setSyncResult(data)
+        setStatus((prev) => ({
+          ...prev,
+          lastSyncAt: new Date().toISOString(),
+          lastSyncResult: data,
+        }))
       }
     } catch {
       setSyncError("Netzwerkfehler beim Synchronisieren.")
@@ -85,24 +175,45 @@ export function BexioCard() {
     }
   }
 
+  async function handleDirectionChange(newDir: SyncDirection) {
+    setDirection(newDir)
+    setUpdatingDirection(true)
+    try {
+      await fetch("/api/integrations/bexio/sync", {
+        method: "PATCH",
+        headers: authHeaders(),
+        body: JSON.stringify({ direction: newDir }),
+      })
+    } catch {
+      // Non-critical
+    } finally {
+      setUpdatingDirection(false)
+    }
+  }
+
   async function handleDisconnect() {
-    await fetch("/api/integrations/bexio/disconnect", { method: "POST" })
-    setConnected(false)
+    await fetch("/api/integrations/bexio/disconnect", {
+      method: "POST",
+      headers: orgId ? { "x-organization-id": orgId } : {},
+    })
+    setStatus({ connected: false, lastSyncAt: null, lastSyncResult: null, syncDirection: "both" })
     setSyncResult(null)
     setSyncError(null)
   }
 
-  const isConfigured = true // Runtime check; env warning shown below if not
+  // The connect link passes orgId as a query param so the server-side route
+  // can identify the organization before redirecting to bexio OAuth.
+  const connectHref = orgId
+    ? `/api/integrations/bexio/connect?orgId=${encodeURIComponent(orgId)}`
+    : "/api/integrations/bexio/connect"
 
   return (
     <Card className="relative overflow-hidden border-border/60 transition-shadow hover:shadow-md">
-      {/* Accent bar — bexio brand orange */}
-      <div className="absolute top-0 inset-x-0 h-[3px] bg-primary" />
+      <div className="absolute top-0 inset-x-0 h-[3px] bg-[#FF6900]" />
 
       <CardHeader className="pb-3 pt-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            {/* bexio logo */}
             <BrandLogo name="bexio" fallbackColor="#FF6900" fallbackShort="bx" />
             <div>
               <CardTitle className="text-sm font-semibold leading-none">bexio</CardTitle>
@@ -119,18 +230,15 @@ export function BexioCard() {
             </Badge>
           ) : (
             <Badge
-              variant={connected ? "default" : "outline"}
+              variant={status.connected ? "default" : "outline"}
               className={
-                connected
+                status.connected
                   ? "text-[10px] font-mono bg-emerald-500/10 text-emerald-600 border-emerald-500/30 dark:text-emerald-400"
                   : "text-[10px] font-mono text-muted-foreground"
               }
             >
-              {connected ? (
-                <>
-                  <IconCheck className="size-2.5 mr-0.5" />
-                  Verbunden
-                </>
+              {status.connected ? (
+                <><IconCheck className="size-2.5 mr-0.5" />Verbunden</>
               ) : (
                 "Nicht verbunden"
               )}
@@ -145,7 +253,6 @@ export function BexioCard() {
           direkt in Offerten und Rechnungen.
         </p>
 
-        {/* Feature list */}
         <div className="grid grid-cols-3 gap-x-2 gap-y-1.5">
           {["Artikel-Sync", "Lagermengen", "Rechnungsposten"].map((f) => (
             <div key={f} className="flex items-center gap-1 text-[10px] text-muted-foreground font-mono">
@@ -155,23 +262,67 @@ export function BexioCard() {
           ))}
         </div>
 
-        {/* Sync result feedback */}
-        {syncResult && (
-          <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 flex items-start gap-2">
-            <IconCheck className="size-3.5 text-emerald-500 mt-0.5 shrink-0" />
-            <p className="text-xs font-mono text-emerald-700 dark:text-emerald-400">
-              {syncResult.synced} von {syncResult.total} Artikel synchronisiert
-              {syncResult.errors.length > 0 && (
-                <span className="text-amber-600 dark:text-amber-400">
-                  {" "}
-                  ({syncResult.errors.length} Fehler)
-                </span>
-              )}
+        {/* Sync direction toggle */}
+        {status.connected && (
+          <div className="space-y-1">
+            <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
+              Sync-Richtung
             </p>
+            <div className="flex gap-1">
+              {DIRECTION_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => handleDirectionChange(opt.value)}
+                  disabled={updatingDirection}
+                  className={[
+                    "flex items-center gap-1 px-2 py-1 rounded text-[10px] font-mono border transition-colors",
+                    direction === opt.value
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-border text-muted-foreground hover:border-primary/50",
+                  ].join(" ")}
+                  aria-pressed={direction === opt.value}
+                >
+                  {opt.icon}
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
-        {/* Error feedback */}
+        {/* Last sync */}
+        {status.connected && status.lastSyncAt && (
+          <div className="flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground">
+            <IconClock className="size-3 shrink-0" />
+            Letzte Synchronisation: {formatRelativeTime(status.lastSyncAt)}
+            {status.lastSyncResult && (
+              <span className="text-muted-foreground/60">
+                &nbsp;(+{status.lastSyncResult.created} neu,&nbsp;
+                ~{status.lastSyncResult.updated} akt.)
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Sync result */}
+        {syncResult && (
+          <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 space-y-0.5">
+            <div className="flex items-center gap-2">
+              <IconCheck className="size-3.5 text-emerald-500 shrink-0" />
+              <p className="text-xs font-mono text-emerald-700 dark:text-emerald-400">
+                +{syncResult.created} neu &nbsp;·&nbsp; ~{syncResult.updated} aktualisiert &nbsp;·&nbsp; {syncResult.skipped} übersprungen
+              </p>
+            </div>
+            {syncResult.errors.length > 0 && (
+              <p className="text-[10px] font-mono text-amber-600 dark:text-amber-400 pl-5">
+                {syncResult.errors.length} Fehler — {syncResult.errors[0]}
+                {syncResult.errors.length > 1 && ` (+${syncResult.errors.length - 1} weitere)`}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Error */}
         {syncError && (
           <div className="rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 flex items-start gap-2">
             <IconAlertCircle className="size-3.5 text-destructive mt-0.5 shrink-0" />
@@ -181,7 +332,7 @@ export function BexioCard() {
 
         {/* Actions */}
         <div className="flex flex-wrap gap-2 pt-1">
-          {connected ? (
+          {status.connected ? (
             <>
               <Button
                 size="sm"
@@ -191,11 +342,9 @@ export function BexioCard() {
                 disabled={syncing}
                 aria-label="Materialien jetzt mit bexio synchronisieren"
               >
-                {syncing ? (
-                  <IconLoader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <IconRefresh className="size-3.5" />
-                )}
+                {syncing
+                  ? <IconLoader2 className="size-3.5 animate-spin" />
+                  : <IconRefresh className="size-3.5" />}
                 {syncing ? "Synchronisiert…" : "Jetzt synchronisieren"}
               </Button>
               <Button
@@ -211,7 +360,7 @@ export function BexioCard() {
             </>
           ) : (
             <Button size="sm" className="gap-1.5 text-xs h-8" asChild>
-              <a href="/api/integrations/bexio/connect" aria-label="Mit bexio verbinden">
+              <a href={connectHref} aria-label="Mit bexio verbinden">
                 <IconLink className="size-3.5" />
                 Mit bexio verbinden
               </a>
@@ -219,8 +368,7 @@ export function BexioCard() {
           )}
         </div>
 
-        {/* Configuration hint — only visible if env vars not set */}
-        {!isConfigured && (
+        {!process.env.NEXT_PUBLIC_BEXIO_CONFIGURED && !status.connected && (
           <div className="flex items-start gap-1.5 pt-1">
             <IconAlertTriangle className="size-3 text-amber-500 mt-0.5 shrink-0" />
             <p className="text-[10px] font-mono text-muted-foreground/70">
