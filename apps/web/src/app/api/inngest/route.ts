@@ -8,6 +8,7 @@ import { syncIntegrationsFn } from "@/inngest/sync-integrations";
 import { checkLowStockFn } from "@/inngest/check-low-stock";
 import { sendScheduledReportsFn } from "@/inngest/send-scheduled-reports";
 import { checkReorderFn } from "@/inngest/check-reorder";
+import { detectAnomaliesFn } from "@/inngest/detect-anomalies";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -20,5 +21,6 @@ export const { GET, POST, PUT } = serve({
     checkLowStockFn,
     sendScheduledReportsFn,
     checkReorderFn,
+    detectAnomaliesFn,
   ],
 });

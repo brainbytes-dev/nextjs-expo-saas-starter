@@ -3,6 +3,7 @@ import { getSessionAndOrg } from "@/app/api/_helpers/auth";
 import { stockChanges, materials, materialStocks, locations, users } from "@repo/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { dispatchWebhook } from "@/lib/webhooks";
+import { evaluateRules } from "@/lib/rules-engine";
 
 export async function GET(request: Request) {
   try {
@@ -183,8 +184,8 @@ export async function POST(request: Request) {
       return change;
     });
 
-    // Dispatch webhook — fire-and-forget, outside the transaction
-    dispatchWebhook(orgId, "stock.changed", {
+    // Build event context — shared by both the webhook and the rules engine
+    const eventContext = {
       id: stockChange.id,
       materialId,
       materialName: material.name,
@@ -197,14 +198,33 @@ export async function POST(request: Request) {
       userId: session.user.id,
       notes: notes ?? null,
       createdAt: stockChange.createdAt,
-    });
+    };
 
-    // TODO: Add dispatchWebhook to tool booking routes:
+    // Dispatch webhook — fire-and-forget, outside the transaction
+    dispatchWebhook(orgId, "stock.changed", eventContext);
+
+    // Evaluate workflow rules — fire-and-forget, does not block the response
+    evaluateRules(orgId, "stock.changed", eventContext);
+
+    // TODO: evaluateRules(orgId, "stock.below_reorder", { ... })
+    //   Check if newQuantity < material.reorderPoint after each stock.changed,
+    //   then fire stock.below_reorder with { materialId, newQuantity, reorderPoint, ... }
+
+    // TODO: Add evaluateRules to tool booking routes:
+    //   POST /api/tools/:id/booking → evaluateRules(orgId, "tool.checked_out", { ... })
+    //   Cron/scheduled job → evaluateRules(orgId, "tool.overdue", { toolId, daysOverdue, ... })
+
+    // TODO: Add evaluateRules to maintenance routes:
+    //   Cron/scheduled job → evaluateRules(orgId, "maintenance.due", { toolId, daysUntilMaintenance, ... })
+
+    // TODO: Add evaluateRules to commission routes:
+    //   POST /api/commissions → evaluateRules(orgId, "commission.created", { ... })
+    //   PATCH /api/commissions/:id (status=completed) → evaluateRules(orgId, "commission.completed", { ... })
+
+    // TODO: Add dispatchWebhook to remaining entity routes:
     //   POST /api/tools/:id/booking → "tool.checked_out" / "tool.checked_in"
-    // TODO: Add dispatchWebhook to commission routes:
     //   POST /api/commissions → "commission.created"
     //   PATCH /api/commissions/:id → "commission.status_changed"
-    // TODO: Add dispatchWebhook to team/member routes:
     //   POST /api/team/invite → "member.invited"
     //   DELETE /api/team/:id → "member.removed"
 

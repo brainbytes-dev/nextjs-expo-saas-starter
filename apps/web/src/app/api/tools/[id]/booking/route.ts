@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
 import { tools, toolBookings } from "@repo/db/schema";
 import { eq, and } from "drizzle-orm";
+import { needsApproval, createApprovalAndNotify } from "@/lib/approval-engine";
 
 export async function POST(
   request: Request,
@@ -39,6 +40,29 @@ export async function POST(
         { error: "Invalid bookingType. Must be checkout, checkin, or transfer" },
         { status: 400 }
       );
+    }
+
+    // ── Approval gate (checkout only) ────────────────────────────────────────
+    if (bookingType === "checkout") {
+      const reason = needsApproval(orgId, "tool_checkout", {});
+      if (reason) {
+        const approval = await createApprovalAndNotify(
+          orgId,
+          session.user.id,
+          "tool_checkout",
+          "tool",
+          toolId,
+          notes
+        );
+        return NextResponse.json(
+          {
+            requiresApproval: true,
+            reason,
+            approvalId: approval.id,
+          },
+          { status: 202 }
+        );
+      }
     }
 
     // Create booking entry

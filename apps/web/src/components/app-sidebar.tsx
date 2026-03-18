@@ -28,6 +28,7 @@ import {
   IconTool,
   IconTruck,
   IconShield,
+  IconBolt,
 } from "@tabler/icons-react"
 import { useTranslations } from "next-intl"
 
@@ -192,6 +193,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: t("alerts"),
         url: "/dashboard/settings/alerts",
         icon: IconBell,
+      },
+      {
+        title: "Automatisierungen",
+        url: "/dashboard/settings/automations",
+        icon: IconBolt,
       },
       {
         title: "Branding",

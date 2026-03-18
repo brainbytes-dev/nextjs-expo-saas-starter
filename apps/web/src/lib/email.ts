@@ -240,3 +240,105 @@ export async function sendMentionNotification(
     throw error;
   }
 }
+
+export async function sendApprovalRequestEmail(
+  adminName: string,
+  adminEmail: string,
+  requesterName: string,
+  requestType: string,
+  entityType: string,
+  entityId: string,
+  approvalId: string
+) {
+  if (DEMO_MODE) {
+    console.log(`[DEMO] Would send approval request email to ${adminEmail}`);
+    return { data: { id: 'demo-email-id' }, error: null };
+  }
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.logistikapp.ch';
+  const approvalsUrl = `${appUrl}/dashboard/approvals`;
+  const requestTypeLabel = requestType === 'tool_checkout'
+    ? 'Werkzeug-Ausleihe'
+    : requestType === 'order'
+      ? 'Bestellung'
+      : requestType;
+
+  try {
+    const result = await getResend().emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'noreply@example.com',
+      to: adminEmail,
+      subject: `Genehmigung ausstehend: ${requestTypeLabel} von ${escapeHtml(requesterName)}`,
+      html: `
+        <h2>Neue Genehmigungsanfrage</h2>
+        <p>Hallo ${escapeHtml(adminName)},</p>
+        <p><strong>${escapeHtml(requesterName)}</strong> hat eine ${requestTypeLabel} beantragt, die deine Genehmigung benötigt.</p>
+        <ul>
+          <li><strong>Typ:</strong> ${requestTypeLabel}</li>
+          <li><strong>Objekt:</strong> ${escapeHtml(entityType)} / ${escapeHtml(entityId)}</li>
+        </ul>
+        <p>
+          <a href="${approvalsUrl}"
+             style="display:inline-block;background:#000;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">
+            Genehmigungen ansehen
+          </a>
+        </p>
+        <p style="color:#999;font-size:12px;">
+          Melde dich im Dashboard an, um die Anfrage zu genehmigen oder abzulehnen.
+        </p>
+      `,
+    });
+    return result;
+  } catch (error) {
+    console.error('Failed to send approval request email:', error);
+    throw error;
+  }
+}
+
+export async function sendApprovalDecisionEmail(
+  requesterName: string,
+  requesterEmail: string,
+  approverName: string,
+  requestType: string,
+  status: 'approved' | 'rejected'
+) {
+  if (DEMO_MODE) {
+    console.log(`[DEMO] Would send approval decision email to ${requesterEmail}`);
+    return { data: { id: 'demo-email-id' }, error: null };
+  }
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.logistikapp.ch';
+  const requestTypeLabel = requestType === 'tool_checkout'
+    ? 'Werkzeug-Ausleihe'
+    : requestType === 'order'
+      ? 'Bestellung'
+      : requestType;
+  const statusLabel = status === 'approved' ? 'genehmigt' : 'abgelehnt';
+  const statusColor = status === 'approved' ? '#16a34a' : '#dc2626';
+
+  try {
+    const result = await getResend().emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'noreply@example.com',
+      to: requesterEmail,
+      subject: `Deine ${requestTypeLabel} wurde ${statusLabel}`,
+      html: `
+        <h2>Genehmigungsentscheidung</h2>
+        <p>Hallo ${escapeHtml(requesterName)},</p>
+        <p>
+          Deine Anfrage für eine <strong>${requestTypeLabel}</strong> wurde von
+          <strong>${escapeHtml(approverName)}</strong>
+          <span style="color:${statusColor};font-weight:bold;">${statusLabel}</span>.
+        </p>
+        <p>
+          <a href="${appUrl}/dashboard"
+             style="display:inline-block;background:#000;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">
+            Zum Dashboard
+          </a>
+        </p>
+      `,
+    });
+    return result;
+  } catch (error) {
+    console.error('Failed to send approval decision email:', error);
+    throw error;
+  }
+}

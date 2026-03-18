@@ -18,6 +18,7 @@ export function NavMain({
     title: string
     url: string
     icon?: Icon
+    badge?: number
   }[]
 }) {
   const pathname = usePathname()
@@ -34,6 +35,11 @@ export function NavMain({
                   <a href={item.url}>
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
+                    {item.badge != null && item.badge > 0 && (
+                      <span className="ml-auto flex size-5 shrink-0 items-center justify-center rounded-full bg-destructive text-[10px] font-semibold text-destructive-foreground tabular-nums">
+                        {item.badge > 99 ? "99+" : item.badge}
+                      </span>
+                    )}
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>

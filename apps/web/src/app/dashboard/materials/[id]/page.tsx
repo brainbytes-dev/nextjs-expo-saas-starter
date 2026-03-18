@@ -15,6 +15,7 @@ import {
   IconDeviceFloppy,
   IconExternalLink,
   IconTag,
+  IconRoute2,
 } from "@tabler/icons-react"
 import { QrCodeDisplay } from "@/components/qr-code"
 import { ZebraLabelButton } from "@/components/zebra-label-button"
@@ -23,6 +24,8 @@ import { CustomFieldsSection } from "@/components/custom-fields"
 import { InsuranceWarrantyPanel } from "@/components/insurance-warranty-panel"
 import { CommentsThread } from "@/components/comments-thread"
 import { SupplierPricesTab } from "./supplier-prices-tab"
+import { BatchesTab } from "./batches-tab"
+import { ForecastTab } from "./forecast-tab"
 import { AttachmentsPanel } from "@/components/attachments-panel"
 
 import { Button } from "@/components/ui/button"
@@ -192,6 +195,9 @@ export default function MaterialDetailPage() {
   const [bookingQty, setBookingQty] = useState(1)
   const [bookingLocationId, setBookingLocationId] = useState("")
   const [bookingLoading, setBookingLoading] = useState(false)
+  const [bookingBatchNumber, setBookingBatchNumber] = useState("")
+  const [bookingSerialNumber, setBookingSerialNumber] = useState("")
+  const [bookingExpiryDate, setBookingExpiryDate] = useState("")
 
   // Delete dialog
   const [showDelete, setShowDelete] = useState(false)
@@ -309,6 +315,9 @@ export default function MaterialDetailPage() {
           changeType: bookingType === "in" ? "in" : "out",
           quantity: bookingType === "in" ? bookingQty : -bookingQty,
           locationId: bookingLocationId,
+          batchNumber: bookingBatchNumber.trim() || undefined,
+          serialNumber: bookingSerialNumber.trim() || undefined,
+          expiryDate: bookingExpiryDate || undefined,
         }),
       })
       if (res.ok) {
@@ -323,6 +332,9 @@ export default function MaterialDetailPage() {
         setBookingType(null)
         setBookingQty(1)
         setBookingLocationId("")
+        setBookingBatchNumber("")
+        setBookingSerialNumber("")
+        setBookingExpiryDate("")
       }
     } catch {
       // TODO: toast
@@ -537,6 +549,11 @@ export default function MaterialDetailPage() {
           <TabsTrigger value="qr">QR-Code</TabsTrigger>
           <TabsTrigger value="attachments">Anhänge</TabsTrigger>
           <TabsTrigger value="insurance">Versicherung & Garantie</TabsTrigger>
+          <TabsTrigger value="batches">
+            <IconRoute2 className="size-3.5" />
+            Chargen &amp; Serien
+          </TabsTrigger>
+          <TabsTrigger value="prognose">Prognose</TabsTrigger>
           <TabsTrigger value="comments">Kommentare</TabsTrigger>
         </TabsList>
 
@@ -984,6 +1001,11 @@ export default function MaterialDetailPage() {
             </div>
           </div>
         </TabsContent>
+        {/* ─── Prognose Tab ─────────────────────────────────── */}
+        <TabsContent value="prognose">
+          <ForecastTab materialId={materialId} unit={material.unit} />
+        </TabsContent>
+
         {/* ─── Comments Tab ─────────────────────────────────────── */}
         <TabsContent value="comments">
           <CommentsThread entityType="material" entityId={materialId} />
@@ -998,6 +1020,11 @@ export default function MaterialDetailPage() {
         <TabsContent value="insurance">
           <InsuranceWarrantyPanel entityType="material" entityId={materialId} />
         </TabsContent>
+
+        {/* ─── Chargen & Serien Tab ─────────────────────────────────── */}
+        <TabsContent value="batches">
+          <BatchesTab materialId={materialId} unit={material.unit} />
+        </TabsContent>
             </Tabs>
 
       {/* ─── Custom Fields ─────────────────────────────────────────── */}
@@ -1011,6 +1038,9 @@ export default function MaterialDetailPage() {
             setBookingType(null)
             setBookingQty(1)
             setBookingLocationId("")
+            setBookingBatchNumber("")
+            setBookingSerialNumber("")
+            setBookingExpiryDate("")
           }
         }}
       >
@@ -1055,6 +1085,39 @@ export default function MaterialDetailPage() {
                 }
               />
             </div>
+            <div className="space-y-2">
+              <Label>
+                Chargennummer{" "}
+                <span className="text-muted-foreground font-normal">(optional)</span>
+              </Label>
+              <Input
+                placeholder="z.B. CH-2026-001"
+                value={bookingBatchNumber}
+                onChange={(e) => setBookingBatchNumber(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>
+                Seriennummer{" "}
+                <span className="text-muted-foreground font-normal">(optional)</span>
+              </Label>
+              <Input
+                placeholder="z.B. SN-00812345"
+                value={bookingSerialNumber}
+                onChange={(e) => setBookingSerialNumber(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>
+                Ablaufdatum{" "}
+                <span className="text-muted-foreground font-normal">(optional)</span>
+              </Label>
+              <Input
+                type="date"
+                value={bookingExpiryDate}
+                onChange={(e) => setBookingExpiryDate(e.target.value)}
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button
@@ -1063,6 +1126,9 @@ export default function MaterialDetailPage() {
                 setBookingType(null)
                 setBookingQty(1)
                 setBookingLocationId("")
+                setBookingBatchNumber("")
+                setBookingSerialNumber("")
+                setBookingExpiryDate("")
               }}
               disabled={bookingLoading}
             >

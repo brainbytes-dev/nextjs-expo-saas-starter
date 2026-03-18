@@ -21,6 +21,7 @@ import {
   IconChartLine,
   IconCertificate,
   IconPlus,
+  IconClockHour4,
 } from "@tabler/icons-react"
 import {
   AreaChart,
@@ -225,6 +226,10 @@ export default function ToolDetailPage() {
   const [showCalibForm, setShowCalibForm] = useState(false)
   const [calibForm, setCalibForm] = useState({ calibratedAt: "", nextCalibrationDate: "", certificateUrl: "", result: "pass", notes: "" })
   const [calibSaving, setCalibSaving] = useState(false)
+
+  // Pending approval state
+  const [pendingApproval, setPendingApproval] = useState<string | null>(null)
+  const [checkoutSubmitting, setCheckoutSubmitting] = useState(false)
 
   // Delete dialog
   const [showDelete, setShowDelete] = useState(false)
@@ -505,6 +510,22 @@ export default function ToolDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Pending approval banner */}
+      {pendingApproval && (
+        <div className="flex items-center gap-3 rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+          <IconClockHour4 className="size-5 shrink-0 text-yellow-600" />
+          <div className="flex-1">
+            <span className="font-medium">Genehmigung ausstehend</span> &mdash; Deine Ausleihanfrage wurde an die Administratoren weitergeleitet.
+          </div>
+          <button
+            className="shrink-0 text-yellow-600 hover:text-yellow-800 underline text-xs"
+            onClick={() => setPendingApproval(null)}
+          >
+            Schliessen
+          </button>
+        </div>
+      )}
 
       {/* Status Card + Check-in/Check-out */}
       <Card>
@@ -1465,9 +1486,49 @@ export default function ToolDetailPage() {
             >
               {tc("cancel")}
             </Button>
-            <Button onClick={() => setCheckoutOpen(false)}>
+            <Button
+              disabled={checkoutSubmitting}
+              onClick={async () => {
+                setCheckoutSubmitting(true)
+                try {
+                  const orgId = sessionStorage.getItem("activeOrgId") ?? ""
+                  const res = await fetch(`/api/tools/${toolId}/booking`, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      ...(orgId ? { "x-organization-id": orgId } : {}),
+                    },
+                    body: JSON.stringify({
+                      bookingType: "checkout",
+                      toLocationId: checkoutLocationId || undefined,
+                      notes: checkoutNotes || undefined,
+                    }),
+                  })
+                  if (res.status === 202) {
+                    const data = await res.json()
+                    setPendingApproval(data.approvalId ?? "pending")
+                    setCheckoutOpen(false)
+                  } else if (res.ok) {
+                    setCheckoutOpen(false)
+                    const detailRes = await fetch(`/api/tools/${toolId}`, {
+                      headers: orgId ? { "x-organization-id": orgId } : {},
+                    })
+                    if (detailRes.ok) {
+                      const detail = await detailRes.json()
+                      setTool(detail)
+                      setForm(detail)
+                    }
+                  }
+                } catch { /* silently fail */ } finally {
+                  setCheckoutSubmitting(false)
+                  setCheckoutUserId("")
+                  setCheckoutLocationId("")
+                  setCheckoutNotes("")
+                }
+              }}
+            >
               <IconLogout className="size-4" />
-              {t("checkOut")}
+              {checkoutSubmitting ? "Wird gesendet..." : t("checkOut")}
             </Button>
           </DialogFooter>
         </DialogContent>
