@@ -180,3 +180,59 @@ export async function sendAlertSummaryEmail(
     throw error;
   }
 }
+
+export async function sendMentionNotification(
+  mentionedUserEmail: string,
+  mentionerName: string,
+  entityType: string,
+  entityId: string,
+  commentBody: string
+) {
+  if (DEMO_MODE) {
+    console.log(`[DEMO] Would send mention notification to ${mentionedUserEmail}`);
+    return { data: { id: 'demo-email-id' }, error: null };
+  }
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.logistikapp.ch';
+  const entityPath = entityType === 'material'
+    ? `materials/${entityId}`
+    : entityType === 'tool'
+      ? `tools/${entityId}`
+      : `${entityType}s/${entityId}`;
+  const entityUrl = `${appUrl}/dashboard/${entityPath}`;
+
+  const truncatedBody = commentBody.length > 200
+    ? `${commentBody.slice(0, 200)}…`
+    : commentBody;
+
+  try {
+    const result = await getResend().emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'noreply@example.com',
+      to: mentionedUserEmail,
+      subject: `${escapeHtml(mentionerName)} hat dich in einem Kommentar erwähnt`,
+      html: `
+        <h2>Du wurdest erwähnt</h2>
+        <p>Hallo,</p>
+        <p><strong>${escapeHtml(mentionerName)}</strong> hat dich in einem Kommentar erwähnt:</p>
+        <blockquote style="border-left:3px solid #e2e8f0;margin:16px 0;padding:8px 16px;color:#4a5568;font-style:italic;">
+          ${escapeHtml(truncatedBody)}
+        </blockquote>
+        <p>
+          <a
+            href="${entityUrl}"
+            style="display:inline-block;background:#000;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;"
+          >
+            Kommentar ansehen
+          </a>
+        </p>
+        <p style="color:#999;font-size:12px;">
+          Falls du diese Benachrichtigung nicht erwartet hast, kannst du diese E-Mail ignorieren.
+        </p>
+      `,
+    });
+    return result;
+  } catch (error) {
+    console.error('Failed to send mention notification email:', error);
+    throw error;
+  }
+}

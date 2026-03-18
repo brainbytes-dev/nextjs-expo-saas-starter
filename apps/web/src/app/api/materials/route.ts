@@ -1,20 +1,21 @@
 import { NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
-import { materials, materialGroups, locations } from "@repo/db/schema";
-import { eq, and, ilike, sql } from "drizzle-orm";
+import { materials, materialGroups, locations, materialStocks } from "@repo/db/schema";
+import { eq, and, ilike, sql, isNotNull, inArray } from "drizzle-orm";
 import { dispatchWebhook } from "@/lib/webhooks";
+import { withPermission } from "@/lib/rbac";
 
-export async function GET(request: Request) {
+// ─── GET /api/materials ───────────────────────────────────────────────────────
+// Example of withPermission wrapper usage. Apply this pattern to other routes.
+
+export const GET = withPermission("materials", "read")(async (request, { db, orgId }) => {
   try {
-    const result = await getSessionAndOrg(request);
-    if (result.error) return result.error;
-    const { db, orgId } = result;
-
     const url = new URL(request.url);
     const page = Math.max(1, parseInt(url.searchParams.get("page") || "1"));
     const limit = Math.min(100, Math.max(1, parseInt(url.searchParams.get("limit") || "20")));
     const search = url.searchParams.get("search") || "";
     const groupId = url.searchParams.get("groupId");
+    const expiringOnly = url.searchParams.get("expiringOnly") === "true";
     const offset = (page - 1) * limit;
 
     const conditions = [
@@ -23,12 +24,27 @@ export async function GET(request: Request) {
     ];
 
     if (search) {
-      conditions.push(
-        ilike(materials.name, `%${search}%`)
-      );
+      conditions.push(ilike(materials.name, `%${search}%`));
     }
     if (groupId) {
       conditions.push(eq(materials.groupId, groupId));
+    }
+    if (expiringOnly) {
+      // Filter to materials that have at least one stock entry with an expiryDate
+      const stocksWithExpiry = await db
+        .selectDistinct({ materialId: materialStocks.materialId })
+        .from(materialStocks)
+        .where(isNotNull(materialStocks.expiryDate));
+      const ids = stocksWithExpiry.map((s) => s.materialId);
+      if (ids.length > 0) {
+        conditions.push(inArray(materials.id, ids));
+      } else {
+        // No expiring items at all — return empty
+        return NextResponse.json({
+          data: [],
+          pagination: { page, limit, total: 0, totalPages: 0 },
+        });
+      }
     }
 
     const [items, countResult] = await Promise.all([
@@ -49,6 +65,18 @@ export async function GET(request: Request) {
           isActive: materials.isActive,
           createdAt: materials.createdAt,
           updatedAt: materials.updatedAt,
+          nearestExpiry: sql<string | null>`(
+            SELECT MIN(ms.expiry_date)
+            FROM material_stocks ms
+            WHERE ms.material_id = ${materials.id}
+              AND ms.expiry_date IS NOT NULL
+              AND ms.quantity > 0
+          )`.as("nearest_expiry"),
+          totalStock: sql<number>`COALESCE((
+            SELECT SUM(ms2.quantity)
+            FROM material_stocks ms2
+            WHERE ms2.material_id = ${materials.id}
+          ), 0)`.as("total_stock"),
         })
         .from(materials)
         .leftJoin(materialGroups, eq(materials.groupId, materialGroups.id))
@@ -74,19 +102,14 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("GET /api/materials error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch materials" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch materials" }, { status: 500 });
   }
-}
+});
 
-export async function POST(request: Request) {
+// ─── POST /api/materials ──────────────────────────────────────────────────────
+
+export const POST = withPermission("materials", "create")(async (request, { db, orgId }) => {
   try {
-    const result = await getSessionAndOrg(request);
-    if (result.error) return result.error;
-    const { db, orgId } = result;
-
     const body = await request.json();
     const {
       number,
@@ -103,10 +126,7 @@ export async function POST(request: Request) {
     } = body;
 
     if (!name) {
-      return NextResponse.json(
-        { error: "Name is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
     const [material] = await db
@@ -141,9 +161,17 @@ export async function POST(request: Request) {
     return NextResponse.json(material, { status: 201 });
   } catch (error) {
     console.error("POST /api/materials error:", error);
-    return NextResponse.json(
-      { error: "Failed to create material" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to create material" }, { status: 500 });
   }
-}
+});
+
+// TODO: Apply withPermission to the following routes once RBAC is fully rolled out:
+// - /api/materials/[id] (PATCH → "materials","update" / DELETE → "materials","delete")
+// - /api/tools (GET → "tools","read" / POST → "tools","create")
+// - /api/tools/[id] (PATCH → "tools","update" / DELETE → "tools","delete")
+// - /api/keys (GET → "keys","read" / POST → "keys","create")
+// - /api/locations (GET → "locations","read" / POST → "locations","create")
+// - /api/commissions (GET → "commissions","read" / POST → "commissions","create")
+// - /api/orders (GET → "orders","read" / POST → "orders","create")
+// - /api/suppliers (GET → "suppliers","read" / POST → "suppliers","create")
+// - /api/customers (GET → "customers","read" / POST → "customers","create")

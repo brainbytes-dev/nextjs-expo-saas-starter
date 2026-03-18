@@ -17,17 +17,32 @@ import {
   IconAlertTriangle,
   IconDeviceFloppy,
   IconTag,
+  IconCurrencyEuro,
+  IconChartLine,
+  IconCertificate,
+  IconPlus,
 } from "@tabler/icons-react"
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts"
 import { QrCodeDisplay } from "@/components/qr-code"
 import { ZebraLabelButton } from "@/components/zebra-label-button"
 import { BarcodeLabel } from "@/components/barcode-label"
 import { CustomFieldsSection } from "@/components/custom-fields"
+import { InsuranceWarrantyPanel } from "@/components/insurance-warranty-panel"
+import { AttachmentsPanel } from "@/components/attachments-panel"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -73,6 +88,35 @@ interface ToolBooking {
   createdAt: string
 }
 
+interface DepreciationRow {
+  year: number
+  startValue: number
+  depreciation: number
+  endValue: number
+  accumulatedDepreciation: number
+}
+
+interface DepreciationData {
+  purchasePrice: number
+  salvageValue: number
+  lifeYears: number
+  method: string
+  purchaseDate: string | null
+  currentBookValue: number
+  schedule: DepreciationRow[]
+  tco: { purchase: number; maintenance: number; insurance: number; total: number }
+}
+
+interface CalibrationRecord {
+  id: string
+  calibratedAt: string
+  calibratedByName: string | null
+  nextCalibrationDate: string | null
+  certificateUrl: string | null
+  result: string | null
+  notes: string | null
+}
+
 interface ToolDetail {
   id: string
   number: string | null
@@ -98,6 +142,11 @@ interface ToolDetail {
   createdAt: string
   updatedAt: string
   recentBookings: ToolBooking[]
+  purchasePrice: number | null
+  purchaseDate: string | null
+  expectedLifeYears: number | null
+  salvageValue: number | null
+  depreciationMethod: string | null
 }
 
 // ---------------------------------------------------------------------------
@@ -166,6 +215,16 @@ export default function ToolDetailPage() {
   const [checkinCondition, setCheckinCondition] = useState("good")
   const [checkinNotes, setCheckinNotes] = useState("")
 
+  // Finanzen / Depreciation
+  const [deprData, setDeprData] = useState<DepreciationData | null>(null)
+  const [deprLoading, setDeprLoading] = useState(false)
+  // Kalibrierung
+  const [calibrations, setCalibrations] = useState<CalibrationRecord[]>([])
+  const [calibLoading, setCalibLoading] = useState(false)
+  const [showCalibForm, setShowCalibForm] = useState(false)
+  const [calibForm, setCalibForm] = useState({ calibratedAt: "", nextCalibrationDate: "", certificateUrl: "", result: "pass", notes: "" })
+  const [calibSaving, setCalibSaving] = useState(false)
+
   // Delete dialog
   const [showDelete, setShowDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -202,6 +261,25 @@ export default function ToolDetailPage() {
     }
     load()
   }, [toolId])
+
+  const fetchDepreciation = async () => {
+    setDeprLoading(true)
+    try {
+      const r = await fetch(`/api/tools/${toolId}/depreciation`)
+      if (r.ok) setDeprData(await r.json())
+    } catch { /* silently fail */ } finally { setDeprLoading(false) }
+  }
+
+  const fetchCalibrations = async () => {
+    setCalibLoading(true)
+    try {
+      const r = await fetch(`/api/tools/${toolId}/calibrations`)
+      if (r.ok) {
+        const d = await r.json()
+        setCalibrations(d.data ?? [])
+      }
+    } catch { /* silently fail */ } finally { setCalibLoading(false) }
+  }
 
   // Save handler
   const handleSave = useCallback(async () => {
@@ -260,6 +338,29 @@ export default function ToolDetailPage() {
       setDeleting(false)
     }
   }, [toolId, router])
+
+  const handleCalibSave = async () => {
+    if (!calibForm.calibratedAt) return
+    setCalibSaving(true)
+    try {
+      const res = await fetch(`/api/tools/${toolId}/calibrations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          calibratedAt: calibForm.calibratedAt,
+          nextCalibrationDate: calibForm.nextCalibrationDate || null,
+          certificateUrl: calibForm.certificateUrl || null,
+          result: calibForm.result || null,
+          notes: calibForm.notes || null,
+        }),
+      })
+      if (res.ok) {
+        setShowCalibForm(false)
+        setCalibForm({ calibratedAt: "", nextCalibrationDate: "", certificateUrl: "", result: "pass", notes: "" })
+        await fetchCalibrations()
+      }
+    } catch { /* silently fail */ } finally { setCalibSaving(false) }
+  }
 
   // ---------------------------------------------------------------------------
   // Loading skeleton
@@ -523,6 +624,8 @@ export default function ToolDetailPage() {
           <TabsTrigger value="bookings">{t("tabs.bookingHistory")}</TabsTrigger>
           <TabsTrigger value="maintenance">Wartung</TabsTrigger>
           <TabsTrigger value="qr">QR-Code</TabsTrigger>
+          <TabsTrigger value="insurance">Versicherung & Garantie</TabsTrigger>
+          <TabsTrigger value="attachments">Anhänge</TabsTrigger>
         </TabsList>
 
         {/* ─── General Tab ─────────────────────────────────────────── */}
@@ -921,6 +1024,15 @@ export default function ToolDetailPage() {
               </div>
             </div>
           </div>
+        </TabsContent>
+        {/* ─── Insurance & Warranty Tab ─────────────────────────────── */}
+        <TabsContent value="insurance">
+          <InsuranceWarrantyPanel entityType="tool" entityId={toolId} />
+        </TabsContent>
+
+        {/* ─── Anhänge Tab ──────────────────────────────────────────── */}
+        <TabsContent value="attachments" className="pt-2">
+          <AttachmentsPanel entityType="tool" entityId={toolId} />
         </TabsContent>
       </Tabs>
 

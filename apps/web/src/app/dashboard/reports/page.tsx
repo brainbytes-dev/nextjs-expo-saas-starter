@@ -9,6 +9,8 @@ import {
   IconDownload,
   IconPrinter,
   IconAlertTriangle,
+  IconCalendarOff,
+  IconCurrencyEuro,
   IconLoader2,
 } from "@tabler/icons-react"
 
@@ -78,6 +80,32 @@ interface CommissionReportRow {
   responsibleName: string | null
   entryCount: number
   createdAt: string
+}
+
+interface ExpiryReportRow {
+  stockId: string
+  materialId: string
+  materialName: string
+  materialNumber: string | null
+  locationName: string | null
+  expiryDate: string
+  quantity: number
+  unit: string | null
+  batchNumber: string | null
+  daysUntil: number
+}
+
+interface DepreciationReportRow {
+  id: string
+  number: string | null
+  name: string
+  groupName: string | null
+  purchasePrice: number
+  purchaseDate: string | null
+  expectedLifeYears: number | null
+  currentBookValue: number
+  depreciationMethod: string | null
+  condition: string | null
 }
 
 // ---------------------------------------------------------------------------
@@ -237,6 +265,14 @@ export default function ReportsPage() {
   const [commTo, setCommTo] = useState(today())
   const [commStatus, setCommStatus] = useState("all")
   const [commLoading, setCommLoading] = useState<"csv" | "print" | null>(null)
+
+  // ── Ablaufbericht filters ────────────────────────────────────────────
+  const [expiryDays, setExpiryDays] = useState("30")
+  const [expiryLoading, setExpiryLoading] = useState<"csv" | "print" | null>(null)
+
+  // ── Abschreibungsbericht filters ─────────────────────────────────────
+  const [deprCondition, setDeprCondition] = useState("all")
+  const [deprLoading, setDeprLoading] = useState<"csv" | "print" | null>(null)
 
   // ── Inventarbericht ─────────────────────────────────────────────────────
   const fetchInventory = useCallback(async (): Promise<MaterialReportRow[]> => {
@@ -491,6 +527,104 @@ export default function ReportsPage() {
     }
   }, [fetchCommissions]) // eslint-disable-line react-hooks/exhaustive-deps
 
+
+  // ── Ablaufbericht ────────────────────────────────────────────────────
+  const fetchExpiryReport = useCallback(async (): Promise<ExpiryReportRow[]> => {
+    const params = new URLSearchParams({ days: expiryDays })
+    const res = await fetch(`/api/materials/expiring?${params}`)
+    if (!res.ok) return []
+    const json = await res.json()
+    return (json.data ?? []) as ExpiryReportRow[]
+  }, [expiryDays])
+
+  const EXPIRY_COLUMNS: ExportColumn<ExpiryReportRow>[] = [
+    { label: "Material", accessor: "materialName" },
+    { label: "Nummer", accessor: (r) => r.materialNumber ?? "" },
+    { label: "Lagerort", accessor: (r) => r.locationName ?? "" },
+    { label: "Charge", accessor: (r) => r.batchNumber ?? "" },
+    { label: "Ablaufdatum", accessor: (r) => formatDate(r.expiryDate) },
+    { label: "Tage bis Ablauf", accessor: "daysUntil" },
+    { label: "Menge", accessor: "quantity" },
+    { label: "Einheit", accessor: (r) => r.unit ?? "" },
+  ]
+
+  const handleExpiryCsv = useCallback(async () => {
+    setExpiryLoading("csv")
+    try {
+      const rows = await fetchExpiryReport()
+      downloadCsv(rows, EXPIRY_COLUMNS, "ablaufbericht.csv")
+    } finally { setExpiryLoading(null) }
+  }, [fetchExpiryReport]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleExpiryPrint = useCallback(async () => {
+    setExpiryLoading("print")
+    try {
+      const rows = await fetchExpiryReport()
+      printReport("Ablaufbericht", rows, EXPIRY_COLUMNS)
+    } finally { setExpiryLoading(null) }
+  }, [fetchExpiryReport]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Abschreibungsbericht ─────────────────────────────────────────────
+  const fetchDepreciationReport = useCallback(async (): Promise<DepreciationReportRow[]> => {
+    const params = new URLSearchParams({ page: "1", limit: "9999" })
+    if (deprCondition !== "all") params.set("condition", deprCondition)
+    const res = await fetch(`/api/tools?${params}`)
+    if (!res.ok) return []
+    const json = await res.json()
+    // For each tool, call depreciation API to get currentBookValue
+    const tools: Record<string, unknown>[] = json.data ?? []
+    const depRows: DepreciationReportRow[] = []
+    // Fetch depreciation in parallel (capped at 50 to avoid flooding)
+    const slice = tools.slice(0, 50)
+    const deprResults = await Promise.allSettled(
+      slice.map((t) => fetch(`/api/tools/${t.id}/depreciation`).then((r) => r.ok ? r.json() : null))
+    )
+    slice.forEach((t, i) => {
+      const depr = deprResults[i]?.status === "fulfilled" ? deprResults[i].value : null
+      depRows.push({
+        id: t.id as string,
+        number: (t.number as string | null) ?? null,
+        name: t.name as string,
+        groupName: (t.groupName as string | null) ?? null,
+        purchasePrice: depr?.purchasePrice ?? 0,
+        purchaseDate: depr?.purchaseDate ?? null,
+        expectedLifeYears: depr?.lifeYears ?? null,
+        currentBookValue: depr?.currentBookValue ?? 0,
+        depreciationMethod: depr?.method ?? null,
+        condition: (t.condition as string | null) ?? null,
+      })
+    })
+    return depRows
+  }, [deprCondition])
+
+  const DEPR_COLUMNS: ExportColumn<DepreciationReportRow>[] = [
+    { label: "Nummer", accessor: (r) => r.number ?? "" },
+    { label: "Name", accessor: "name" },
+    { label: "Gruppe", accessor: (r) => r.groupName ?? "" },
+    { label: "Kaufpreis (CHF)", accessor: (r) => r.purchasePrice.toFixed(2) },
+    { label: "Kaufdatum", accessor: (r) => formatDate(r.purchaseDate) },
+    { label: "Nutzungsdauer (J.)", accessor: (r) => r.expectedLifeYears ?? "" },
+    { label: "Buchwert (CHF)", accessor: (r) => r.currentBookValue.toFixed(2) },
+    { label: "Methode", accessor: (r) => r.depreciationMethod === "declining" ? "Degressiv" : r.depreciationMethod === "linear" ? "Linear" : "" },
+    { label: "Zustand", accessor: (r) => conditionLabels[r.condition ?? ""] ?? (r.condition ?? "") },
+  ]
+
+  const handleDeprCsv = useCallback(async () => {
+    setDeprLoading("csv")
+    try {
+      const rows = await fetchDepreciationReport()
+      downloadCsv(rows, DEPR_COLUMNS, "abschreibungsbericht.csv")
+    } finally { setDeprLoading(null) }
+  }, [fetchDepreciationReport]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleDeprPrint = useCallback(async () => {
+    setDeprLoading("print")
+    try {
+      const rows = await fetchDepreciationReport()
+      printReport("Abschreibungsbericht", rows, DEPR_COLUMNS)
+    } finally { setDeprLoading(null) }
+  }, [fetchDepreciationReport]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
@@ -670,6 +804,62 @@ export default function ReportsPage() {
             </div>
           }
         />
+
+        {/* ── Ablaufbericht ────────────────────────────────────────────── */}
+        <ReportCard
+          icon={IconCalendarOff}
+          title="Ablaufbericht"
+          description="Materialchargen mit Ablaufdatum nach FEFO sortiert."
+          loadingCsv={expiryLoading === "csv"}
+          loadingPrint={expiryLoading === "print"}
+          onCsv={handleExpiryCsv}
+          onPrint={handleExpiryPrint}
+          filters={
+            <div className="flex items-center gap-2">
+              <Label className="w-20 shrink-0 text-xs">Zeitraum</Label>
+              <Select value={expiryDays} onValueChange={setExpiryDays}>
+                <SelectTrigger className="h-8 flex-1 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7">Nächste 7 Tage</SelectItem>
+                  <SelectItem value="30">Nächste 30 Tage</SelectItem>
+                  <SelectItem value="90">Nächste 90 Tage</SelectItem>
+                  <SelectItem value="365">Nächstes Jahr</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          }
+        />
+
+        {/* ── Abschreibungsbericht ──────────────────────────────────────── */}
+        <ReportCard
+          icon={IconCurrencyEuro}
+          title="Abschreibungsbericht"
+          description="Aktuelle Buchwerte aller Werkzeuge, Gesamtflottenwert."
+          loadingCsv={deprLoading === "csv"}
+          loadingPrint={deprLoading === "print"}
+          onCsv={handleDeprCsv}
+          onPrint={handleDeprPrint}
+          filters={
+            <div className="flex items-center gap-2">
+              <Label className="w-20 shrink-0 text-xs">Zustand</Label>
+              <Select value={deprCondition} onValueChange={setDeprCondition}>
+                <SelectTrigger className="h-8 flex-1 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alle</SelectItem>
+                  <SelectItem value="good">Gut</SelectItem>
+                  <SelectItem value="damaged">Beschädigt</SelectItem>
+                  <SelectItem value="repair">Reparatur</SelectItem>
+                  <SelectItem value="decommissioned">Ausgemustert</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          }
+        />
+
       </div>
     </div>
   )

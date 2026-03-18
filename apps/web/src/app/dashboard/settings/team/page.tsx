@@ -46,6 +46,7 @@ interface OrgMember {
   id: string
   userId: string
   role: string | null
+  rbacRoleId: string | null
   createdAt: string
   userName: string | null
   userEmail: string
@@ -58,15 +59,22 @@ interface OrgInfo {
   role: string | null
 }
 
+interface RbacRole {
+  id: string
+  name: string
+  slug: string
+  isSystem: boolean
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-const ROLE_LABELS: Record<string, string> = {
+const LEGACY_ROLE_LABELS: Record<string, string> = {
   owner: "Eigentümer",
   admin: "Admin",
   member: "Mitglied",
 }
 
-const ROLE_VARIANTS: Record<string, "default" | "secondary" | "outline"> = {
+const LEGACY_ROLE_VARIANTS: Record<string, "default" | "secondary" | "outline"> = {
   owner: "default",
   admin: "secondary",
   member: "outline",
@@ -87,6 +95,7 @@ export default function TeamPage() {
 
   const [org, setOrg] = useState<OrgInfo | null>(null)
   const [members, setMembers] = useState<OrgMember[]>([])
+  const [rbacRoles, setRbacRoles] = useState<RbacRole[]>([])
   const [isLoadingOrg, setIsLoadingOrg] = useState(true)
   const [isLoadingMembers, setIsLoadingMembers] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -95,12 +104,16 @@ export default function TeamPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [inviteEmail, setInviteEmail] = useState("")
   const [inviteRole, setInviteRole] = useState<"admin" | "member">("member")
+  const [inviteRbacRoleId, setInviteRbacRoleId] = useState<string>("")
   const [isInviting, setIsInviting] = useState(false)
   const [inviteError, setInviteError] = useState<string | null>(null)
   const [inviteSuccess, setInviteSuccess] = useState<string | null>(null)
 
   // Remove state
   const [removingId, setRemovingId] = useState<string | null>(null)
+
+  // Role assignment state: memberId → new rbacRoleId being saved
+  const [savingRoleFor, setSavingRoleFor] = useState<string | null>(null)
 
   // Fetch the user's first organization
   useEffect(() => {
@@ -121,6 +134,19 @@ export default function TeamPage() {
     loadOrg()
   }, [])
 
+  // Fetch RBAC roles once we have orgId
+  const fetchRbacRoles = useCallback(async (orgId: string) => {
+    try {
+      const res = await fetch(`/api/roles?orgId=${orgId}`)
+      if (res.ok) {
+        const data: RbacRole[] = await res.json()
+        setRbacRoles(data)
+      }
+    } catch {
+      // Non-critical — RBAC roles just won't show in dropdown
+    }
+  }, [])
+
   // Fetch members once we have orgId
   const fetchMembers = useCallback(async (orgId: string) => {
     setIsLoadingMembers(true)
@@ -138,9 +164,10 @@ export default function TeamPage() {
 
   useEffect(() => {
     if (org?.id) {
-      fetchMembers(org.id)
+      void fetchMembers(org.id)
+      void fetchRbacRoles(org.id)
     }
-  }, [org?.id, fetchMembers])
+  }, [org?.id, fetchMembers, fetchRbacRoles])
 
   // ── Invite ────────────────────────────────────────────────────────────────
 
@@ -155,7 +182,11 @@ export default function TeamPage() {
       const res = await fetch(`/api/organizations/${org.id}/invite`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
+        body: JSON.stringify({
+          email: inviteEmail,
+          role: inviteRole,
+          rbacRoleId: inviteRbacRoleId || undefined,
+        }),
       })
       const json = await res.json()
 
@@ -165,16 +196,15 @@ export default function TeamPage() {
       }
 
       if (json.invited) {
-        // New user — email sent with signup link
         setInviteSuccess(`Einladungs-E-Mail wurde an ${inviteEmail} gesendet.`)
       } else {
-        // Existing user — added directly
         setInviteSuccess(`${inviteEmail} wurde dem Team hinzugefügt.`)
         fetchMembers(org.id)
       }
 
       setInviteEmail("")
       setInviteRole("member")
+      setInviteRbacRoleId("")
     } catch {
       setInviteError("Netzwerkfehler. Bitte erneut versuchen.")
     } finally {
@@ -187,8 +217,39 @@ export default function TeamPage() {
     if (!open) {
       setInviteEmail("")
       setInviteRole("member")
+      setInviteRbacRoleId("")
       setInviteError(null)
       setInviteSuccess(null)
+    }
+  }
+
+  // ── RBAC Role Assignment ──────────────────────────────────────────────────
+
+  const handleRbacRoleChange = async (memberId: string, rbacRoleId: string) => {
+    if (!org) return
+    setSavingRoleFor(memberId)
+    try {
+      const res = await fetch(`/api/organizations/${org.id}/members/${memberId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rbacRoleId: rbacRoleId === "none" ? null : rbacRoleId }),
+      })
+      if (!res.ok) {
+        const json = await res.json()
+        setError(json.error ?? "Rolle konnte nicht zugewiesen werden")
+        return
+      }
+      setMembers((prev) =>
+        prev.map((m) =>
+          m.id === memberId
+            ? { ...m, rbacRoleId: rbacRoleId === "none" ? null : rbacRoleId }
+            : m
+        )
+      )
+    } catch {
+      setError("Netzwerkfehler beim Zuweisen der Rolle")
+    } finally {
+      setSavingRoleFor(null)
     }
   }
 
@@ -292,7 +353,7 @@ export default function TeamPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="invite-role">Rolle</Label>
+                  <Label htmlFor="invite-role">Organisationsrolle</Label>
                   <Select
                     value={inviteRole}
                     onValueChange={(v) => setInviteRole(v as "admin" | "member")}
@@ -310,6 +371,32 @@ export default function TeamPage() {
                     Admins können Mitglieder einladen und verwalten.
                   </p>
                 </div>
+
+                {rbacRoles.length > 0 && (
+                  <div className="space-y-2">
+                    <Label htmlFor="invite-rbac-role">Berechtigungsrolle</Label>
+                    <Select
+                      value={inviteRbacRoleId || "none"}
+                      onValueChange={setInviteRbacRoleId}
+                      disabled={isInviting}
+                    >
+                      <SelectTrigger id="invite-rbac-role">
+                        <SelectValue placeholder="Standardberechtigungen" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Standardberechtigungen</SelectItem>
+                        {rbacRoles.map((r) => (
+                          <SelectItem key={r.id} value={r.id}>
+                            {r.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Legt fest, auf welche Bereiche die Person zugreifen darf.
+                    </p>
+                  </div>
+                )}
 
                 {inviteError && (
                   <p className="text-sm text-destructive">{inviteError}</p>
@@ -377,7 +464,8 @@ export default function TeamPage() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>E-Mail</TableHead>
-                  <TableHead>Rolle</TableHead>
+                  <TableHead>Org-Rolle</TableHead>
+                  <TableHead>Berechtigungsrolle</TableHead>
                   <TableHead>Beigetreten</TableHead>
                   {canInvite && <TableHead className="w-12" />}
                 </TableRow>
@@ -386,8 +474,13 @@ export default function TeamPage() {
                 {members.map((member) => {
                   const isOwner = member.role === "owner"
                   const isSelf = member.userId === session?.user?.id
-                  const roleLabel = ROLE_LABELS[member.role ?? "member"] ?? member.role
-                  const roleVariant = ROLE_VARIANTS[member.role ?? "member"] ?? "outline"
+                  const legacyLabel =
+                    LEGACY_ROLE_LABELS[member.role ?? "member"] ?? member.role
+                  const legacyVariant =
+                    LEGACY_ROLE_VARIANTS[member.role ?? "member"] ?? "outline"
+                  const assignedRbacRole = rbacRoles.find(
+                    (r) => r.id === member.rbacRoleId
+                  )
 
                   return (
                     <TableRow key={member.id}>
@@ -401,7 +494,34 @@ export default function TeamPage() {
                         {member.userEmail}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={roleVariant}>{roleLabel}</Badge>
+                        <Badge variant={legacyVariant}>{legacyLabel}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        {canInvite && !isOwner && rbacRoles.length > 0 ? (
+                          <Select
+                            value={member.rbacRoleId ?? "none"}
+                            onValueChange={(v) => handleRbacRoleChange(member.id, v)}
+                            disabled={savingRoleFor === member.id}
+                          >
+                            <SelectTrigger className="h-7 text-xs w-40">
+                              <SelectValue placeholder="Keine Rolle" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">
+                                <span className="text-muted-foreground">Keine Rolle</span>
+                              </SelectItem>
+                              {rbacRoles.map((r) => (
+                                <SelectItem key={r.id} value={r.id}>
+                                  {r.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">
+                            {assignedRbacRole?.name ?? "—"}
+                          </span>
+                        )}
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">
                         {formatDate(member.createdAt)}

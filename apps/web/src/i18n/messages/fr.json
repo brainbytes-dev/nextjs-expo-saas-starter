@@ -381,6 +381,21 @@
     "label": "Langue",
     "de": "Deutsch",
     "fr": "Français",
-    "en": "English"
+    "en": "English",
+    "it": "Italiano"
+  },
+  "comments": {
+    "title": "Commentaires",
+    "addComment": "Ajouter un commentaire",
+    "placeholder": "Écrire un commentaire… @ pour mentionner",
+    "reply": "Répondre",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "deleteConfirm": "Voulez-vous vraiment supprimer ce commentaire ?",
+    "edited": "modifié",
+    "noComments": "Aucun commentaire pour l'instant.",
+    "send": "Envoyer",
+    "cancel": "Annuler",
+    "replyTo": "Répondre à {name}"
   }
 }

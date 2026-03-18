@@ -199,6 +199,7 @@ export const organizationMembers = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     role: text("role").default("member"), // "owner", "admin", "member"
+    rbacRoleId: uuid("rbac_role_id"), // FK to roles.id — deferred to avoid forward-ref (see roles table below)
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
@@ -209,6 +210,7 @@ export const organizationMembers = pgTable(
       table.organizationId,
       table.userId
     ),
+    index("idx_org_members_rbac_role_id").on(table.rbacRoleId),
   ]
 );
 

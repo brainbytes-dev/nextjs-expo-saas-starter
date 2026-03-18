@@ -5,6 +5,8 @@ import { paymentFailedReminderFn } from "@/inngest/payment-failed-reminder";
 import { subscriptionCanceledFn } from "@/inngest/subscription-canceled";
 import { cleanupSessionsFn } from "@/inngest/cleanup-sessions";
 import { syncIntegrationsFn } from "@/inngest/sync-integrations";
+import { checkLowStockFn } from "@/inngest/check-low-stock";
+import { sendScheduledReportsFn } from "@/inngest/send-scheduled-reports";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -14,5 +16,7 @@ export const { GET, POST, PUT } = serve({
     subscriptionCanceledFn,
     cleanupSessionsFn,
     syncIntegrationsFn,
+    checkLowStockFn,
+    sendScheduledReportsFn,
   ],
 });

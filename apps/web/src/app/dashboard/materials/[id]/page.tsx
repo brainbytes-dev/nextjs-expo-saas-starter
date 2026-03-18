@@ -20,6 +20,9 @@ import { QrCodeDisplay } from "@/components/qr-code"
 import { ZebraLabelButton } from "@/components/zebra-label-button"
 import { BarcodeLabel } from "@/components/barcode-label"
 import { CustomFieldsSection } from "@/components/custom-fields"
+import { InsuranceWarrantyPanel } from "@/components/insurance-warranty-panel"
+import { CommentsThread } from "@/components/comments-thread"
+import { AttachmentsPanel } from "@/components/attachments-panel"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -530,6 +533,9 @@ export default function MaterialDetailPage() {
           <TabsTrigger value="suppliers">{t("tabs.suppliers")}</TabsTrigger>
           <TabsTrigger value="tasks">{t("tabs.tasks")}</TabsTrigger>
           <TabsTrigger value="qr">QR-Code</TabsTrigger>
+          <TabsTrigger value="attachments">Anhänge</TabsTrigger>
+          <TabsTrigger value="insurance">Versicherung & Garantie</TabsTrigger>
+          <TabsTrigger value="comments">Kommentare</TabsTrigger>
         </TabsList>
 
         {/* ─── General Tab ─────────────────────────────────────────── */}
@@ -969,7 +975,16 @@ export default function MaterialDetailPage() {
             </div>
           </div>
         </TabsContent>
-      </Tabs>
+        {/* ─── Comments Tab ─────────────────────────────────────── */}
+        <TabsContent value="comments">
+          <CommentsThread entityType="material" entityId={materialId} />
+        </TabsContent>
+
+        {/* ─── Anhänge Tab ──────────────────────────────────────────── */}
+        <TabsContent value="attachments" className="pt-2">
+          <AttachmentsPanel entityType="material" entityId={materialId} />
+        </TabsContent>
+            </Tabs>
 
       {/* ─── Custom Fields ─────────────────────────────────────────── */}
       <CustomFieldsSection entityType="material" entityId={materialId} />

@@ -17,6 +17,7 @@ const LOCALES = [
   { value: "de", label: "Deutsch", flag: "DE" },
   { value: "fr", label: "Français", flag: "FR" },
   { value: "en", label: "English", flag: "EN" },
+  { value: "it", label: "Italiano", flag: "IT" },
 ] as const
 
 type Locale = (typeof LOCALES)[number]["value"]

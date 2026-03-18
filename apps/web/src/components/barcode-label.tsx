@@ -59,8 +59,16 @@ export const SIZE_CONFIG: Record<
 
 const PADDING = 10
 
+const SELF_SERVICE_BASE = "https://app.logistikapp.ch"
+
 function itemUrl(data: BarcodeLabelData): string {
-  const base = typeof window !== "undefined" ? window.location.origin : ""
+  const base = typeof window !== "undefined" ? window.location.origin : SELF_SERVICE_BASE
+  // Use the public self-service URL when a barcode is present so anyone
+  // who scans the QR code can interact without needing an account.
+  if (data.barcode) {
+    return `${base}/s/${encodeURIComponent(data.barcode)}`
+  }
+  // Fallback to the dashboard deep-link when no barcode is set
   const path =
     data.itemType === "material"
       ? `/dashboard/materials/${data.itemId}`

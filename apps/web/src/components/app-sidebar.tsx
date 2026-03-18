@@ -27,6 +27,7 @@ import {
   IconShoppingCart,
   IconTool,
   IconTruck,
+  IconShield,
 } from "@tabler/icons-react"
 import { useTranslations } from "next-intl"
 
@@ -201,6 +202,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: t("team"),
         url: "/dashboard/settings/team",
         icon: IconUsers,
+      },
+      {
+        title: "Rollen",
+        url: "/dashboard/settings/roles",
+        icon: IconShield,
       },
       {
         title: t("integrations"),

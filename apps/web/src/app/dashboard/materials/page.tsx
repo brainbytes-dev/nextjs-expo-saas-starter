@@ -29,6 +29,7 @@ import {
   IconDownload,
   IconUpload,
   IconTag,
+  IconClock,
 } from "@tabler/icons-react"
 
 import { Button } from "@/components/ui/button"
@@ -202,6 +203,7 @@ export default function MaterialsPage() {
   const [groupFilter, setGroupFilter] = useState<string>("all")
   const [locationFilter, setLocationFilter] = useState<string>("all")
   const [lowStockOnly, setLowStockOnly] = useState(false)
+  const [expiringOnly, setExpiringOnly] = useState(false)
   const [page, setPage] = useState(1)
 
   // Sorting state
@@ -260,6 +262,7 @@ export default function MaterialsPage() {
         if (groupFilter && groupFilter !== "all") params.set("groupId", groupFilter)
         if (locationFilter && locationFilter !== "all")
           params.set("locationId", locationFilter)
+        if (expiringOnly) params.set("expiringOnly", "true")
 
         const res = await fetch(`/api/materials?${params.toString()}`)
         if (res.ok) {
@@ -274,7 +277,7 @@ export default function MaterialsPage() {
       }
     }
     fetchMaterials()
-  }, [page, debouncedSearch, groupFilter, locationFilter])
+  }, [page, debouncedSearch, groupFilter, locationFilter, expiringOnly])
 
   // Delete handler
   const handleDelete = useCallback(async () => {
@@ -298,11 +301,19 @@ export default function MaterialsPage() {
 
   // Low-stock filter applied client-side to the current page data
   const filteredMaterials = useMemo(() => {
-    if (!lowStockOnly) return materials
-    return materials.filter(
-      (m) => m.reorderLevel > 0 && m.totalStock <= m.reorderLevel
-    )
-  }, [materials, lowStockOnly])
+    let result = materials
+    if (lowStockOnly) {
+      result = result.filter(
+        (m) => m.reorderLevel > 0 && m.totalStock <= m.reorderLevel
+      )
+    }
+    if (expiringOnly) {
+      result = result.filter(
+        (m) => m.nearestExpiry !== null
+      )
+    }
+    return result
+  }, [materials, lowStockOnly, expiringOnly])
 
   // CSV export: fetch all pages then download
   const handleExport = useCallback(async () => {
@@ -322,11 +333,14 @@ export default function MaterialsPage() {
           (m) => m.reorderLevel > 0 && m.totalStock <= m.reorderLevel
         )
       }
+      if (expiringOnly) {
+        allRows = allRows.filter((m) => m.nearestExpiry !== null)
+      }
       downloadCsv(allRows, "materialien.csv")
     } catch {
       // silently fail
     }
-  }, [debouncedSearch, groupFilter, locationFilter, lowStockOnly])
+  }, [debouncedSearch, groupFilter, locationFilter, lowStockOnly, expiringOnly])
 
   const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE))
 
@@ -716,6 +730,24 @@ export default function MaterialsPage() {
           />
           <span className="ml-1.5 text-sm">Nur Meldebestand</span>
         </Toggle>
+        <Toggle
+          pressed={expiringOnly}
+          onPressedChange={(pressed) => {
+            setExpiringOnly(pressed)
+            setPage(1)
+          }}
+          aria-label="Nur ablaufende anzeigen"
+          className={
+            expiringOnly
+              ? "border border-red-500/40 bg-red-500/10 text-red-600 hover:bg-red-500/20 hover:text-red-600 data-[state=on]:bg-red-500/10 data-[state=on]:text-red-600"
+              : "border border-border"
+          }
+        >
+          <IconClock
+            className={`size-4 ${expiringOnly ? "text-red-500" : "text-muted-foreground"}`}
+          />
+          <span className="ml-1.5 text-sm">Nur ablaufende</span>
+        </Toggle>
       </div>
 
       {/* Table */}
@@ -784,7 +816,16 @@ export default function MaterialsPage() {
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="cursor-pointer">
+                <TableRow
+                  key={row.id}
+                  className={`cursor-pointer ${
+                    row.original.nearestExpiry && isExpired(row.original.nearestExpiry)
+                      ? "bg-destructive/5 hover:bg-destructive/10"
+                      : row.original.nearestExpiry && isExpiringSoon(row.original.nearestExpiry)
+                        ? "bg-amber-500/5 hover:bg-amber-500/10"
+                        : ""
+                  }`}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
