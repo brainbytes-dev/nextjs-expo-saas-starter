@@ -5,6 +5,7 @@ import {
   useState,
   useEffect,
   useCallback,
+  useMemo,
   forwardRef,
   useImperativeHandle,
 } from "react"
@@ -82,13 +83,17 @@ export const MentionInput = forwardRef<MentionInputHandle, MentionInputProps>(
     const [selectedIndex, setSelectedIndex] = useState(0)
 
     // Filtered members matching the current @query
-    const filteredMembers = query
-      ? members.filter((m) => {
-          const name = (m.userName ?? m.userEmail).toLowerCase()
-          const q = query.slice(1).toLowerCase() // strip the "@"
-          return name.includes(q)
-        })
-      : []
+    const filteredMembers = useMemo(
+      () =>
+        query
+          ? members.filter((m) => {
+              const name = (m.userName ?? m.userEmail).toLowerCase()
+              const q = query.slice(1).toLowerCase() // strip the "@"
+              return name.includes(q)
+            })
+          : [],
+      [query, members]
+    )
 
     // Expose handle
     useImperativeHandle(ref, () => ({
@@ -144,6 +149,35 @@ export const MentionInput = forwardRef<MentionInputHandle, MentionInputProps>(
       []
     )
 
+    const insertMention = useCallback(
+      (member: Member) => {
+        const textarea = textareaRef.current
+        if (!textarea) return
+
+        const caret = textarea.selectionStart ?? value.length
+        const before = value.slice(0, caret)
+        const after = value.slice(caret)
+
+        const displayName = member.userName ?? member.userEmail
+        const replaced = before.replace(/@(\w*)$/, `@${displayName} `)
+        const newValue = replaced + after
+
+        setValue(newValue)
+        setMentions((prev) =>
+          prev.includes(member.userId) ? prev : [...prev, member.userId]
+        )
+        setDropdownOpen(false)
+        setQuery(null)
+
+        requestAnimationFrame(() => {
+          textarea.selectionStart = replaced.length
+          textarea.selectionEnd = replaced.length
+          textarea.focus()
+        })
+      },
+      [value]
+    )
+
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (dropdownOpen && filteredMembers.length > 0) {
@@ -170,44 +204,12 @@ export const MentionInput = forwardRef<MentionInputHandle, MentionInputProps>(
           }
         }
 
-        // Ctrl+Enter or Cmd+Enter → submit
         if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
           e.preventDefault()
           onSubmit?.()
         }
       },
-      [dropdownOpen, filteredMembers, selectedIndex, onSubmit]
-    )
-
-    const insertMention = useCallback(
-      (member: Member) => {
-        const textarea = textareaRef.current
-        if (!textarea) return
-
-        const caret = textarea.selectionStart ?? value.length
-        const before = value.slice(0, caret)
-        const after = value.slice(caret)
-
-        // Replace the @trigger with "@DisplayName "
-        const displayName = member.userName ?? member.userEmail
-        const replaced = before.replace(/@(\w*)$/, `@${displayName} `)
-        const newValue = replaced + after
-
-        setValue(newValue)
-        setMentions((prev) =>
-          prev.includes(member.userId) ? prev : [...prev, member.userId]
-        )
-        setDropdownOpen(false)
-        setQuery(null)
-
-        // Restore caret after the inserted mention
-        requestAnimationFrame(() => {
-          textarea.selectionStart = replaced.length
-          textarea.selectionEnd = replaced.length
-          textarea.focus()
-        })
-      },
-      [value]
+      [dropdownOpen, filteredMembers, selectedIndex, onSubmit, insertMention]
     )
 
     // Render @-mentions in blue inside a read-only overlay is complex; instead

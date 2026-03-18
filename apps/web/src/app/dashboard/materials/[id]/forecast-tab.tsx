@@ -30,9 +30,6 @@ import {
   IconAlertTriangle,
   IconCheck,
   IconShoppingCart,
-  IconTrendingUp,
-  IconTrendingDown,
-  IconMinus,
   IconInfoCircle,
 } from "@tabler/icons-react"
 
@@ -138,7 +135,7 @@ interface ForecastTabProps {
   unit?: string
 }
 
-export function ForecastTab({ materialId, unit = "Stk" }: ForecastTabProps) {
+export function ForecastTab({ materialId }: ForecastTabProps) {
   const router = useRouter()
   const [data, setData] = useState<ForecastResponse | null>(null)
   const [loading, setLoading] = useState(true)

@@ -248,7 +248,7 @@ export async function sendApprovalRequestEmail(
   requestType: string,
   entityType: string,
   entityId: string,
-  approvalId: string
+  approvalId: string // eslint-disable-line @typescript-eslint/no-unused-vars
 ) {
   if (DEMO_MODE) {
     console.log(`[DEMO] Would send approval request email to ${adminEmail}`);

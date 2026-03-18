@@ -64,7 +64,6 @@ export const checkLowStockFn = inngest.createFunction(
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + expiryLookaheadDays);
     const expiryDateStr = expiryDate.toISOString().split("T")[0]!;
-    const todayStr = new Date().toISOString().split("T")[0]!;
 
     for (const org of orgSettings) {
       // ── Low stock materials ────────────────────────────────────────

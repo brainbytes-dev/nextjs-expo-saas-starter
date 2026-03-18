@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
 import { workflowRules } from "@repo/db/schema";
-import { eq, and, asc } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 
 // ─── GET /api/workflow-rules ──────────────────────────────────────────────────
 

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import Image from "next/image"
 import {
   IconUpload,
   IconTrash,
@@ -15,7 +14,6 @@ import {
   IconLoader2,
 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Dialog,

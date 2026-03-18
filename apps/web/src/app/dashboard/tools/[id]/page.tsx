@@ -18,7 +18,6 @@ import {
   IconDeviceFloppy,
   IconTag,
   IconCurrencyEuro,
-  IconChartLine,
   IconCertificate,
   IconPlus,
   IconClockHour4,
@@ -240,10 +239,11 @@ export default function ToolDetailPage() {
     async function load() {
       setLoading(true)
       try {
-        const [toolRes, groupsRes, locsRes] = await Promise.all([
+        const [toolRes, groupsRes, locsRes, deprRes] = await Promise.all([
           fetch(`/api/tools/${toolId}`),
           fetch("/api/tool-groups"),
           fetch("/api/locations"),
+          fetch(`/api/tools/${toolId}/depreciation`),
         ])
 
         if (toolRes.ok) {
@@ -259,22 +259,18 @@ export default function ToolDetailPage() {
           const l = await locsRes.json()
           setLocations(Array.isArray(l) ? l : (l.data ?? []))
         }
+        if (deprRes.ok) {
+          setDeprData(await deprRes.json())
+        }
       } catch {
         // TODO: handle error
       } finally {
         setLoading(false)
+        setDeprLoading(false)
       }
     }
     load()
   }, [toolId])
-
-  const fetchDepreciation = async () => {
-    setDeprLoading(true)
-    try {
-      const r = await fetch(`/api/tools/${toolId}/depreciation`)
-      if (r.ok) setDeprData(await r.json())
-    } catch { /* silently fail */ } finally { setDeprLoading(false) }
-  }
 
   const fetchCalibrations = async () => {
     setCalibLoading(true)
@@ -1111,11 +1107,12 @@ export default function ToolDetailPage() {
                             tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`}
                           />
                           <Tooltip
-                            formatter={(value: number) => [
-                              `CHF ${value.toLocaleString("de-CH", { minimumFractionDigits: 2 })}`,
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            formatter={(value: any) => [
+                              `CHF ${Number(value).toLocaleString("de-CH", { minimumFractionDigits: 2 })}`,
                               "",
                             ]}
-                            labelFormatter={(label: number) => `Jahr ${label}`}
+                            labelFormatter={(label: any) => `Jahr ${label}`}
                           />
                           <Area
                             type="monotone"

@@ -225,7 +225,6 @@ function CommentCard({
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
                 rows={3}
-                // eslint-disable-next-line jsx-a11y/no-autofocus
                 autoFocus
               />
               <div className="flex gap-2">

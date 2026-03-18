@@ -122,7 +122,6 @@ function detectConflictFields(
     if (key === "updatedAt" || key === "createdAt") continue;
     const serverValue = serverState[key];
     // Loose equality is intentional: "1" and 1 should not trigger a conflict.
-    // eslint-disable-next-line eqeqeq
     if (serverValue != clientValue) {
       fields.push(key);
     }

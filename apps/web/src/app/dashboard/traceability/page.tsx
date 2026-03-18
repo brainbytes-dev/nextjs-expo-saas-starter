@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
 import {
   IconSearch,
   IconArrowDown,
@@ -12,15 +11,12 @@ import {
   IconTruck,
   IconClipboardList,
   IconAlertTriangle,
-  IconCircleCheck,
-  IconCircleDashed,
 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -236,7 +232,6 @@ function StockStatusBadge({
 // Main component
 // ---------------------------------------------------------------------------
 export default function TraceabilityPage() {
-  const router = useRouter()
   const [searchBatch, setSearchBatch] = useState("")
   const [searchSerial, setSearchSerial] = useState("")
   const [loading, setLoading] = useState(false)
@@ -508,7 +503,7 @@ export default function TraceabilityPage() {
                 />
 
                 <ol className="space-y-0">
-                  {result.changes.map((change, idx) => (
+                  {result.changes.map((change) => (
                     <li key={change.id} className="relative flex gap-4 pb-8 last:pb-0">
                       {/* Icon */}
                       <div className="relative z-10 flex-shrink-0">

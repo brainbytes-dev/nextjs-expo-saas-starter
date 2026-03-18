@@ -431,7 +431,6 @@ export default function CustomizeDashboardPage() {
             rowHeight={80}
             margin={[12, 12]}
             containerPadding={[0, 0]}
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             onLayoutChange={handleLayoutChange as Parameters<typeof ResponsiveGridLayout>[0]["onLayoutChange"]}
             dragConfig={{ handle: ".widget-drag-handle" }}
           >

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
-import { dryRunRule, TRIGGER_EVENTS } from "@/lib/rules-engine";
+import { dryRunRule } from "@/lib/rules-engine";
 
 // ─── POST /api/workflow-rules/[id]/test ───────────────────────────────────────
 //

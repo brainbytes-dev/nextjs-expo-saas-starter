@@ -31,20 +31,39 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useOrganization } from "@/hooks/use-organization";
-import {
-  TRIGGER_EVENT_LABELS,
-  CONDITION_FIELD_LABELS,
-  CONDITION_OPERATOR_LABELS,
-  ACTION_TYPE_LABELS,
-  RULE_TEMPLATES,
-  type Condition,
-  type Action,
-  type TriggerEvent,
-  type ConditionField,
-  type ConditionOperator,
-  type ActionType,
-  type RuleTemplate,
-} from "@/lib/rules-engine";
+// Types only — no runtime imports from rules-engine to avoid server-only DB deps
+type TriggerEvent = string;
+type ConditionField = string;
+type ConditionOperator = string;
+type ActionType = string;
+interface Condition { field: string; operator: string; value: string | number | boolean; }
+interface Action { type: string; config: Record<string, unknown>; }
+interface RuleTemplate { id: string; name: string; description: string; triggerEvent: string; conditions: Condition[]; actions: Action[]; priority: number; }
+
+const TRIGGER_EVENT_LABELS: Record<string, string> = {
+  "stock.changed": "Bestand geändert", "stock.below_reorder": "Unter Meldebestand",
+  "tool.checked_out": "Werkzeug ausgebucht", "tool.overdue": "Werkzeug überfällig",
+  "maintenance.due": "Wartung fällig", "commission.created": "Kommission erstellt",
+  "commission.completed": "Kommission abgeschlossen",
+};
+const CONDITION_FIELD_LABELS: Record<string, string> = {
+  quantity: "Menge (Delta)", newQuantity: "Neue Menge", previousQuantity: "Vorherige Menge",
+  changeType: "Buchungstyp", toolCondition: "Werkzeugzustand", daysOverdue: "Tage überfällig",
+  daysUntilMaintenance: "Tage bis Wartung", materialId: "Material-ID", locationId: "Lager-ID",
+};
+const CONDITION_OPERATOR_LABELS: Record<string, string> = {
+  eq: "gleich", neq: "ungleich", gt: "größer als", lt: "kleiner als",
+  gte: "größer oder gleich", lte: "kleiner oder gleich", contains: "enthält",
+};
+const ACTION_TYPE_LABELS: Record<string, string> = {
+  send_email: "E-Mail senden", send_whatsapp: "WhatsApp senden", create_order: "Bestellung erstellen",
+  create_task: "Aufgabe erstellen", block_checkout: "Ausbuchung sperren", webhook: "Webhook auslösen",
+};
+const RULE_TEMPLATES: RuleTemplate[] = [
+  { id: "tpl_meldebestand", name: "Meldebestand-Warnung", description: "E-Mail wenn Bestand unter Meldebestand fällt.", triggerEvent: "stock.below_reorder", conditions: [], actions: [{ type: "send_email", config: { to: "lager@beispiel.ch", subject: "Meldebestand: {{materialName}}", body: "Material {{materialName}} unter Meldebestand." } }], priority: 10 },
+  { id: "tpl_werkzeug_ueberfaellig", name: "Werkzeug überfällig", description: "E-Mail wenn Werkzeug >7 Tage ausgebucht.", triggerEvent: "tool.overdue", conditions: [{ field: "daysOverdue", operator: "gte", value: 7 }], actions: [{ type: "send_email", config: { to: "verwaltung@beispiel.ch", subject: "Überfällig: {{toolName}}", body: "Werkzeug {{toolName}} seit {{daysOverdue}} Tagen ausgebucht." } }], priority: 20 },
+  { id: "tpl_wartung_faellig", name: "Wartung fällig", description: "E-Mail + Ausbuchung sperren bei fälliger Wartung.", triggerEvent: "maintenance.due", conditions: [{ field: "daysUntilMaintenance", operator: "lte", value: 0 }], actions: [{ type: "send_email", config: { to: "technik@beispiel.ch", subject: "Wartung fällig: {{toolName}}", body: "Wartung für {{toolName}} ist fällig." } }, { type: "block_checkout", config: {} }], priority: 30 },
+];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

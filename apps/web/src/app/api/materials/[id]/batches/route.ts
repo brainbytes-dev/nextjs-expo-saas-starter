@@ -52,13 +52,6 @@ export async function GET(
         )
       );
 
-    // For each batch/serial entry, fetch associated stock change history
-    const batchKeys = new Set(
-      stocks
-        .filter((s) => s.batchNumber || s.serialNumber)
-        .map((s) => `${s.batchNumber ?? ""}::${s.serialNumber ?? ""}`)
-    );
-
     // Fetch all stock changes for this material that have batch/serial numbers
     const allChanges = await db
       .select({

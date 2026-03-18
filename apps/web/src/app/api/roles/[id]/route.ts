@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
 import { roles, permissions } from "@repo/db/schema";
 import { eq, and } from "drizzle-orm";
-import { hasPermission, RESOURCES, ACTIONS, type Resource, type Action } from "@/lib/rbac";
+import { hasPermission, RESOURCES, ACTIONS } from "@/lib/rbac";
 
 // ─── GET /api/roles/[id] — role with permissions ──────────────────────────────
 

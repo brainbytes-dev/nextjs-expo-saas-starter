@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@repo/db";
-import { tools, users, locations, organizationMembers } from "@repo/db/schema";
-import { eq, and, isNotNull, gte } from "drizzle-orm";
+import { tools, users, locations } from "@repo/db/schema";
+import { eq, and, isNotNull } from "drizzle-orm";
 
 // ── iCal helpers ──────────────────────────────────────────────────────────
 
@@ -52,8 +52,6 @@ function buildIcal(orgName: string, events: Array<{
 
   for (const ev of events) {
     // Parse as local date (YYYY-MM-DD)
-    const [year, month, day] = ev.nextMaintenanceDate.split("-").map(Number) as [number, number, number];
-    const dueDate = new Date(Date.UTC(year!, month! - 1, day!));
     const dueDateStr = ev.nextMaintenanceDate.replace(/-/g, ""); // YYYYMMDD
 
     const uid = `maint-${ev.id}-${ev.nextMaintenanceDate}@logistikapp`;
@@ -148,14 +146,6 @@ export async function GET(request: Request) {
     if (!org) {
       return new Response("Organisation nicht gefunden", { status: 404 });
     }
-
-    // Fetch upcoming + overdue maintenance (no upper date limit — show all)
-    const today = new Date().toISOString().split("T")[0]!;
-    // We want overdue too, so we don't use gte — we want everything with a date set.
-    // But limit to reasonable window: overdue + next 365 days.
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() + 365);
-    const cutoffStr = cutoff.toISOString().split("T")[0]!;
 
     const rows = await db
       .select({

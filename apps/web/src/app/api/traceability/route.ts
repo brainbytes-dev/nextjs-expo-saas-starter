@@ -78,8 +78,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ changes: [], currentStock: [], summary: null });
     }
 
-    // Determine all unique materialIds for current stock lookup
-    const materialIds = [...new Set(changes.map((c) => c.materialId))];
+    // Determine current stock positions for materials in the result set
 
     // Fetch current stock positions for these materials with matching batch/serial
     const stockConditions = [eq(materialStocks.organizationId, orgId)];

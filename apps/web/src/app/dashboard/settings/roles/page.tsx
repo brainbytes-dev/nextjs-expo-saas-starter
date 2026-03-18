@@ -44,8 +44,6 @@ import {
   IconTrash,
   IconEdit,
   IconLock,
-  IconCheck,
-  IconX,
 } from "@tabler/icons-react"
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -187,7 +185,6 @@ function PermissionMatrix({ permMap, onChange, readonly = false }: PermissionMat
         </TableHeader>
         <TableBody>
           {RESOURCES.map((resource) => {
-            const allChecked = ACTIONS.every((a) => permMap[resource]?.[a])
             return (
               <TableRow key={resource} className="group">
                 <TableCell className="font-medium text-sm">
@@ -225,7 +222,7 @@ function PermissionMatrix({ permMap, onChange, readonly = false }: PermissionMat
 // ── Main Component ─────────────────────────────────────────────────────────
 
 export default function RolesPage() {
-  const { data: session } = useSession()
+  useSession()
 
   const [org, setOrg] = useState<OrgInfo | null>(null)
   const [rolesList, setRolesList] = useState<Role[]>([])

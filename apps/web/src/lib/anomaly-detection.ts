@@ -1,14 +1,11 @@
 import { getDb } from "@repo/db";
 import {
   stockChanges,
-  toolBookings,
   materials,
-  tools,
   locations,
   users,
-  organizations,
 } from "@repo/db/schema";
-import { eq, and, gte, desc, sql } from "drizzle-orm";
+import { eq, and, gte, desc } from "drizzle-orm";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

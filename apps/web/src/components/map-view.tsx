@@ -101,7 +101,6 @@ export default function MapView({ locations, focusId, className }: MapViewProps)
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Add / update markers when locations or map changes

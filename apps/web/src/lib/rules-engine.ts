@@ -1,8 +1,14 @@
-import { getDb } from "@repo/db";
-import { workflowRules } from "@repo/db/schema";
-import { eq, and } from "drizzle-orm";
-import * as Sentry from "@sentry/nextjs";
-import { DEMO_MODE } from "@/lib/demo-mode";
+// All server-side imports are dynamic to prevent client-bundle contamination.
+// Constants and types in this file are safe for client import.
+
+const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+
+async function getDbAndSchema() {
+  const { getDb } = await import("@repo/db");
+  const { workflowRules } = await import("@repo/db/schema");
+  const { eq, and } = await import("drizzle-orm");
+  return { db: getDb(), workflowRules, eq, and };
+}
 
 // ─── Trigger Events ───────────────────────────────────────────────────────────
 
@@ -139,10 +145,8 @@ function compareValues(
 ): boolean {
   switch (operator) {
     case "eq":
-      // eslint-disable-next-line eqeqeq
       return actual == expected;
     case "neq":
-      // eslint-disable-next-line eqeqeq
       return actual != expected;
     case "gt":
       return Number(actual) > Number(expected);
@@ -214,7 +218,7 @@ async function executeAction(
         });
       } catch (err) {
         console.error("[rules-engine] send_email failed:", err);
-        Sentry.captureException(err, { tags: { module: "rules-engine", action: "send_email" }, extra: { orgId } });
+        console.error("[rules-engine]", err);
       }
       break;
     }
@@ -272,7 +276,7 @@ async function executeAction(
         });
       } catch (err) {
         console.error("[rules-engine] create_task failed:", err);
-        Sentry.captureException(err, { tags: { module: "rules-engine", action: "create_task" }, extra: { orgId } });
+        console.error("[rules-engine]", err);
       }
       break;
     }
@@ -317,7 +321,7 @@ async function executeAction(
         clearTimeout(t);
       } catch (err) {
         console.error("[rules-engine] webhook action failed:", err);
-        Sentry.captureException(err, { tags: { module: "rules-engine", action: "webhook" }, extra: { orgId, url } });
+        console.error("[rules-engine]", err);
       }
       break;
     }
@@ -342,10 +346,6 @@ export async function executeActions(
       await executeAction(orgId, action, context);
     } catch (err) {
       console.error("[rules-engine] Unexpected error in action:", action.type, err);
-      Sentry.captureException(err, {
-        tags: { module: "rules-engine", action: action.type },
-        extra: { orgId },
-      });
     }
   }
 }
@@ -369,15 +369,15 @@ export async function evaluateRules(
   // Fire-and-forget: do not block the calling request
   (async () => {
     try {
-      const db = getDb();
+      const { db, workflowRules: wfRules, eq: eqOp, and: andOp } = await getDbAndSchema();
       const rules = await db
         .select()
-        .from(workflowRules)
+        .from(wfRules)
         .where(
-          and(
-            eq(workflowRules.organizationId, orgId),
-            eq(workflowRules.isActive, true),
-            eq(workflowRules.triggerEvent, event)
+          andOp(
+            eqOp(wfRules.organizationId, orgId),
+            eqOp(wfRules.isActive, true),
+            eqOp(wfRules.triggerEvent, event)
           )
         );
 
@@ -393,10 +393,6 @@ export async function evaluateRules(
         }
       }
     } catch (err) {
-      Sentry.captureException(err, {
-        tags: { module: "rules-engine", event },
-        extra: { orgId },
-      });
       console.error("[rules-engine] evaluateRules error:", err);
     }
   })();
@@ -421,11 +417,11 @@ export async function dryRunRule(
   ruleId: string,
   context: Record<string, unknown>
 ): Promise<DryRunResult | null> {
-  const db = getDb();
+  const { db, workflowRules: wfRules, eq: eqOp, and: andOp } = await getDbAndSchema();
   const [rule] = await db
     .select()
-    .from(workflowRules)
-    .where(and(eq(workflowRules.id, ruleId), eq(workflowRules.organizationId, orgId)))
+    .from(wfRules)
+    .where(andOp(eqOp(wfRules.id, ruleId), eqOp(wfRules.organizationId, orgId)))
     .limit(1);
 
   if (!rule) return null;

@@ -1,8 +1,5 @@
 "use client"
 
-// Note: IconRefresh may be IconRotate in newer @tabler/icons-react versions
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-
 import { useState, useEffect, useRef } from "react"
 import {
   Card,

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
 import { floorPlans, locations } from "@repo/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 // ─── GET /api/floor-plans ─────────────────────────────────────────────────────
 

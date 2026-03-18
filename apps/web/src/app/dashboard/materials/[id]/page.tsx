@@ -341,7 +341,7 @@ export default function MaterialDetailPage() {
     } finally {
       setBookingLoading(false)
     }
-  }, [bookingType, bookingLocationId, bookingQty, materialId])
+  }, [bookingType, bookingLocationId, bookingQty, materialId, bookingBatchNumber, bookingExpiryDate, bookingSerialNumber])
 
   const totalStock = stocks.reduce((sum, s) => sum + s.quantity, 0)
 

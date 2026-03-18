@@ -10,7 +10,7 @@ import {
 } from "@repo/db/schema";
 import { eq, and, count } from "drizzle-orm";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const result = await getSession();
     if (result.error) return result.error;
@@ -29,23 +29,6 @@ export async function GET(request: Request) {
     if (memberships.length === 0) {
       return NextResponse.json({ orgs: [], totals: { locations: 0, materials: 0, tools: 0, keys: 0 } });
     }
-
-    const orgIds = memberships.map((m) => m.organizationId);
-
-    // Fetch org metadata
-    const orgRows = await db
-      .select({
-        id: organizations.id,
-        name: organizations.name,
-        slug: organizations.slug,
-        industry: organizations.industry,
-        logo: organizations.logo,
-      })
-      .from(organizations)
-      .where(
-        // Drizzle doesn't have inArray in older versions — use raw sql
-        eq(organizations.id, orgIds[0]!)
-      );
 
     // For each org, fetch counts — done sequentially to keep it simple
     // (N orgs, typically 1-5 for a SME, so N+1 is acceptable here)

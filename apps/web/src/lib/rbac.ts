@@ -76,7 +76,6 @@ export const ACTION_LABELS: Record<Action, string> = {
 // ─── Owner role slug — always full access ────────────────────────────────────
 
 const OWNER_ROLE_SLUG = "inhaber";
-const ADMIN_ROLE_SLUG = "administrator";
 
 // ─── Permission Engine ────────────────────────────────────────────────────────
 

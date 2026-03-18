@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getSessionAndOrg } from "@/app/api/_helpers/auth"
 import { stockChanges, materials, materialStocks } from "@repo/db/schema"
-import { eq, and, gte, lt, desc, sql } from "drizzle-orm"
+import { eq, and, gte, sql } from "drizzle-orm"
 import {
   forecastDemand,
   suggestReorder,
@@ -46,7 +46,6 @@ export async function GET(
     // ── 2. Fetch last 90 days of stock changes ──────────────────────
     const since = new Date()
     since.setDate(since.getDate() - 90)
-    const sinceStr = since.toISOString()
 
     const rows = await db
       .select({

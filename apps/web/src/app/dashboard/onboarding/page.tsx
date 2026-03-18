@@ -19,7 +19,6 @@ import {
   IconStethoscope,
   IconBuildingHospital,
   IconChefHat,
-  IconBuilding2,
 } from "@tabler/icons-react"
 import {
   Card,
@@ -128,7 +127,7 @@ function IndustryIcon({ icon, className }: { icon: string; className?: string })
     case "Stethoscope": return <IconStethoscope {...props} />
     case "BuildingHospital": return <IconBuildingHospital {...props} />
     case "ChefHat": return <IconChefHat {...props} />
-    case "Building": return <IconBuilding2 {...props} />
+    case "Building": return <IconBuilding {...props} />
     default: return <IconBuilding {...props} />
   }
 }
@@ -327,7 +326,7 @@ function TemplateSummaryBadges({ template }: { template: IndustryTemplate }) {
 
 function StepTemplate({
   industry,
-  orgId,
+  orgId: _orgId, // eslint-disable-line @typescript-eslint/no-unused-vars
   onApply,
   onSkip,
   isLoading,

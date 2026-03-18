@@ -8,7 +8,7 @@ import { useTranslations } from "next-intl"
 import { useSession } from "@/lib/auth-client"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { ResponsiveGridLayout, noCompactor, useContainerWidth } from "react-grid-layout"
-import type { LayoutItem as GridLayoutItem, ResponsiveLayouts } from "react-grid-layout"
+import type { ResponsiveLayouts } from "react-grid-layout"
 import {
   IconPackage,
   IconTool,

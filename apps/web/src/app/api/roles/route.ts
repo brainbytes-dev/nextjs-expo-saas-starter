@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   try {
     const result = await getSessionAndOrg(request);
     if (result.error) return result.error;
-    const { db, orgId, session } = result;
+    const { db, orgId } = result;
 
     // Any member may view roles (needed to populate dropdowns)
     const rows = await db

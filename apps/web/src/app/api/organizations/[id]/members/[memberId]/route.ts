@@ -80,7 +80,7 @@ export async function PATCH(
 
     const result = await getSessionAndOrg(new Request(request.url, { headers }));
     if (result.error) return result.error;
-    const { db, orgId, session, membership } = result;
+    const { db, orgId, membership } = result;
 
     // Only owner/admin may change role assignments
     const isPrivileged =

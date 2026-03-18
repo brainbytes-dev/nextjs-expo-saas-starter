@@ -8,10 +8,8 @@ import {
   toolGroups,
   locations,
   organizations,
-  organizationMembers,
-  users,
 } from "@repo/db/schema"
-import { eq, and, gte } from "drizzle-orm"
+import { eq, and } from "drizzle-orm"
 import { DEMO_MODE } from "@/lib/demo-mode"
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.logistikapp.ch"

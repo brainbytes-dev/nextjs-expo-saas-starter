@@ -126,7 +126,8 @@ export async function POST(request: Request) {
       );
     }
 
-    let formData: FormData;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let formData: any;
     try {
       formData = await request.formData();
     } catch {
