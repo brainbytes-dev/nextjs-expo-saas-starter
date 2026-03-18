@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
-import { Appearance, ColorSchemeName } from "react-native";
+import { useEffect, useState, useCallback } from "react";
+import {
+  useColorScheme as useNativeWindColorScheme,
+} from "nativewind";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { COLORS } from "@/theme/colors";
 
@@ -7,11 +9,11 @@ export type ThemePreference = "system" | "light" | "dark";
 
 const STORAGE_KEY = "theme_preference";
 
-type ThemeListener = (pref: ThemePreference) => void;
-
-const listeners = new Set<ThemeListener>();
 let currentPreference: ThemePreference = "system";
 let loaded = false;
+
+type ThemeListener = (pref: ThemePreference) => void;
+const listeners = new Set<ThemeListener>();
 
 function notify() {
   for (const listener of listeners) {
@@ -19,17 +21,9 @@ function notify() {
   }
 }
 
-function applyPreference(pref: ThemePreference) {
-  if (pref === "system") {
-    Appearance.setColorScheme(null);
-  } else {
-    Appearance.setColorScheme(pref);
-  }
-}
-
 /**
- * Hydrate theme preference from AsyncStorage and apply it.
- * Call once at app startup (e.g. in root _layout.tsx useEffect).
+ * Hydrate theme preference from AsyncStorage.
+ * Call once at app startup in root _layout.tsx.
  */
 export async function loadThemePreference(): Promise<ThemePreference> {
   if (loaded) return currentPreference;
@@ -38,64 +32,52 @@ export async function loadThemePreference(): Promise<ThemePreference> {
     if (stored === "light" || stored === "dark" || stored === "system") {
       currentPreference = stored;
     }
-  } catch {
-    // Fall back to system default — safe to ignore
-  }
+  } catch {}
   loaded = true;
-  applyPreference(currentPreference);
   notify();
   return currentPreference;
 }
 
 /**
- * Persist a new theme preference and apply it immediately.
+ * Persist a new theme preference. The actual NativeWind toggle
+ * happens inside the useColorScheme() hook via nativewind's setColorScheme.
  */
-export async function setColorScheme(pref: ThemePreference): Promise<void> {
+export async function setThemePreference(pref: ThemePreference): Promise<void> {
   currentPreference = pref;
-  applyPreference(pref);
   notify();
   try {
     await AsyncStorage.setItem(STORAGE_KEY, pref);
-  } catch {
-    // Non-fatal — preference is applied in-memory even if storage fails
-  }
+  } catch {}
 }
 
 /**
- * React hook — returns reactive theme state including a setter.
+ * React hook — wraps nativewind's useColorScheme with persistence.
  */
 export function useColorScheme() {
-  // Track the resolved RN color scheme separately so NativeWind re-renders
-  const [rnScheme, setRnScheme] = useState<NonNullable<ColorSchemeName>>(
-    Appearance.getColorScheme() ?? "light"
-  );
-  const [themePreference, setThemePreferenceLocal] =
-    useState<ThemePreference>(currentPreference);
+  const nw = useNativeWindColorScheme();
+  const [themePreference, setLocal] = useState<ThemePreference>(currentPreference);
 
   useEffect(() => {
-    // Sync preference state
-    const prefListener: ThemeListener = (pref) => {
-      setThemePreferenceLocal(pref);
-    };
-    listeners.add(prefListener);
-
-    // Ensure preference is loaded
-    if (!loaded) {
-      loadThemePreference();
-    }
-
-    // Track RN Appearance changes (handles system theme flips)
-    const appearanceSubscription = Appearance.addChangeListener(({ colorScheme }) => {
-      setRnScheme(colorScheme ?? "light");
-    });
-
-    return () => {
-      listeners.delete(prefListener);
-      appearanceSubscription.remove();
-    };
+    const listener: ThemeListener = (pref) => setLocal(pref);
+    listeners.add(listener);
+    if (!loaded) loadThemePreference();
+    return () => { listeners.delete(listener); };
   }, []);
 
-  const colorScheme: "light" | "dark" = rnScheme === "dark" ? "dark" : "light";
+  // Apply NativeWind color scheme whenever preference changes
+  useEffect(() => {
+    if (themePreference === "system") {
+      nw.setColorScheme("system");
+    } else {
+      nw.setColorScheme(themePreference);
+    }
+  }, [themePreference]);
+
+  const colorScheme = nw.colorScheme ?? "light";
+
+  const setColorScheme = useCallback(async (pref: ThemePreference) => {
+    await setThemePreference(pref);
+  }, []);
 
   return {
     colorScheme,
