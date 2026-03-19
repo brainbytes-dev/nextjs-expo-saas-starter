@@ -74,7 +74,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { status, name, notes, targetLocationId, customerId } = body;
+    const { status, name, notes, targetLocationId, customerId, signature, signedBy, signedAt } = body;
 
     const validStatuses = ["open", "in_progress", "completed", "cancelled"];
     if (status && !validStatuses.includes(status)) {
@@ -90,6 +90,9 @@ export async function PATCH(
     if (notes !== undefined) updateData.notes = notes;
     if (targetLocationId !== undefined) updateData.targetLocationId = targetLocationId;
     if (customerId !== undefined) updateData.customerId = customerId;
+    if (signature !== undefined) updateData.signature = signature;
+    if (signedBy !== undefined) updateData.signedBy = signedBy;
+    if (signedAt !== undefined) updateData.signedAt = signedAt ? new Date(signedAt) : null;
 
     const [updated] = await db
       .update(commissions)

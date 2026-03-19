@@ -42,6 +42,8 @@ import {
   IconCheck,
   IconKeyboard,
   IconBrain,
+  IconDeviceTv,
+  IconBarcode,
 } from "@tabler/icons-react"
 import { useTranslations } from "next-intl"
 import { useShortcutsDialog } from "@/components/shortcuts-dialog"
@@ -378,6 +380,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: IconReportAnalytics,
         hideable: true,
       },
+      {
+        title: "TV-Modus",
+        url: "/tv",
+        icon: IconDeviceTv,
+        hideable: true,
+        newTab: true,
+      },
     ],
     documents: [
       {
@@ -408,6 +417,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         name: t("cart"),
         url: "/dashboard/cart",
         icon: IconShoppingCart,
+        hideable: true,
+      },
+      {
+        name: "Barcode-Generator",
+        url: "/dashboard/barcode-generator",
+        icon: IconBarcode,
         hideable: true,
       },
       {
@@ -474,6 +489,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         url: "/dashboard/settings",
         icon: IconSettings,
         hideable: false, // always visible
+      },
+      {
+        title: "Wartungs-Checklisten",
+        url: "/dashboard/settings/checklists",
+        icon: IconChecklist,
+        hideable: true,
       },
       {
         title: t("customFields"),

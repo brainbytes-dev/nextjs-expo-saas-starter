@@ -26,7 +26,7 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { bookingType, fromLocationId, toLocationId, notes } = body;
+    const { bookingType, fromLocationId, toLocationId, notes, checklistResult } = body;
 
     if (!bookingType) {
       return NextResponse.json(
@@ -76,6 +76,7 @@ export async function POST(
         fromLocationId,
         toLocationId,
         notes,
+        checklistResult: checklistResult ?? null,
       })
       .returning();
 

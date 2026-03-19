@@ -262,3 +262,38 @@ export const createToolBooking = isDemoMode
   : _createToolBooking;
 export const eanLookup = isDemoMode ? demoApi.eanLookup : _eanLookup;
 export const createMaterial = isDemoMode ? demoApi.createMaterial : _createMaterial;
+
+// ── Batch stock change ────────────────────────────────────────────────
+
+export interface BatchStockItem {
+  materialId: string;
+  locationId: string;
+  changeType: "in" | "out";
+  quantity: number;
+  notes?: string;
+}
+
+const _batchStockChange = async (items: BatchStockItem[]): Promise<void> => {
+  if (!isOnline()) {
+    // Offline: enqueue each item individually so the existing queue
+    // processor can drain them one-by-one when connectivity returns.
+    await Promise.all(
+      items.map((item) =>
+        enqueue({
+          type: "stock-change",
+          method: "POST",
+          path: "/api/stock-changes",
+          body: item as Record<string, unknown>,
+        })
+      )
+    );
+    return;
+  }
+  return api.post("/api/stock-changes/batch", { items });
+};
+
+export const batchStockChange = isDemoMode
+  ? async (items: BatchStockItem[]): Promise<void> => {
+      console.warn("[demo] batchStockChange — no-op in demo mode", items);
+    }
+  : _batchStockChange;

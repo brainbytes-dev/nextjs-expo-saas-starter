@@ -305,3 +305,67 @@ export async function sendApprovalDecisionEmail(
     throw error;
   }
 }
+
+export async function sendShiftReportEmail({
+  recipients,
+  orgName,
+  date,
+  totalStockChanges,
+  totalToolBookings,
+  totalCommissions,
+}: {
+  recipients: string[]
+  orgName: string
+  date: string
+  totalStockChanges: number
+  totalToolBookings: number
+  totalCommissions: number
+}) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.logistikapp.ch';
+  const fmtDate = new Date(date).toLocaleDateString('de-CH', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+
+  try {
+    const result = await getResend().emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'noreply@example.com',
+      to: recipients,
+      subject: `Schicht-Übergabe-Bericht — ${orgName} — ${fmtDate}`,
+      html: `
+        <h2>Schicht-Übergabe-Bericht — ${escapeHtml(orgName)}</h2>
+        <p>Hallo,</p>
+        <p>Hier ist die automatische Zusammenfassung für <strong>${fmtDate}</strong>:</p>
+        <table style="border-collapse:collapse;width:100%;max-width:480px;font-size:14px;">
+          <tr>
+            <td style="padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc;">Lagerbewegungen</td>
+            <td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:bold;text-align:right;">${totalStockChanges}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc;">Werkzeug-Buchungen</td>
+            <td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:bold;text-align:right;">${totalToolBookings}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc;">Lieferscheine aktualisiert</td>
+            <td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:bold;text-align:right;">${totalCommissions}</td>
+          </tr>
+        </table>
+        <p style="margin-top:24px;">
+          <a href="${appUrl}/dashboard/reports/shift?date=${date}"
+             style="display:inline-block;background:#000;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">
+            Vollständigen Bericht ansehen
+          </a>
+        </p>
+        <p style="color:#999;font-size:12px;margin-top:24px;">
+          Dieser Bericht wird täglich um 17:00 Uhr CET automatisch versandt.<br>
+          LogistikApp &mdash; ${escapeHtml(orgName)}
+        </p>
+      `,
+    });
+    return result;
+  } catch (error) {
+    console.error('Failed to send shift report email:', error);
+    throw error;
+  }
+}

@@ -499,6 +499,7 @@ export const stockChanges = pgTable(
     targetLocationId: uuid("target_location_id").references(() => locations.id),
     commissionId: uuid("commission_id"), // FK added later to avoid circular ref
     orderId: uuid("order_id"), // FK added later
+    projectId: uuid("project_id").references(() => projects.id, { onDelete: "set null" }), // Kostenstelle / Projekt
     notes: text("notes"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
@@ -508,6 +509,7 @@ export const stockChanges = pgTable(
     index("idx_stock_changes_location_id").on(table.locationId),
     index("idx_stock_changes_created_at").on(table.createdAt),
     index("idx_stock_changes_change_type").on(table.changeType),
+    index("idx_stock_changes_project_id").on(table.projectId),
   ]
 );
 
@@ -527,6 +529,7 @@ export const toolBookings = pgTable(
     toLocationId: uuid("to_location_id").references(() => locations.id),
     bookingType: text("booking_type").notNull(), // "checkout", "checkin", "transfer"
     notes: text("notes"),
+    checklistResult: jsonb("checklist_result"), // [{id, label, checked, notes?}]
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [
@@ -553,6 +556,9 @@ export const commissions = pgTable(
     responsibleId: uuid("responsible_id").references(() => users.id),
     status: text("status").default("open"), // "open", "in_progress", "completed", "cancelled"
     notes: text("notes"),
+    signature: text("signature"),        // base64 PNG data URL — digital signature
+    signedAt: timestamp("signed_at"),     // when the signature was captured
+    signedBy: text("signed_by"),          // name of the person who signed
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },

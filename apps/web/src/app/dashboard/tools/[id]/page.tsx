@@ -21,7 +21,17 @@ import {
   IconCertificate,
   IconPlus,
   IconClockHour4,
+  IconChecklist,
 } from "@tabler/icons-react"
+import { ChecklistStep } from "@/components/checklist-step"
+import { BookingPhotoButton } from "@/components/booking-photo-button"
+import {
+  type ChecklistItem,
+  type ChecklistResult,
+  initChecklistResults,
+  isChecklistComplete,
+} from "@/lib/checklist"
+import { BookingPhotosInline } from "@/components/booking-photos-inline"
 import {
   AreaChart,
   Area,
@@ -73,6 +83,8 @@ interface ToolGroup {
   id: string
   name: string
   color: string | null
+  pickupChecklist: ChecklistItem[] | null
+  returnChecklist: ChecklistItem[] | null
 }
 
 interface Location {
@@ -83,10 +95,12 @@ interface Location {
 interface ToolBooking {
   id: string
   toolId: string
+  bookingType: string
   fromLocationId: string | null
   toLocationId: string | null
   userId: string | null
   notes: string | null
+  checklistResult: ChecklistResult[] | null
   createdAt: string
 }
 
@@ -226,6 +240,17 @@ export default function ToolDetailPage() {
   const [showCalibForm, setShowCalibForm] = useState(false)
   const [calibForm, setCalibForm] = useState({ calibratedAt: "", nextCalibrationDate: "", certificateUrl: "", result: "pass", notes: "" })
   const [calibSaving, setCalibSaving] = useState(false)
+
+  // Checklist state for checkout
+  const [checkoutChecklist, setCheckoutChecklist] = useState<ChecklistResult[]>([])
+  // Checklist state for checkin
+  const [checkinChecklist, setCheckinChecklist] = useState<ChecklistResult[]>([])
+  // Photo state (file + object URL) for checkout
+  const [checkoutPhotoFile, setCheckoutPhotoFile] = useState<File | null>(null)
+  const [checkoutPhotoUrl, setCheckoutPhotoUrl] = useState<string | null>(null)
+  // Photo state (file + object URL) for checkin
+  const [checkinPhotoFile, setCheckinPhotoFile] = useState<File | null>(null)
+  const [checkinPhotoUrl, setCheckinPhotoUrl] = useState<string | null>(null)
 
   // Pending approval state
   const [pendingApproval, setPendingApproval] = useState<string | null>(null)
@@ -577,7 +602,12 @@ export default function ToolDetailPage() {
               {isHome ? (
                 <Button
                   size="lg"
-                  onClick={() => setCheckoutOpen(true)}
+                  onClick={() => {
+                    const grp = groups.find((g) => g.id === tool.groupId)
+                    const items = grp?.pickupChecklist ?? []
+                    setCheckoutChecklist(initChecklistResults(items))
+                    setCheckoutOpen(true)
+                  }}
                 >
                   <IconLogout className="size-5" />
                   {t("checkOut")}
@@ -586,7 +616,12 @@ export default function ToolDetailPage() {
                 <Button
                   size="lg"
                   variant="outline"
-                  onClick={() => setCheckinOpen(true)}
+                  onClick={() => {
+                    const grp = groups.find((g) => g.id === tool.groupId)
+                    const items = grp?.returnChecklist ?? []
+                    setCheckinChecklist(initChecklistResults(items))
+                    setCheckinOpen(true)
+                  }}
                 >
                   <IconLogin className="size-5" />
                   {t("checkIn")}
@@ -930,24 +965,78 @@ export default function ToolDetailPage() {
               </div>
             ) : (
               <div className="divide-y">
-                {tool.recentBookings.map((booking) => (
-                  <div key={booking.id} className="flex gap-4 px-6 py-4">
-                    <div className="flex flex-col items-center pt-1">
-                      <div className="size-3 rounded-full bg-muted-foreground" />
-                      <div className="mt-1 w-px flex-1 bg-border" />
+                {tool.recentBookings.map((booking) => {
+                  const bookingTypeLabel: Record<string, string> = {
+                    checkout: "Ausgecheckt",
+                    checkin: "Eingecheckt",
+                    transfer: "Umgebucht",
+                  }
+                  const completedItems = booking.checklistResult?.filter((r) => r.checked) ?? []
+                  const totalItems = booking.checklistResult?.length ?? 0
+
+                  return (
+                    <div key={booking.id} className="flex gap-4 px-6 py-4">
+                      <div className="flex flex-col items-center pt-1">
+                        <div className={`size-3 rounded-full ${
+                          booking.checklistResult && booking.checklistResult.some((r) => r.required && !r.checked)
+                            ? "bg-destructive"
+                            : "bg-muted-foreground"
+                        }`} />
+                        <div className="mt-1 w-px flex-1 bg-border" />
+                      </div>
+                      <div className="flex-1 space-y-1.5">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-medium">
+                            {bookingTypeLabel[booking.bookingType] ?? booking.bookingType}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {formatDateTime(booking.createdAt)}
+                          </span>
+                          {totalItems > 0 && (
+                            <span className="text-[10px] rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
+                              Checkliste: {completedItems.length}/{totalItems}
+                            </span>
+                          )}
+                        </div>
+                        {booking.notes && (
+                          <p className="text-xs italic text-muted-foreground">
+                            {booking.notes}
+                          </p>
+                        )}
+                        {booking.checklistResult && booking.checklistResult.length > 0 && (
+                          <details className="group">
+                            <summary className="flex cursor-pointer items-center gap-1 text-xs text-primary hover:underline list-none">
+                              <IconChecklist className="size-3" />
+                              Checkliste anzeigen
+                            </summary>
+                            <div className="mt-2 space-y-1 rounded-md border bg-muted/40 px-3 py-2">
+                              {booking.checklistResult.map((item) => (
+                                <div key={item.id} className="flex items-start gap-2 text-xs">
+                                  <span className={`mt-0.5 shrink-0 font-bold ${item.checked ? "text-secondary" : "text-muted-foreground"}`}>
+                                    {item.checked ? "✓" : "—"}
+                                  </span>
+                                  <div>
+                                    <span className={item.checked ? "" : "text-muted-foreground"}>
+                                      {item.label}
+                                    </span>
+                                    {item.notes && (
+                                      <p className="text-muted-foreground italic">{item.notes}</p>
+                                    )}
+                                  </div>
+                                  {item.required && !item.checked && (
+                                    <span className="ml-auto shrink-0 text-[10px] text-destructive font-medium">Pflicht!</span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </details>
+                        )}
+                        {/* Photos attached to this booking */}
+                        <BookingPhotosInline bookingId={booking.id} entityType="tool_booking" />
+                      </div>
                     </div>
-                    <div className="flex-1 space-y-1">
-                      <span className="text-xs text-muted-foreground">
-                        {formatDateTime(booking.createdAt)}
-                      </span>
-                      {booking.notes && (
-                        <p className="text-xs italic text-muted-foreground">
-                          {booking.notes}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </Card>
@@ -1438,8 +1527,19 @@ export default function ToolDetailPage() {
       </div>
 
       {/* ─── Checkout Dialog ─────────────────────────────────────────── */}
-      <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
-        <DialogContent>
+      <Dialog open={checkoutOpen} onOpenChange={(open) => {
+        if (!open) {
+          setCheckoutOpen(false)
+          setCheckoutUserId("")
+          setCheckoutLocationId("")
+          setCheckoutNotes("")
+          setCheckoutChecklist([])
+          if (checkoutPhotoUrl) URL.revokeObjectURL(checkoutPhotoUrl)
+          setCheckoutPhotoFile(null)
+          setCheckoutPhotoUrl(null)
+        }
+      }}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {t("checkOut")}: {tool.name}
@@ -1485,6 +1585,24 @@ export default function ToolDetailPage() {
                 placeholder="Bemerkung zur Ausbuchung..."
               />
             </div>
+
+            {/* Checklist */}
+            {checkoutChecklist.length > 0 && (
+              <ChecklistStep
+                title="Abholungs-Checkliste"
+                results={checkoutChecklist}
+                onChange={setCheckoutChecklist}
+              />
+            )}
+
+            {/* Photo */}
+            <BookingPhotoButton
+              previewUrl={checkoutPhotoUrl}
+              onPhoto={(file, url) => {
+                setCheckoutPhotoFile(file)
+                setCheckoutPhotoUrl(url)
+              }}
+            />
           </div>
           <DialogFooter>
             <Button
@@ -1494,26 +1612,32 @@ export default function ToolDetailPage() {
                 setCheckoutUserId("")
                 setCheckoutLocationId("")
                 setCheckoutNotes("")
+                setCheckoutChecklist([])
+                if (checkoutPhotoUrl) URL.revokeObjectURL(checkoutPhotoUrl)
+                setCheckoutPhotoFile(null)
+                setCheckoutPhotoUrl(null)
               }}
             >
               {tc("cancel")}
             </Button>
             <Button
-              disabled={checkoutSubmitting}
+              disabled={checkoutSubmitting || !isChecklistComplete(checkoutChecklist)}
               onClick={async () => {
                 setCheckoutSubmitting(true)
                 try {
                   const orgId = sessionStorage.getItem("activeOrgId") ?? ""
+                  const orgHeader = orgId ? { "x-organization-id": orgId } : {}
                   const res = await fetch(`/api/tools/${toolId}/booking`, {
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",
-                      ...(orgId ? { "x-organization-id": orgId } : {}),
+                      ...orgHeader,
                     },
                     body: JSON.stringify({
                       bookingType: "checkout",
                       toLocationId: checkoutLocationId || undefined,
                       notes: checkoutNotes || undefined,
+                      checklistResult: checkoutChecklist.length > 0 ? checkoutChecklist : undefined,
                     }),
                   })
                   if (res.status === 202) {
@@ -1521,9 +1645,18 @@ export default function ToolDetailPage() {
                     setPendingApproval(data.approvalId ?? "pending")
                     setCheckoutOpen(false)
                   } else if (res.ok) {
+                    const booking = await res.json()
+                    // Upload photo if one was taken
+                    if (checkoutPhotoFile) {
+                      const fd = new FormData()
+                      fd.append("entityType", "tool_booking")
+                      fd.append("entityId", booking.id)
+                      fd.append("file", checkoutPhotoFile)
+                      await fetch("/api/attachments", { method: "POST", body: fd })
+                    }
                     setCheckoutOpen(false)
                     const detailRes = await fetch(`/api/tools/${toolId}`, {
-                      headers: orgId ? { "x-organization-id": orgId } : {},
+                      headers: orgHeader,
                     })
                     if (detailRes.ok) {
                       const detail = await detailRes.json()
@@ -1536,6 +1669,10 @@ export default function ToolDetailPage() {
                   setCheckoutUserId("")
                   setCheckoutLocationId("")
                   setCheckoutNotes("")
+                  setCheckoutChecklist([])
+                  if (checkoutPhotoUrl) URL.revokeObjectURL(checkoutPhotoUrl)
+                  setCheckoutPhotoFile(null)
+                  setCheckoutPhotoUrl(null)
                 }
               }}
             >
@@ -1547,8 +1684,18 @@ export default function ToolDetailPage() {
       </Dialog>
 
       {/* ─── Checkin Dialog ──────────────────────────────────────────── */}
-      <Dialog open={checkinOpen} onOpenChange={setCheckinOpen}>
-        <DialogContent>
+      <Dialog open={checkinOpen} onOpenChange={(open) => {
+        if (!open) {
+          setCheckinOpen(false)
+          setCheckinCondition("good")
+          setCheckinNotes("")
+          setCheckinChecklist([])
+          if (checkinPhotoUrl) URL.revokeObjectURL(checkinPhotoUrl)
+          setCheckinPhotoFile(null)
+          setCheckinPhotoUrl(null)
+        }
+      }}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {t("checkIn")}: {tool.name}
@@ -1594,6 +1741,24 @@ export default function ToolDetailPage() {
                 placeholder="Bemerkung zur R&uuml;ckgabe..."
               />
             </div>
+
+            {/* Checklist */}
+            {checkinChecklist.length > 0 && (
+              <ChecklistStep
+                title="Rückgabe-Checkliste"
+                results={checkinChecklist}
+                onChange={setCheckinChecklist}
+              />
+            )}
+
+            {/* Photo */}
+            <BookingPhotoButton
+              previewUrl={checkinPhotoUrl}
+              onPhoto={(file, url) => {
+                setCheckinPhotoFile(file)
+                setCheckinPhotoUrl(url)
+              }}
+            />
           </div>
           <DialogFooter>
             <Button
@@ -1602,13 +1767,60 @@ export default function ToolDetailPage() {
                 setCheckinOpen(false)
                 setCheckinCondition("good")
                 setCheckinNotes("")
+                setCheckinChecklist([])
+                if (checkinPhotoUrl) URL.revokeObjectURL(checkinPhotoUrl)
+                setCheckinPhotoFile(null)
+                setCheckinPhotoUrl(null)
               }}
             >
               {tc("cancel")}
             </Button>
             <Button
-              variant="outline"
-              onClick={() => setCheckinOpen(false)}
+              disabled={!isChecklistComplete(checkinChecklist)}
+              onClick={async () => {
+                try {
+                  const orgId = sessionStorage.getItem("activeOrgId") ?? ""
+                  const orgHeader = orgId ? { "x-organization-id": orgId } : {}
+                  const res = await fetch(`/api/tools/${toolId}/booking`, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      ...orgHeader,
+                    },
+                    body: JSON.stringify({
+                      bookingType: "checkin",
+                      toLocationId: tool.homeLocationId || undefined,
+                      notes: checkinNotes || undefined,
+                      checklistResult: checkinChecklist.length > 0 ? checkinChecklist : undefined,
+                    }),
+                  })
+                  if (res.ok) {
+                    const booking = await res.json()
+                    // Upload photo if taken
+                    if (checkinPhotoFile) {
+                      const fd = new FormData()
+                      fd.append("entityType", "tool_booking")
+                      fd.append("entityId", booking.id)
+                      fd.append("file", checkinPhotoFile)
+                      await fetch("/api/attachments", { method: "POST", body: fd })
+                    }
+                    setCheckinOpen(false)
+                    setCheckinCondition("good")
+                    setCheckinNotes("")
+                    setCheckinChecklist([])
+                    if (checkinPhotoUrl) URL.revokeObjectURL(checkinPhotoUrl)
+                    setCheckinPhotoFile(null)
+                    setCheckinPhotoUrl(null)
+                    // Refresh tool
+                    const detailRes = await fetch(`/api/tools/${toolId}`, { headers: orgHeader })
+                    if (detailRes.ok) {
+                      const detail = await detailRes.json()
+                      setTool(detail)
+                      setForm(detail)
+                    }
+                  }
+                } catch { /* silently fail */ }
+              }}
             >
               <IconLogin className="size-4" />
               {t("checkIn")}

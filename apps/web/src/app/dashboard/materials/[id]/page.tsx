@@ -31,6 +31,7 @@ import { AttachmentsPanel } from "@/components/attachments-panel"
 import { ReservationPanel } from "@/components/reservation-panel"
 import { MaterialRequestButton } from "@/components/material-request-button"
 import { ActivityTimeline } from "@/components/activity-timeline"
+import { BookingPhotoButton } from "@/components/booking-photo-button"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -203,6 +204,10 @@ export default function MaterialDetailPage() {
   const [bookingSerialNumber, setBookingSerialNumber] = useState("")
   const [bookingExpiryDate, setBookingExpiryDate] = useState("")
 
+  // Photo state for stock booking
+  const [bookingPhotoFile, setBookingPhotoFile] = useState<File | null>(null)
+  const [bookingPhotoUrl, setBookingPhotoUrl] = useState<string | null>(null)
+
   // Delete dialog
   const [showDelete, setShowDelete] = useState(false)
   const [showRequestDialog, setShowRequestDialog] = useState(false)
@@ -326,6 +331,15 @@ export default function MaterialDetailPage() {
         }),
       })
       if (res.ok) {
+        const stockChange = await res.json()
+        // Upload photo if taken
+        if (bookingPhotoFile && stockChange?.id) {
+          const fd = new FormData()
+          fd.append("entityType", "stock_change")
+          fd.append("entityId", stockChange.id)
+          fd.append("file", bookingPhotoFile)
+          await fetch("/api/attachments", { method: "POST", body: fd })
+        }
         // Refresh stocks
         const stocksRes = await fetch(
           `/api/materials/${materialId}/stocks`
@@ -340,13 +354,16 @@ export default function MaterialDetailPage() {
         setBookingBatchNumber("")
         setBookingSerialNumber("")
         setBookingExpiryDate("")
+        if (bookingPhotoUrl) URL.revokeObjectURL(bookingPhotoUrl)
+        setBookingPhotoFile(null)
+        setBookingPhotoUrl(null)
       }
     } catch {
       // TODO: toast
     } finally {
       setBookingLoading(false)
     }
-  }, [bookingType, bookingLocationId, bookingQty, materialId, bookingBatchNumber, bookingExpiryDate, bookingSerialNumber])
+  }, [bookingType, bookingLocationId, bookingQty, materialId, bookingBatchNumber, bookingExpiryDate, bookingSerialNumber, bookingPhotoFile, bookingPhotoUrl])
 
   const totalStock = stocks.reduce((sum, s) => sum + s.quantity, 0)
 
@@ -1076,6 +1093,9 @@ export default function MaterialDetailPage() {
             setBookingBatchNumber("")
             setBookingSerialNumber("")
             setBookingExpiryDate("")
+            if (bookingPhotoUrl) URL.revokeObjectURL(bookingPhotoUrl)
+            setBookingPhotoFile(null)
+            setBookingPhotoUrl(null)
           }
         }}
       >
@@ -1153,6 +1173,14 @@ export default function MaterialDetailPage() {
                 onChange={(e) => setBookingExpiryDate(e.target.value)}
               />
             </div>
+            {/* Photo */}
+            <BookingPhotoButton
+              previewUrl={bookingPhotoUrl}
+              onPhoto={(file, url) => {
+                setBookingPhotoFile(file)
+                setBookingPhotoUrl(url)
+              }}
+            />
           </div>
           <DialogFooter>
             <Button
@@ -1164,6 +1192,9 @@ export default function MaterialDetailPage() {
                 setBookingBatchNumber("")
                 setBookingSerialNumber("")
                 setBookingExpiryDate("")
+                if (bookingPhotoUrl) URL.revokeObjectURL(bookingPhotoUrl)
+                setBookingPhotoFile(null)
+                setBookingPhotoUrl(null)
               }}
               disabled={bookingLoading}
             >

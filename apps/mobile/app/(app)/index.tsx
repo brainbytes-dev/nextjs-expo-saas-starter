@@ -1,15 +1,29 @@
 import { router } from "expo-router";
 import { useEffect, useState, useCallback } from "react";
-import { ScrollView, View, RefreshControl } from "react-native";
+import { ScrollView, View, RefreshControl, TouchableOpacity, StyleSheet, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 
 import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator";
-import { Button } from "@/components/nativewindui/Button";
 import { Card } from "@/components/nativewindui/Card";
 import { Text } from "@/components/nativewindui/Text";
 import { useSession } from "@/lib/session-store";
 import { getDashboardStats, type DashboardStats } from "@/lib/api";
+import { useColorScheme } from "@/lib/useColorScheme";
+
+// ── Types ──────────────────────────────────────────────────────────────
+
+interface QuickActionDef {
+  icon: React.ComponentProps<typeof Ionicons>["name"];
+  label: string;
+  sublabel: string;
+  color: string;
+  bg: string;
+  onPress: () => void;
+}
+
+// ── Screen ─────────────────────────────────────────────────────────────
 
 export default function HomeScreen() {
   const { data } = useSession();
@@ -17,11 +31,12 @@ export default function HomeScreen() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const { colors } = useColorScheme();
 
   const fetchStats = useCallback(async () => {
     try {
-      const data = await getDashboardStats();
-      setStats(data);
+      const result = await getDashboardStats();
+      setStats(result);
     } catch {
       // Keep showing last known data or null
     } finally {
@@ -40,6 +55,65 @@ export default function HomeScreen() {
   }, [fetchStats]);
 
   const firstName = user?.name?.split(" ")[0] ?? "";
+
+  // Navigate to scanner pre-selecting a specific mode via a query param.
+  // The scanner screen reads the param on mount (future enhancement hook).
+  function goToScanner(mode?: "camera" | "nfc" | "ar" | "batch") {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (mode) {
+      router.push({ pathname: "/(app)/scanner", params: { mode } });
+    } else {
+      router.push("/(app)/scanner");
+    }
+  }
+
+  function goToCommissions() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push("/(app)/commissions");
+  }
+
+  const quickActions: QuickActionDef[] = [
+    {
+      icon: "arrow-down-circle",
+      label: "Wareneingang",
+      sublabel: "Material einbuchen",
+      color: "#16a34a",
+      bg: "#f0fdf4",
+      onPress: () => goToScanner("camera"),
+    },
+    {
+      icon: "arrow-up-circle",
+      label: "Warenausgang",
+      sublabel: "Material ausbuchen",
+      color: "#ef4444",
+      bg: "#fef2f2",
+      onPress: () => goToScanner("camera"),
+    },
+    {
+      icon: "construct",
+      label: "Werkzeug entnehmen",
+      sublabel: "Werkzeug auschecken",
+      color: "#0d9488",
+      bg: "#f0fdfa",
+      onPress: () => goToScanner("camera"),
+    },
+    {
+      icon: "document-text",
+      label: "Lieferschein scannen",
+      sublabel: "Batch-Scan starten",
+      color: "#f97316",
+      bg: "#fff7ed",
+      onPress: () => goToScanner("batch"),
+    },
+    {
+      icon: "list",
+      label: "Inventur",
+      sublabel: "Bestand zählen",
+      color: "#6366f1",
+      bg: "#eef2ff",
+      onPress: () => goToScanner("batch"),
+    },
+  ];
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={["top"]} className="bg-background">
@@ -64,26 +138,6 @@ export default function HomeScreen() {
             {user?.email}
           </Text>
         </Card>
-
-        {/* Quick Actions */}
-        <View style={{ flexDirection: "row", gap: 12 }}>
-          <Button
-            variant="tonal"
-            className="flex-1"
-            onPress={() => router.push("/(app)/scanner")}
-          >
-            <Ionicons name="barcode-outline" size={18} />
-            <Text>Scannen</Text>
-          </Button>
-          <Button
-            variant="tonal"
-            className="flex-1"
-            onPress={() => router.push("/(app)/commissions")}
-          >
-            <Ionicons name="add-outline" size={18} />
-            <Text>Lieferschein</Text>
-          </Button>
-        </View>
 
         {/* KPI Cards */}
         {loading ? (
@@ -120,10 +174,55 @@ export default function HomeScreen() {
             )}
           </>
         ) : null}
+
+        {/* Quick Actions */}
+        <View style={{ gap: 10 }}>
+          <Text variant="subhead" className="font-semibold text-foreground">
+            Schnellzugriff
+          </Text>
+          {quickActions.map((action) => (
+            <QuickActionCard key={action.label} action={action} />
+          ))}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+// ── QuickActionCard ────────────────────────────────────────────────────
+
+function QuickActionCard({ action }: { action: QuickActionDef }) {
+  return (
+    <TouchableOpacity
+      style={[styles.qaCard]}
+      onPress={action.onPress}
+      activeOpacity={0.72}
+    >
+      {/* Icon container */}
+      <View
+        style={[
+          styles.qaIconWrap,
+          {
+            backgroundColor:
+              Platform.OS === "ios" ? action.bg : action.color + "18",
+          },
+        ]}
+      >
+        <Ionicons name={action.icon} size={26} color={action.color} />
+      </View>
+
+      {/* Labels */}
+      <View style={styles.qaTextWrap}>
+        <Text style={styles.qaLabel}>{action.label}</Text>
+        <Text style={styles.qaSublabel}>{action.sublabel}</Text>
+      </View>
+
+      <Ionicons name="chevron-forward" size={18} color="#9ca3af" />
+    </TouchableOpacity>
+  );
+}
+
+// ── KpiCard ────────────────────────────────────────────────────────────
 
 function KpiCard({ label, value, icon, color, bg }: {
   label: string;
@@ -148,6 +247,8 @@ function KpiCard({ label, value, icon, color, bg }: {
   );
 }
 
+// ── AlertRow ───────────────────────────────────────────────────────────
+
 function AlertRow({ label, count, icon, color }: {
   label: string;
   count: number;
@@ -164,3 +265,45 @@ function AlertRow({ label, count, icon, color }: {
     </View>
   );
 }
+
+// ── Styles ─────────────────────────────────────────────────────────────
+
+const styles = StyleSheet.create({
+  qaCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    backgroundColor: Platform.OS === "ios"
+      ? "rgba(255,255,255,0.6)"
+      : "rgba(255,255,255,0.04)",
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "rgba(0,0,0,0.08)",
+    // iOS card shadow
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.07,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  qaIconWrap: {
+    width: 50,
+    height: 50,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  qaTextWrap: {
+    flex: 1,
+    gap: 2,
+  },
+  qaLabel: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  qaSublabel: {
+    fontSize: 12,
+    color: "#6b7280",
+  },
+});

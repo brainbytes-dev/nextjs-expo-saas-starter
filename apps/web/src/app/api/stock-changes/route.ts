@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
-import { stockChanges, materials, materialStocks, locations, users } from "@repo/db/schema";
+import { stockChanges, materials, materialStocks, locations, users, projects } from "@repo/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { dispatchWebhook } from "@/lib/webhooks";
 import { evaluateRules } from "@/lib/rules-engine";
@@ -17,6 +17,7 @@ export async function GET(request: Request) {
     const materialId = url.searchParams.get("materialId");
     const locationId = url.searchParams.get("locationId");
     const changeType = url.searchParams.get("changeType");
+    const projectId = url.searchParams.get("projectId");
     const offset = (page - 1) * limit;
 
     const conditions = [eq(stockChanges.organizationId, orgId)];
@@ -28,6 +29,9 @@ export async function GET(request: Request) {
     }
     if (changeType) {
       conditions.push(eq(stockChanges.changeType, changeType));
+    }
+    if (projectId) {
+      conditions.push(eq(stockChanges.projectId, projectId));
     }
 
     const [items, countResult] = await Promise.all([
@@ -48,6 +52,9 @@ export async function GET(request: Request) {
           batchNumber: stockChanges.batchNumber,
           serialNumber: stockChanges.serialNumber,
           targetLocationId: stockChanges.targetLocationId,
+          projectId: stockChanges.projectId,
+          projectName: projects.name,
+          projectCostCenter: projects.costCenter,
           notes: stockChanges.notes,
           createdAt: stockChanges.createdAt,
         })
@@ -55,6 +62,7 @@ export async function GET(request: Request) {
         .leftJoin(materials, eq(stockChanges.materialId, materials.id))
         .leftJoin(locations, eq(stockChanges.locationId, locations.id))
         .leftJoin(users, eq(stockChanges.userId, users.id))
+        .leftJoin(projects, eq(stockChanges.projectId, projects.id))
         .where(and(...conditions))
         .orderBy(desc(stockChanges.createdAt))
         .limit(limit)
@@ -90,7 +98,7 @@ export async function POST(request: Request) {
     const { db, orgId, session } = result;
 
     const body = await request.json();
-    const { materialId, locationId, changeType, quantity, notes, batchNumber, serialNumber } = body;
+    const { materialId, locationId, changeType, quantity, notes, batchNumber, serialNumber, projectId } = body;
 
     if (!materialId || !locationId || !changeType || quantity === undefined) {
       return NextResponse.json(
@@ -124,6 +132,18 @@ export async function POST(request: Request) {
 
     if (!material) {
       return NextResponse.json({ error: "Material not found" }, { status: 404 });
+    }
+
+    // Validate projectId if provided
+    if (projectId) {
+      const [project] = await db
+        .select({ id: projects.id })
+        .from(projects)
+        .where(and(eq(projects.id, projectId), eq(projects.organizationId, orgId)))
+        .limit(1);
+      if (!project) {
+        return NextResponse.json({ error: "Project not found" }, { status: 404 });
+      }
     }
 
     // Compute delta: "out" quantities should be negative in the DB
@@ -177,6 +197,7 @@ export async function POST(request: Request) {
           newQuantity: newQty,
           batchNumber,
           serialNumber,
+          projectId: projectId ?? null,
           notes,
         })
         .returning();
@@ -195,6 +216,7 @@ export async function POST(request: Request) {
       quantity: delta,
       previousQuantity: stockChange.previousQuantity,
       newQuantity: stockChange.newQuantity,
+      projectId: projectId ?? null,
       userId: session.user.id,
       notes: notes ?? null,
       createdAt: stockChange.createdAt,
@@ -205,28 +227,6 @@ export async function POST(request: Request) {
 
     // Evaluate workflow rules — fire-and-forget, does not block the response
     evaluateRules(orgId, "stock.changed", eventContext);
-
-    // TODO: evaluateRules(orgId, "stock.below_reorder", { ... })
-    //   Check if newQuantity < material.reorderPoint after each stock.changed,
-    //   then fire stock.below_reorder with { materialId, newQuantity, reorderPoint, ... }
-
-    // TODO: Add evaluateRules to tool booking routes:
-    //   POST /api/tools/:id/booking → evaluateRules(orgId, "tool.checked_out", { ... })
-    //   Cron/scheduled job → evaluateRules(orgId, "tool.overdue", { toolId, daysOverdue, ... })
-
-    // TODO: Add evaluateRules to maintenance routes:
-    //   Cron/scheduled job → evaluateRules(orgId, "maintenance.due", { toolId, daysUntilMaintenance, ... })
-
-    // TODO: Add evaluateRules to commission routes:
-    //   POST /api/commissions → evaluateRules(orgId, "commission.created", { ... })
-    //   PATCH /api/commissions/:id (status=completed) → evaluateRules(orgId, "commission.completed", { ... })
-
-    // TODO: Add dispatchWebhook to remaining entity routes:
-    //   POST /api/tools/:id/booking → "tool.checked_out" / "tool.checked_in"
-    //   POST /api/commissions → "commission.created"
-    //   PATCH /api/commissions/:id → "commission.status_changed"
-    //   POST /api/team/invite → "member.invited"
-    //   DELETE /api/team/:id → "member.removed"
 
     return NextResponse.json(stockChange, { status: 201 });
   } catch (error) {

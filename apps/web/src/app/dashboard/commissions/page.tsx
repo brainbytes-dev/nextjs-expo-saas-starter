@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 import {
   IconPlus,
@@ -12,10 +13,12 @@ import {
   IconTrash,
   IconMapPin,
   IconUser,
+  IconPrinter,
 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Table,
   TableBody,
@@ -38,6 +41,7 @@ import {
   EmptyDescription,
 } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
+import { printLieferscheinBatch, type LieferscheinData } from "@/lib/lieferschein-pdf"
 
 // ── Types ──────────────────────────────────────────────────────────────
 type CommissionStatus = "open" | "inProgress" | "completed"
@@ -68,9 +72,9 @@ const MOCK_COMMISSIONS: Commission[] = [
 ]
 
 const STATUS_CONFIG: Record<CommissionStatus, { label: string; color: string }> = {
-  open: { label: "Offen", color: "bg-muted text-muted-foreground" },
+  open:       { label: "Offen",          color: "bg-muted text-muted-foreground" },
   inProgress: { label: "In Bearbeitung", color: "bg-primary/10 text-primary" },
-  completed: { label: "Abgeschlossen", color: "bg-secondary/10 text-secondary" },
+  completed:  { label: "Abgeschlossen",  color: "bg-secondary/10 text-secondary" },
 }
 
 function formatDate(iso: string) {
@@ -90,14 +94,42 @@ function ProgressBar({ total, open }: { total: number; open: number }) {
   )
 }
 
+// ── Mock LieferscheinData builder for the list (no entry details) ──────
+function buildMockLieferschein(c: Commission): LieferscheinData {
+  return {
+    number: c.number,
+    manualNumber: c.manualNumber,
+    commissionName: c.name,
+    customerName: c.customer,
+    customerAddress: null,
+    targetLocation: c.targetLocation,
+    responsible: c.responsible,
+    createdAt: c.createdAt,
+    entries: [],           // batch print from list has no entry details
+    signature: null,
+    signedAt: null,
+    signedBy: null,
+    org: {
+      name: "LogistikApp",
+      address: null,
+      zip: null,
+      city: null,
+      country: "CH",
+      logo: null,
+    },
+  }
+}
+
 // ── Page ───────────────────────────────────────────────────────────────
 export default function CommissionsPage() {
   const t = useTranslations("commissions")
   const tc = useTranslations("common")
+  const router = useRouter()
 
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [loading] = useState(false)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
 
   const filtered = useMemo(() => {
     return MOCK_COMMISSIONS.filter((c) => {
@@ -114,6 +146,44 @@ export default function CommissionsPage() {
 
   const totalOpen = MOCK_COMMISSIONS.reduce((s, c) => s + c.openCount, 0)
   const totalEntries = MOCK_COMMISSIONS.reduce((s, c) => s + c.entryCount, 0)
+
+  // ── Selection helpers ────────────────────────────────────────────────
+  const allSelected = filtered.length > 0 && filtered.every((c) => selected.has(c.id))
+  const someSelected = !allSelected && filtered.some((c) => selected.has(c.id))
+  const selectedCount = [...selected].filter((id) => filtered.some((c) => c.id === id)).length
+
+  function toggleOne(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleAll() {
+    if (allSelected) {
+      setSelected((prev) => {
+        const next = new Set(prev)
+        filtered.forEach((c) => next.delete(c.id))
+        return next
+      })
+    } else {
+      setSelected((prev) => {
+        const next = new Set(prev)
+        filtered.forEach((c) => next.add(c.id))
+        return next
+      })
+    }
+  }
+
+  // ── Batch print ──────────────────────────────────────────────────────
+  function handleBatchPrint() {
+    const items = filtered
+      .filter((c) => selected.has(c.id))
+      .map(buildMockLieferschein)
+    printLieferscheinBatch(items)
+  }
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -151,7 +221,7 @@ export default function CommissionsPage() {
         })}
       </div>
 
-      {/* Filters */}
+      {/* Filters + batch actions */}
       <div className="flex gap-3 items-center">
         <div className="relative flex-1 min-w-[200px]">
           <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -162,6 +232,13 @@ export default function CommissionsPage() {
             className="pl-9"
           />
         </div>
+
+        {selectedCount > 0 && (
+          <Button variant="outline" onClick={handleBatchPrint} className="gap-2 whitespace-nowrap">
+            <IconPrinter className="size-4" />
+            {selectedCount} Lieferschein{selectedCount !== 1 ? "e" : ""} drucken
+          </Button>
+        )}
       </div>
 
       {/* Table */}
@@ -187,6 +264,13 @@ export default function CommissionsPage() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-b border-border">
+                  <TableHead className="w-10 pl-4">
+                    <Checkbox
+                      checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                      onCheckedChange={toggleAll}
+                      aria-label="Alle auswählen"
+                    />
+                  </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[120px]">{t("number")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("name")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[110px]">Status</TableHead>
@@ -200,8 +284,19 @@ export default function CommissionsPage() {
               <TableBody>
                 {filtered.map((commission) => {
                   const statusCfg = STATUS_CONFIG[commission.status]
+                  const isChecked = selected.has(commission.id)
                   return (
-                    <TableRow key={commission.id} className="group hover:bg-muted/80 border-b border-border">
+                    <TableRow
+                      key={commission.id}
+                      className={`group hover:bg-muted/80 border-b border-border ${isChecked ? "bg-primary/5" : ""}`}
+                    >
+                      <TableCell className="pl-4">
+                        <Checkbox
+                          checked={isChecked}
+                          onCheckedChange={() => toggleOne(commission.id)}
+                          aria-label={`${commission.number} auswählen`}
+                        />
+                      </TableCell>
                       <TableCell>
                         <div>
                           <p className="font-mono text-sm font-medium text-foreground">{commission.number}</p>
@@ -211,7 +306,12 @@ export default function CommissionsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <p className="font-medium text-foreground text-sm">{commission.name}</p>
+                        <p
+                          className="font-medium text-foreground text-sm cursor-pointer hover:text-primary transition-colors"
+                          onClick={() => router.push(`/dashboard/commissions/${commission.id}`)}
+                        >
+                          {commission.name}
+                        </p>
                         <p className="text-xs text-muted-foreground">{formatDate(commission.createdAt)}</p>
                       </TableCell>
                       <TableCell>
@@ -243,7 +343,13 @@ export default function CommissionsPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem className="gap-2"><IconEye className="size-4" /> {t("showDetails")}</DropdownMenuItem>
+                            <DropdownMenuItem className="gap-2" onClick={() => router.push(`/dashboard/commissions/${commission.id}`)}>
+                              <IconEye className="size-4" /> {t("showDetails")}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="gap-2">
+                              <IconPrinter className="size-4" />
+                              Lieferschein drucken
+                            </DropdownMenuItem>
                             <DropdownMenuItem className="gap-2"><IconEdit className="size-4" /> {tc("edit")}</DropdownMenuItem>
                             <DropdownMenuItem className="gap-2 text-destructive focus:text-destructive"><IconTrash className="size-4" /> {tc("delete")}</DropdownMenuItem>
                           </DropdownMenuContent>

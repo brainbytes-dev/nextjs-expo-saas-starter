@@ -42,7 +42,7 @@ interface Attachment {
 }
 
 export interface AttachmentsPanelProps {
-  entityType: "material" | "tool" | "commission" | "order" | "location" | "key"
+  entityType: "material" | "tool" | "commission" | "order" | "location" | "key" | "tool_booking" | "stock_change"
   entityId: string
 }
 
