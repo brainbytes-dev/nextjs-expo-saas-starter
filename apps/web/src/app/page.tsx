@@ -231,22 +231,22 @@ const FEATURES = [
 
 const PLANS = [
   {
-    name: "Starter", price: "CHF 49", per: "/Mo",
+    name: "Starter", price: "CHF 29", per: "/Mo",
     desc: "Für kleine Teams und Einsteiger.",
-    features: ["Bis 3 Benutzer", "500 Artikel", "2 Standorte", "E-Mail Support"],
+    features: ["Bis 3 Benutzer", "500 Artikel", "2 Standorte", "Barcode-Scanner", "E-Mail Support"],
     cta: "Kostenlos starten", href: "/signup", highlight: false,
   },
   {
-    name: "Professional", price: "CHF 149", per: "/Mo",
-    desc: "Für wachsende Betriebe.",
-    features: ["Bis 15 Benutzer", "Unbegrenzte Artikel", "Unbegrenzte Standorte", "Mobile App inklusive", "Prioritäts-Support"],
+    name: "Professional", price: "CHF 89", per: "/Mo",
+    desc: "Für wachsende Betriebe mit Vollausstattung.",
+    features: ["Bis 15 Benutzer", "Unbegrenzte Artikel", "Unbegrenzte Standorte", "KI-Erkennung & Prognose", "Mobile App + Offline", "Automatisierungen", "Prioritäts-Support"],
     cta: "14 Tage testen", href: "/signup", highlight: true,
   },
   {
-    name: "Enterprise", price: "Anfrage", per: "",
-    desc: "Für Unternehmen mit besonderen Anforderungen.",
-    features: ["Unbegrenzte Benutzer", "SSO / SAML", "SLA-Garantie", "API-Zugang", "Dedizierter Support"],
-    cta: "Kontakt aufnehmen", href: "/signup", highlight: false,
+    name: "Enterprise", price: "Auf Anfrage", per: "",
+    desc: "Für Unternehmen mit individuellen Anforderungen.",
+    features: ["Unbegrenzte Benutzer", "SSO / SAML", "SLA-Garantie", "Public API & Webhooks", "Branchen-Templates", "Dedizierter Ansprechpartner"],
+    cta: "Kontakt aufnehmen", href: "mailto:sales@logistikapp.ch", highlight: false,
   },
 ]
 
