@@ -10,7 +10,6 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { loadSession } from "@/lib/session-store";
 import { loadOrgId } from "@/lib/org-store";
 import { loadQueue } from "@/lib/offline-queue";
-import { initializeRevenueCat } from "@/lib/revenue-cat";
 import { loadThemePreference, useColorScheme } from "@/lib/useColorScheme";
 import { lightVars, darkVars } from "@/lib/theme-vars";
 import { ToastOverlay } from "@/components/toast-overlay";
@@ -32,7 +31,6 @@ function RootLayout() {
     loadQueue();
     loadOrgId();
     loadThemePreference();
-    initializeRevenueCat();
   }, []);
 
   // Handle deep-link navigation triggered by a tapped notification.

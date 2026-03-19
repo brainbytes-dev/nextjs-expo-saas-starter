@@ -1,39 +1,14 @@
 import { Stack } from "expo-router";
-import { useState } from "react";
-import { Alert as RNAlert, Platform, ScrollView } from "react-native";
+import { Linking, Platform, ScrollView, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 import { Button } from "@/components/nativewindui/Button";
 import { Card } from "@/components/nativewindui/Card";
 import { Text } from "@/components/nativewindui/Text";
-import { purchasePackage, restorePurchases } from "@/lib/revenue-cat";
+
+const APP_URL = process.env.EXPO_PUBLIC_APP_URL || "https://logistikapp.ch";
 
 export default function SubscriptionScreen() {
-  const [loading, setLoading] = useState(false);
-
-  async function handlePurchase(packageId: string) {
-    setLoading(true);
-    try {
-      await purchasePackage(packageId);
-      RNAlert.alert("Erfolg", "Abo aktiviert!");
-    } catch (e) {
-      RNAlert.alert("Fehler", e instanceof Error ? e.message : "Kauf fehlgeschlagen");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleRestore() {
-    setLoading(true);
-    try {
-      await restorePurchases();
-      RNAlert.alert("Erfolg", "Käufe wiederhergestellt");
-    } catch (e) {
-      RNAlert.alert("Fehler", e instanceof Error ? e.message : "Wiederherstellen fehlgeschlagen");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
     <>
       <Stack.Screen
@@ -50,35 +25,48 @@ export default function SubscriptionScreen() {
         contentContainerStyle={{ padding: 16, gap: 16 }}
       >
         <Text variant="title1" className="font-bold">
-          Upgrade auf Pro
+          Abo verwalten
         </Text>
         <Text className="text-muted-foreground">
-          Schalte alle Features mit einem Pro-Abo frei.
+          Verwalte dein Abonnement über die Web-App. Dort kannst du deinen Plan
+          ändern, Rechnungen einsehen und Zahlungsmethoden aktualisieren.
         </Text>
 
-        <Card className="p-4 gap-2 border-2 border-primary">
-          <Text variant="heading">Monatlich</Text>
-          <Text className="text-muted-foreground">
-            Voller Zugang, monatlich abgerechnet.
+        <Card className="p-5 gap-3">
+          <View className="flex-row items-center gap-3">
+            <Ionicons name="card-outline" size={24} color="#F97316" />
+            <Text variant="heading">Abrechnung & Rechnungen</Text>
+          </View>
+          <Text className="text-muted-foreground text-sm">
+            Abo-Status, Plan wechseln, Rechnungen herunterladen und
+            Zahlungsmethode ändern.
           </Text>
-          <Button className="mt-2" onPress={() => handlePurchase("$rc_monthly")} disabled={loading}>
-            <Text>{loading ? "Wird verarbeitet..." : "Monatlich abonnieren"}</Text>
+          <Button
+            className="mt-1"
+            onPress={() => Linking.openURL(`${APP_URL}/dashboard/billing`)}
+          >
+            <Text className="text-white font-medium">
+              Abo im Browser verwalten
+            </Text>
           </Button>
         </Card>
 
-        <Card className="p-4 gap-2">
-          <Text variant="heading">Jährlich</Text>
-          <Text className="text-muted-foreground">
-            Spare mit jährlicher Abrechnung.
+        <Card className="p-5 gap-3">
+          <View className="flex-row items-center gap-3">
+            <Ionicons name="pricetags-outline" size={24} color="#F97316" />
+            <Text variant="heading">Pläne & Preise</Text>
+          </View>
+          <Text className="text-muted-foreground text-sm">
+            Vergleiche unsere Pläne: Starter, Professional und Enterprise.
           </Text>
-          <Button variant="tonal" className="mt-2" onPress={() => handlePurchase("$rc_annual")} disabled={loading}>
-            <Text>{loading ? "Wird verarbeitet..." : "Jährlich abonnieren"}</Text>
+          <Button
+            variant="tonal"
+            className="mt-1"
+            onPress={() => Linking.openURL(`${APP_URL}/pricing`)}
+          >
+            <Text className="font-medium">Preise ansehen</Text>
           </Button>
         </Card>
-
-        <Button variant="plain" onPress={handleRestore} disabled={loading} className="mt-2">
-          <Text className="text-muted-foreground text-sm">Käufe wiederherstellen</Text>
-        </Button>
       </ScrollView>
     </>
   );
