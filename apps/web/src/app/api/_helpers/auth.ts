@@ -10,19 +10,30 @@ export async function getSessionAndOrg(request: Request) {
     return { error: new Response("Unauthorized", { status: 401 }) };
   }
 
-  // Get org from header or query param
-  const orgId =
+  // Get org from header, query param, or fall back to user's first org
+  let orgId =
     request.headers.get("x-organization-id") ||
     new URL(request.url).searchParams.get("orgId");
 
+  const db = getDb();
+
+  // Auto-resolve: if no orgId provided, use the user's first org
   if (!orgId) {
-    return {
-      error: new Response("Organization required", { status: 400 }),
-      session,
-    };
+    const [firstMembership] = await db
+      .select({ organizationId: organizationMembers.organizationId })
+      .from(organizationMembers)
+      .where(eq(organizationMembers.userId, session.user.id))
+      .limit(1);
+
+    if (!firstMembership) {
+      return {
+        error: new Response("No organization found", { status: 400 }),
+        session,
+      };
+    }
+    orgId = firstMembership.organizationId;
   }
 
-  const db = getDb();
   const membership = await db
     .select()
     .from(organizationMembers)
