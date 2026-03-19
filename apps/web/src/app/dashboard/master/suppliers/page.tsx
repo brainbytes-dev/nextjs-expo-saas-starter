@@ -1,11 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import {
   IconPlus,
   IconSearch,
-  IconEdit,
   IconTrash,
   IconChevronRight,
 } from "@tabler/icons-react"
@@ -66,11 +65,7 @@ export default function SuppliersPage() {
     phone: "",
   })
 
-  useEffect(() => {
-    void loadSuppliers()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  async function loadSuppliers() {
+  const loadSuppliers = useCallback(async () => {
     setLoading(true)
     try {
       const res = await fetch("/api/suppliers?limit=200")
@@ -104,7 +99,11 @@ export default function SuppliersPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    void loadSuppliers()
+  }, [loadSuppliers])
 
   const filtered = items.filter((item) =>
     [item.name, item.supplierNumber, item.contactPerson, item.email]

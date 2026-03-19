@@ -430,11 +430,10 @@ function EmptyView({
 // ---------------------------------------------------------------------------
 function ProgressBar({ duration }: { duration: number }) {
   const [pct, setPct] = useState(0)
-  const startRef = useRef(Date.now())
+  const startRef = useRef(0)
 
   useEffect(() => {
     startRef.current = Date.now()
-    setPct(0)
     const id = setInterval(() => {
       const elapsed = Date.now() - startRef.current
       setPct(Math.min(100, (elapsed / duration) * 100))
@@ -550,9 +549,12 @@ export default function TvPage() {
 
   // Initial load + periodic refresh
   useEffect(() => {
-    void fetchData()
-    const id = setInterval(() => void fetchData(), REFRESH_INTERVAL_MS)
-    return () => clearInterval(id)
+    const controller = new AbortController()
+    const load = () => { void fetchData() }
+    // Defer initial load to avoid synchronous setState in effect
+    const timeout = setTimeout(load, 0)
+    const id = setInterval(load, REFRESH_INTERVAL_MS)
+    return () => { controller.abort(); clearTimeout(timeout); clearInterval(id) }
   }, [fetchData])
 
   // Auto-advance view

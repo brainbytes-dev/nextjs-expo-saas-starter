@@ -47,6 +47,10 @@ import {
   IconLayoutKanban,
   IconArrowsTransferDown,
   IconWallet,
+  IconClockHour5,
+  IconShieldCheck,
+  IconAdjustments,
+  IconLink,
 } from "@tabler/icons-react"
 import { useTranslations } from "next-intl"
 import { useShortcutsDialog } from "@/components/shortcuts-dialog"
@@ -353,6 +357,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         hideable: true,
       },
       {
+        title: "Zeiterfassung",
+        url: "/dashboard/time-tracking",
+        icon: IconClockHour5,
+        hideable: true,
+      },
+      {
         title: "Kanban",
         url: "/dashboard/kanban",
         icon: IconLayoutKanban,
@@ -444,6 +454,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         name: t("openOrders"),
         url: "/dashboard/orders",
         icon: IconFileInvoice,
+        hideable: true,
+      },
+      {
+        name: "Lieferverfolgung",
+        url: "/dashboard/deliveries",
+        icon: IconTruck,
+        hideable: true,
+      },
+      {
+        name: "Garantieansprüche",
+        url: "/dashboard/warranty-claims",
+        icon: IconShieldCheck,
+        hideable: true,
+      },
+      {
+        name: "Bestandsoptimierung",
+        url: "/dashboard/stock-adjust",
+        icon: IconAdjustments,
         hideable: true,
       },
       {
@@ -563,6 +591,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: t("integrations"),
         url: "/dashboard/settings/integrations",
         icon: IconPlugConnected,
+        hideable: true,
+      },
+      {
+        title: "Externe Portale",
+        url: "/dashboard/portals",
+        icon: IconLink,
         hideable: true,
       },
     ],

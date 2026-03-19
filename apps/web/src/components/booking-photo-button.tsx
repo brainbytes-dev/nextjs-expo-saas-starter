@@ -2,7 +2,6 @@
 
 import { useRef, useState } from "react"
 import { IconCamera, IconX, IconPhoto } from "@tabler/icons-react"
-import { Button } from "@/components/ui/button"
 
 interface BookingPhotoButtonProps {
   /**
@@ -92,7 +91,6 @@ export function BookingPhotoButton({ onPhoto, previewUrl }: BookingPhotoButtonPr
         ref={inputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp,image/gif"
-        // @ts-ignore: capture is a valid HTML attribute for mobile camera
         capture="environment"
         className="sr-only"
         onChange={handleChange}

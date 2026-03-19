@@ -36,23 +36,27 @@ export function BookingPhotosInline({
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
-    fetch(`/api/attachments?entityType=${entityType}&entityId=${bookingId}`)
-      .then((r) => (r.ok ? r.json() : []))
-      .then((data) => {
-        if (!cancelled) {
-          const images = (Array.isArray(data) ? data : []).filter(
-            (a: Attachment) => a.mimeType?.startsWith("image/")
-          )
-          setPhotos(images)
-        }
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
+    const load = () => {
+      setLoading(true)
+      fetch(`/api/attachments?entityType=${entityType}&entityId=${bookingId}`)
+        .then((r) => (r.ok ? r.json() : []))
+        .then((data) => {
+          if (!cancelled) {
+            const images = (Array.isArray(data) ? data : []).filter(
+              (a: Attachment) => a.mimeType?.startsWith("image/")
+            )
+            setPhotos(images)
+          }
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (!cancelled) setLoading(false)
+        })
+    }
+    const timeout = setTimeout(load, 0)
     return () => {
       cancelled = true
+      clearTimeout(timeout)
     }
   }, [bookingId, entityType])
 

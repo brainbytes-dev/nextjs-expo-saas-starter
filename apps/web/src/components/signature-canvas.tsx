@@ -75,19 +75,6 @@ export const SignatureCanvas = forwardRef<
   const lastPos = useRef<{ x: number; y: number } | null>(null)
   const [isEmpty, setIsEmpty] = useState(true)
 
-  // ── Expose imperative handle ─────────────────────────────────────────────
-  useImperativeHandle(ref, () => ({
-    clear() {
-      clearCanvas()
-    },
-    getDataUrl() {
-      return isEmpty ? null : getDataUrl()
-    },
-    isEmpty() {
-      return isEmpty
-    },
-  }))
-
   // ── Canvas helpers ───────────────────────────────────────────────────────
   function getCtx(): CanvasRenderingContext2D | null {
     return canvasRef.current?.getContext("2d") ?? null
@@ -107,6 +94,19 @@ export const SignatureCanvas = forwardRef<
     setIsEmpty(true)
     onClear?.()
   }
+
+  // ── Expose imperative handle ─────────────────────────────────────────────
+  useImperativeHandle(ref, () => ({
+    clear() {
+      clearCanvas()
+    },
+    getDataUrl() {
+      return isEmpty ? null : getDataUrl()
+    },
+    isEmpty() {
+      return isEmpty
+    },
+  }))
 
   // Convert a pointer/touch event position to canvas-relative coordinates,
   // accounting for devicePixelRatio scaling.

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { code128Svg } from "@/lib/code128"
 import {
   BarcodeLabelView,
   BarcodeLabel,
@@ -178,7 +177,6 @@ function SingleBarcodePanel({
 // ---------------------------------------------------------------------------
 function BatchPanel({
   items,
-  itemType,
   barcodeMap,
   selectedIds,
   onToggle,
@@ -187,7 +185,6 @@ function BatchPanel({
   saving,
 }: {
   items: UnbarcodedItem[]
-  itemType: ItemType
   barcodeMap: Map<string, string>
   selectedIds: Set<string>
   onToggle: (id: string) => void
@@ -554,7 +551,6 @@ export default function BarcodeGeneratorPage() {
 
               <BatchPanel
                 items={filteredItems}
-                itemType={itemType}
                 barcodeMap={batchBarcodeMap}
                 selectedIds={batchSelected}
                 onToggle={handleBatchToggle}

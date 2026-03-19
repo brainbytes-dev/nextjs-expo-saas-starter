@@ -12,7 +12,6 @@ export async function GET(request: Request) {
   const { db, orgId } = result
 
   const url = new URL(request.url)
-  const type = url.searchParams.get("type") ?? "material"
   const count = Math.min(50, Math.max(1, Number(url.searchParams.get("count") ?? "1")))
 
   // Resolve org slug to derive a short prefix

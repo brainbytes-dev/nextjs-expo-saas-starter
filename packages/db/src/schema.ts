@@ -1624,3 +1624,292 @@ export const supplierRatings = pgTable(
 
 export type SupplierRating = typeof supplierRatings.$inferSelect;
 export type NewSupplierRating = typeof supplierRatings.$inferInsert;
+
+// ─── Time Entries (Zeiterfassung) ────────────────────────────────────
+export const timeEntries = pgTable(
+  "time_entries",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    commissionId: uuid("commission_id").references(() => commissions.id),
+    projectId: uuid("project_id").references(() => projects.id),
+    description: text("description"),
+    startTime: timestamp("start_time").notNull(),
+    endTime: timestamp("end_time"),
+    durationMinutes: integer("duration_minutes"), // calculated or manual
+    billable: boolean("billable").default(true),
+    hourlyRate: integer("hourly_rate"), // in cents (CHF)
+    status: text("status").default("running").notNull(), // running, stopped, approved, rejected
+    approvedById: uuid("approved_by_id").references(() => users.id),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_time_entries_org_id").on(table.organizationId),
+    index("idx_time_entries_user_id").on(table.userId),
+    index("idx_time_entries_commission_id").on(table.commissionId),
+    index("idx_time_entries_project_id").on(table.projectId),
+    index("idx_time_entries_start_time").on(table.startTime),
+    index("idx_time_entries_status").on(table.status),
+  ]
+);
+
+export type TimeEntry = typeof timeEntries.$inferSelect;
+export type NewTimeEntry = typeof timeEntries.$inferInsert;
+
+// ─── Delivery Tracking (Lieferverfolgung) ────────────────────────────
+export const deliveryTracking = pgTable(
+  "delivery_tracking",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    supplierId: uuid("supplier_id").references(() => suppliers.id),
+    trackingNumber: text("tracking_number"),
+    carrier: text("carrier"), // "Post", "DHL", "DPD", "Planzer", "Camion", etc.
+    expectedDeliveryDate: date("expected_delivery_date"),
+    actualDeliveryDate: date("actual_delivery_date"),
+    status: text("status").default("ordered").notNull(), // ordered, confirmed, shipped, in_transit, delivered, partial, delayed
+    notes: text("notes"),
+    trackingUrl: text("tracking_url"),
+    lastStatusUpdate: timestamp("last_status_update"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_delivery_tracking_org_id").on(table.organizationId),
+    index("idx_delivery_tracking_order_id").on(table.orderId),
+    index("idx_delivery_tracking_status").on(table.status),
+    index("idx_delivery_tracking_expected_date").on(table.expectedDeliveryDate),
+  ]
+);
+
+export type DeliveryTracking = typeof deliveryTracking.$inferSelect;
+export type NewDeliveryTracking = typeof deliveryTracking.$inferInsert;
+
+// ─── Warranty Claims (Garantieansprüche) ─────────────────────────────
+export const warrantyClaims = pgTable(
+  "warranty_claims",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    warrantyRecordId: uuid("warranty_record_id")
+      .notNull()
+      .references(() => warrantyRecords.id),
+    entityType: text("entity_type").notNull(), // "tool", "material"
+    entityId: uuid("entity_id").notNull(),
+    claimNumber: text("claim_number"), // auto-generated
+    reason: text("reason").notNull(),
+    description: text("description"),
+    photos: jsonb("photos"), // string[] of attachment URLs
+    status: text("status").default("draft").notNull(), // draft, submitted, in_review, approved, rejected, resolved
+    resolution: text("resolution"), // replacement, repair, refund, rejected
+    resolutionNotes: text("resolution_notes"),
+    submittedAt: timestamp("submitted_at"),
+    resolvedAt: timestamp("resolved_at"),
+    submittedById: uuid("submitted_by_id").references(() => users.id),
+    assignedToId: uuid("assigned_to_id").references(() => users.id),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_warranty_claims_org_id").on(table.organizationId),
+    index("idx_warranty_claims_warranty_id").on(table.warrantyRecordId),
+    index("idx_warranty_claims_status").on(table.status),
+    index("idx_warranty_claims_entity").on(table.entityType, table.entityId),
+  ]
+);
+
+export type WarrantyClaim = typeof warrantyClaims.$inferSelect;
+export type NewWarrantyClaim = typeof warrantyClaims.$inferInsert;
+
+// ─── Stock Auto-Adjust Settings ──────────────────────────────────────
+export const stockAutoAdjustSettings = pgTable(
+  "stock_auto_adjust_settings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    materialId: uuid("material_id")
+      .notNull()
+      .references(() => materials.id, { onDelete: "cascade" }),
+    locationId: uuid("location_id").references(() => locations.id),
+    enabled: boolean("enabled").default(true).notNull(),
+    algorithm: text("algorithm").default("moving_average").notNull(), // moving_average, exponential_smoothing, seasonal
+    lookbackDays: integer("lookback_days").default(90),
+    safetyFactor: integer("safety_factor").default(150), // 150 = 1.5x (percentage)
+    lastCalculatedAt: timestamp("last_calculated_at"),
+    calculatedMin: integer("calculated_min"),
+    calculatedMax: integer("calculated_max"),
+    calculatedReorderPoint: integer("calculated_reorder_point"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_stock_auto_adjust_org_id").on(table.organizationId),
+    index("idx_stock_auto_adjust_material_id").on(table.materialId),
+    index("idx_stock_auto_adjust_location_id").on(table.locationId),
+  ]
+);
+
+export type StockAutoAdjustSetting = typeof stockAutoAdjustSettings.$inferSelect;
+export type NewStockAutoAdjustSetting = typeof stockAutoAdjustSettings.$inferInsert;
+
+// ─── Geofences ───────────────────────────────────────────────────────
+export const geofences = pgTable(
+  "geofences",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    locationId: uuid("location_id")
+      .notNull()
+      .references(() => locations.id, { onDelete: "cascade" }),
+    latitude: text("latitude").notNull(),
+    longitude: text("longitude").notNull(),
+    radiusMeters: integer("radius_meters").default(100).notNull(),
+    autoCheckin: boolean("auto_checkin").default(true),
+    autoCheckout: boolean("auto_checkout").default(true),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_geofences_org_id").on(table.organizationId),
+    index("idx_geofences_location_id").on(table.locationId),
+  ]
+);
+
+export type Geofence = typeof geofences.$inferSelect;
+export type NewGeofence = typeof geofences.$inferInsert;
+
+// ─── Geofence Events ────────────────────────────────────────────────
+export const geofenceEvents = pgTable(
+  "geofence_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    geofenceId: uuid("geofence_id")
+      .notNull()
+      .references(() => geofences.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    eventType: text("event_type").notNull(), // "enter", "exit"
+    triggeredAt: timestamp("triggered_at").defaultNow().notNull(),
+    latitude: text("latitude"),
+    longitude: text("longitude"),
+    autoAction: text("auto_action"), // "checkin", "checkout", null
+  },
+  (table) => [
+    index("idx_geofence_events_org_id").on(table.organizationId),
+    index("idx_geofence_events_geofence_id").on(table.geofenceId),
+    index("idx_geofence_events_user_id").on(table.userId),
+    index("idx_geofence_events_triggered_at").on(table.triggeredAt),
+  ]
+);
+
+export type GeofenceEvent = typeof geofenceEvents.$inferSelect;
+export type NewGeofenceEvent = typeof geofenceEvents.$inferInsert;
+
+// ─── Vendor Portal Tokens ────────────────────────────────────────────
+export const vendorPortalTokens = pgTable(
+  "vendor_portal_tokens",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    supplierId: uuid("supplier_id")
+      .notNull()
+      .references(() => suppliers.id, { onDelete: "cascade" }),
+    token: text("token").notNull().unique(),
+    email: text("email").notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    lastAccessedAt: timestamp("last_accessed_at"),
+    expiresAt: timestamp("expires_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_vendor_portal_tokens_org_id").on(table.organizationId),
+    index("idx_vendor_portal_tokens_supplier_id").on(table.supplierId),
+    index("idx_vendor_portal_tokens_token").on(table.token),
+  ]
+);
+
+export type VendorPortalToken = typeof vendorPortalTokens.$inferSelect;
+export type NewVendorPortalToken = typeof vendorPortalTokens.$inferInsert;
+
+// ─── Customer Portal Tokens ──────────────────────────────────────────
+export const customerPortalTokens = pgTable(
+  "customer_portal_tokens",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    customerId: uuid("customer_id")
+      .notNull()
+      .references(() => customers.id, { onDelete: "cascade" }),
+    token: text("token").notNull().unique(),
+    email: text("email").notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    lastAccessedAt: timestamp("last_accessed_at"),
+    expiresAt: timestamp("expires_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_customer_portal_tokens_org_id").on(table.organizationId),
+    index("idx_customer_portal_tokens_customer_id").on(table.customerId),
+    index("idx_customer_portal_tokens_token").on(table.token),
+  ]
+);
+
+export type CustomerPortalToken = typeof customerPortalTokens.$inferSelect;
+export type NewCustomerPortalToken = typeof customerPortalTokens.$inferInsert;
+
+// ─── Bluetooth Beacons ───────────────────────────────────────────────
+export const bleBeacons = pgTable(
+  "ble_beacons",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    locationId: uuid("location_id").references(() => locations.id),
+    uuid: text("beacon_uuid").notNull(), // iBeacon UUID
+    major: integer("major"), // iBeacon major
+    minor: integer("minor"), // iBeacon minor
+    name: text("name"),
+    entityType: text("entity_type"), // "tool", "location", "zone"
+    entityId: uuid("entity_id"),
+    batteryLevel: integer("battery_level"), // 0-100
+    lastSeenAt: timestamp("last_seen_at"),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_ble_beacons_org_id").on(table.organizationId),
+    index("idx_ble_beacons_location_id").on(table.locationId),
+    index("idx_ble_beacons_uuid").on(table.uuid),
+  ]
+);
+
+export type BleBeacon = typeof bleBeacons.$inferSelect;
+export type NewBleBeacon = typeof bleBeacons.$inferInsert;

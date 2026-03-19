@@ -9,6 +9,7 @@
 // ---------------------------------------------------------------------------
 
 import { useState, useEffect, useCallback } from "react"
+import Image from "next/image"
 import { useParams, useRouter } from "next/navigation"
 import {
   IconArrowLeft,
@@ -268,10 +269,13 @@ export default function CommissionDetailPage() {
             <CardTitle className="text-sm font-medium">Digitale Unterschrift</CardTitle>
           </CardHeader>
           <CardContent className="flex items-start gap-8 p-4 pt-0">
-            <img
+            <Image
               src={commission.signature}
               alt="Unterschrift"
-              className="max-h-24 max-w-[240px] border border-border rounded-md bg-white"
+              width={240}
+              height={96}
+              className="max-h-24 max-w-[240px] border border-border rounded-md bg-white object-contain"
+              unoptimized
             />
             <div className="flex flex-col gap-1 text-sm text-muted-foreground">
               {commission.signedBy && (

@@ -1626,7 +1626,7 @@ export default function ToolDetailPage() {
                 setCheckoutSubmitting(true)
                 try {
                   const orgId = sessionStorage.getItem("activeOrgId") ?? ""
-                  const orgHeader = orgId ? { "x-organization-id": orgId } : {}
+                  const orgHeader: Record<string, string> = orgId ? { "x-organization-id": orgId } : {}
                   const res = await fetch(`/api/tools/${toolId}/booking`, {
                     method: "POST",
                     headers: {
@@ -1780,7 +1780,7 @@ export default function ToolDetailPage() {
               onClick={async () => {
                 try {
                   const orgId = sessionStorage.getItem("activeOrgId") ?? ""
-                  const orgHeader = orgId ? { "x-organization-id": orgId } : {}
+                  const orgHeader: Record<string, string> = orgId ? { "x-organization-id": orgId } : {}
                   const res = await fetch(`/api/tools/${toolId}/booking`, {
                     method: "POST",
                     headers: {

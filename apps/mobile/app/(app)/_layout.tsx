@@ -157,6 +157,9 @@ export default function AppLayout() {
       />
       {/* Hidden screens that exist as files but should not appear as tabs */}
       <Tabs.Screen name="nfc" options={{ href: null }} />
+      <Tabs.Screen name="geofencing" options={{ href: null }} />
+      <Tabs.Screen name="watch" options={{ href: null }} />
+      <Tabs.Screen name="beacons" options={{ href: null }} />
     </Tabs>
       {isDemoMode && <DemoBanner />}
       <OfflineBanner />

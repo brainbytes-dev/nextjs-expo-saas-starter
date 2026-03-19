@@ -3,11 +3,8 @@ import { getSessionAndOrg } from "@/app/api/_helpers/auth";
 import { sendShiftReportEmail } from "@/lib/email";
 import {
   stockChanges,
-  materials,
-  locations,
   users,
   toolBookings,
-  tools,
   commissions,
   organizationMembers,
   organizations,
