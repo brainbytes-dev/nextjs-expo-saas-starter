@@ -1119,11 +1119,11 @@ export default function ToolDetailPage() {
                             tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`}
                           />
                           <Tooltip
-                            formatter={(value: number | string) => [
+                            formatter={(value) => [
                               `CHF ${Number(value).toLocaleString("de-CH", { minimumFractionDigits: 2 })}`,
                               "",
                             ]}
-                            labelFormatter={(label: number | string) => `Jahr ${label}`}
+                            labelFormatter={(label) => `Jahr ${label}`}
                           />
                           <Area
                             type="monotone"

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { IconTrash, IconFolder, IconMapPin, IconDownload, IconX } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import {

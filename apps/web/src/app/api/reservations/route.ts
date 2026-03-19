@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { reservations, users } from "@repo/db/schema";
-import { eq, and, gte, lte, or, sql } from "drizzle-orm";
+import { eq, and, gte, lte, sql } from "drizzle-orm";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
 
 // ─── GET /api/reservations ────────────────────────────────────────────────────

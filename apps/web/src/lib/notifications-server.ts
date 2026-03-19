@@ -7,7 +7,7 @@
  */
 
 import { getDb } from "@repo/db";
-import { notifications, organizationMembers, users } from "@repo/db/schema";
+import { notifications, organizationMembers } from "@repo/db/schema";
 import { eq, and } from "drizzle-orm";
 
 export type NotificationType =

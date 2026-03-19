@@ -57,10 +57,11 @@ export function CommandPalette() {
 
   // Load dynamic items from localStorage when opening
   useEffect(() => {
-    if (open) {
+    async function loadDynamicItems() {
       setRecentItems(getRecentItems())
       setFavorites(getFavorites())
     }
+    if (open) loadDynamicItems()
   }, [open])
 
   // Reset query when closing
@@ -125,7 +126,10 @@ export function CommandPalette() {
   }, [open, filtered, selectedIdx, router])
 
   // Reset selectedIdx on query change
-  useEffect(() => { setSelectedIdx(0) }, [query])
+  useEffect(() => {
+    async function resetIdx() { setSelectedIdx(0) }
+    resetIdx()
+  }, [query])
 
   // Group items preserving order
   const groups = filtered.reduce<Record<string, PaletteItem[]>>((acc, item) => {

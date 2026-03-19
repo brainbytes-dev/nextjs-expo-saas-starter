@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import {
   IconArrowLeft,
   IconCopy,
-  IconTrash,
   IconCheck,
   IconAlertTriangle,
   IconRefresh,

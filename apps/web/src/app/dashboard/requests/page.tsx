@@ -12,7 +12,6 @@ import {
   IconAlertCircle,
   IconAlertTriangle,
   IconInfoCircle,
-  IconArrowUpRight,
   IconShoppingCart,
   IconSearch,
 } from "@tabler/icons-react"
@@ -169,7 +168,6 @@ function CreateRequestDialog({
   const [reason, setReason] = useState("")
   const [priority, setPriority] = useState<Priority>("normal")
   const [searchResults, setSearchResults] = useState<MaterialSearchResult[]>([])
-  const [searching, setSearching] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   // Reset on open
@@ -191,7 +189,6 @@ function CreateRequestDialog({
       setSearchResults([])
       return
     }
-    setSearching(true)
     try {
       const res = await fetch(`/api/materials?search=${encodeURIComponent(q)}&limit=8`)
       if (res.ok) {
@@ -200,8 +197,6 @@ function CreateRequestDialog({
       }
     } catch {
       // silent
-    } finally {
-      setSearching(false)
     }
   }, [])
 
@@ -391,7 +386,10 @@ function RejectDialog({
   const [notes, setNotes] = useState("")
 
   useEffect(() => {
-    if (open) setNotes("")
+    async function reset() {
+      setNotes("")
+    }
+    if (open) reset()
   }, [open])
 
   return (

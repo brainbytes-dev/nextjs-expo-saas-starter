@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { materials, materialGroups, locations, materialStocks } from "@repo/db/schema";
-import { eq, and, ne, isNotNull, sql } from "drizzle-orm";
+import { materials, materialGroups, locations } from "@repo/db/schema";
+import { eq, and, sql } from "drizzle-orm";
 import { withPermission } from "@/lib/rbac";
 
 // ─── Levenshtein distance (pure JS, no deps) ─────────────────────────────────

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { auth } from "@/lib/auth";
 import { getDb } from "@repo/db";
-import { notifications, organizationMembers } from "@repo/db/schema";
+import { notifications } from "@repo/db/schema";
 import { eq, and, desc, inArray } from "drizzle-orm";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
