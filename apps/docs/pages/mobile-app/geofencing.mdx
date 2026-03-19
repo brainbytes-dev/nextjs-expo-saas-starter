@@ -1,0 +1,63 @@
+---
+title: Geofencing
+---
+
+import { Callout } from 'nextra/components'
+
+# Geofencing
+
+Mit Geofencing erkennt die LogistikApp Mobile App automatisch, wenn Sie einen Standort betreten oder verlassen. Ideal für automatisches Checkin/Checkout auf Baustellen, in Lagern oder bei Kunden.
+
+## So funktioniert es
+
+LogistikApp definiert einen **virtuellen Radius** um jeden Standort mit GPS-Koordinaten. Sobald Ihr Smartphone diesen Bereich betritt oder verlässt, wird automatisch ein Event ausgelöst.
+
+| Event | Aktion |
+|-------|--------|
+| **Betreten** | Automatischer Checkin am Standort — Zeitstempel wird erfasst |
+| **Verlassen** | Automatischer Checkout — Aufenthaltsdauer wird berechnet |
+
+## Geofence einrichten
+
+1. Navigieren Sie in der Web-App zu **Standorte** und öffnen Sie einen Standort.
+2. Stellen Sie sicher, dass **GPS-Koordinaten** hinterlegt sind (oder setzen Sie diese über die Karte).
+3. Aktivieren Sie **Geofencing** und definieren Sie den **Radius** (50–500 Meter).
+4. Speichern Sie die Änderungen.
+
+In der Mobile App unter **Einstellungen → Geofencing**:
+
+1. Aktivieren Sie **Standort-Erkennung**.
+2. Erlauben Sie den Standortzugriff **«Immer»** (für Hintergrund-Monitoring).
+3. Die konfigurierten Standorte erscheinen in der Liste.
+
+<Callout type="warning">
+iOS erlaubt maximal 20 gleichzeitig überwachte Geofence-Regionen. Priorisieren Sie die wichtigsten Standorte, falls Sie mehr als 20 haben.
+</Callout>
+
+## Hintergrund-Monitoring
+
+Die App überwacht Geofences auch im Hintergrund — ohne dass die App geöffnet sein muss. Das Betriebssystem weckt die App bei einem Betreten/Verlassen-Event automatisch auf.
+
+- **iOS**: Nutzt `CLLocationManager` mit `startMonitoring(for:)` — energieeffizient
+- **Android**: Nutzt den `GeofencingClient` der Google Play Services
+
+<Callout type="info">
+Hintergrund-Monitoring verbraucht minimal Akku, da das Betriebssystem die Erkennung übernimmt — nicht die App selbst.
+</Callout>
+
+## Events-Log
+
+Alle Geofence-Events werden unter **Mobile App → Geofencing → Events** protokolliert:
+
+- **Standort**: Welcher Geofence wurde ausgelöst
+- **Typ**: Betreten oder Verlassen
+- **Zeitstempel**: Exakter Zeitpunkt
+- **Dauer**: Berechnete Aufenthaltsdauer (bei Checkout)
+
+Der Events-Log ist auch in der Web-App unter **Berichte → Geofencing** einsehbar.
+
+## Verwandte Funktionen
+
+- [Standorte](/standorte) — GPS-Koordinaten und Standortverwaltung
+- [Zeiterfassung](/erweitert/zeiterfassung) — Arbeitszeit mit Standortbezug
+- [Push-Benachrichtigungen](/mobile-app/push-notifications) — Alerts bei Geofence-Events

@@ -1,0 +1,71 @@
+---
+title: Bluetooth Beacons
+---
+
+import { Callout } from 'nextra/components'
+
+# Bluetooth Beacons
+
+Mit Bluetooth Beacons erkennt LogistikApp die Position von Artikeln und Werkzeugen innerhalb von Gebäuden — dort, wo GPS nicht funktioniert. Die App scannt iBeacon-Signale und ordnet sie Standorten oder Zonen zu.
+
+## iBeacon-Scanning
+
+LogistikApp unterstützt den **iBeacon-Standard** (Apple). Jeder Beacon sendet drei Identifikationswerte:
+
+| Wert | Verwendung in LogistikApp |
+|------|--------------------------|
+| **UUID** | Identifiziert Ihre Organisation |
+| **Major** | Identifiziert den Standort (z.B. Gebäude) |
+| **Minor** | Identifiziert die Zone (z.B. Regal, Raum) |
+
+Die App erkennt Beacons automatisch im Hintergrund und ordnet sie den konfigurierten Zonen zu.
+
+## Beacons einrichten
+
+1. Navigieren Sie in der Web-App zu **Einstellungen → Bluetooth Beacons**.
+2. Tragen Sie die **Organisations-UUID** ein (einmalig, identisch auf allen Beacons).
+3. Klicken Sie auf **+ Beacon hinzufügen**.
+4. Geben Sie **Major**, **Minor** und den zugehörigen **Standort / Zone** ein.
+5. Platzieren Sie den physischen Beacon an der entsprechenden Stelle.
+
+<Callout type="info">
+Empfohlene Beacon-Hardware: Estimote, Kontakt.io oder Minew. Achten Sie auf den iBeacon-Standard und eine Batterielaufzeit von mindestens 2 Jahren.
+</Callout>
+
+## Indoor-Positionierung
+
+Wenn mehrere Beacons in einem Gebäude platziert sind, berechnet LogistikApp eine ungefähre Position basierend auf der **Signalstärke (RSSI)**:
+
+- **Sofort** (< 0.5 m): Artikel ist direkt beim Beacon
+- **Nah** (0.5–3 m): Artikel ist in der gleichen Zone
+- **Fern** (> 3 m): Artikel ist im gleichen Raum/Bereich
+
+Die Grundriss-Ansicht zeigt die erkannten Positionen als farbige Punkte auf dem Lagerplan.
+
+## Batterie-Tracking
+
+LogistikApp überwacht den **Batteriestatus** jedes Beacons (sofern der Beacon dies unterstützt):
+
+| Status | Anzeige |
+|--------|---------|
+| **Gut** (> 50%) | Grün |
+| **Mittel** (20–50%) | Gelb |
+| **Niedrig** (< 20%) | Rot — Benachrichtigung wird ausgelöst |
+| **Nicht erreichbar** | Grau — Beacon antwortet nicht mehr |
+
+<Callout type="warning">
+Beacons mit niedrigem Batteriestand senden schwächere Signale, was die Positionsgenauigkeit beeinträchtigt. Tauschen Sie Batterien rechtzeitig aus.
+</Callout>
+
+## Schritt für Schritt: Beacon-Scan in der App
+
+1. Öffnen Sie die Mobile App und navigieren Sie zu **Scanner → Beacon-Scan**.
+2. Die App sucht automatisch nach Beacons in der Nähe.
+3. Erkannte Beacons werden mit Standort, Zone und Signalstärke angezeigt.
+4. Tippen Sie auf einen Beacon, um alle Artikel in dieser Zone zu sehen.
+
+## Verwandte Funktionen
+
+- [Grundriss-Ansicht](/erweitert/grundriss) — Indoor-Lageplan mit Beacon-Positionen
+- [NFC-Tags](/mobile-app/nfc) — Kontaktbasierte Identifikation
+- [Geofencing](/mobile-app/geofencing) — Standort-Erkennung im Aussenbereich

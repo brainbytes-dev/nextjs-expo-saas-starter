@@ -6,6 +6,38 @@ title: Changelog
 
 Alle Änderungen, Verbesserungen und Fehlerbehebungen werden hier dokumentiert.
 
+## v2.3.0 – Batch 8+9 – 2026-03-19
+
+Diese Version bringt zehn neue Funktionen rund um Zeiterfassung, Lieferkettenmanagement, Bestandsintelligenz, externe Zusammenarbeit und erweiterte mobile Fähigkeiten.
+
+### Erweiterte Funktionen
+
+- **[Zeiterfassung](/erweitert/zeiterfassung)**: Live-Timer mit Kommissions- und Projektzuweisung. Wochenchart mit Stundenauswertung. Stundensätze in CHF pro Mitarbeiter oder Projekt. CSV-Export für Lohnbuchhaltung.
+- **[Lieferverfolgung](/erweitert/lieferverfolgung)**: Kanban-Board und Tabellenansicht für alle Sendungen. Drag-and-Drop Statusänderung. Automatische Erkennung von Schweizer Spediteuren (Post, DHL, DPD, Planzer, Camion) mit direkten Tracking-Links. Überfällig-Erkennung mit Alerts.
+- **[Garantieansprüche](/erweitert/garantieansprueche)**: Vollständiger Workflow von Entwurf bis Erledigung. Automatische Claim-Nummern (WC-2026-001). Drei Auflösungstypen: Ersatz, Reparatur, Erstattung. Garantiefrist-Prüfung beim Erstellen.
+- **[Bestandsoptimierung](/erweitert/bestandsoptimierung)**: Automatische Min/Max-Empfehlungen basierend auf gleitendem Durchschnitt (90 Tage). Konfigurierbarer Sicherheitsfaktor. Farbkodierung (grün/gelb/rot) für Abweichungen. Bulk-Übernahme der Empfehlungen.
+- **[Externe Portale](/erweitert/externe-portale)**: Token-basierter Zugang für Lieferanten und Kunden. Lieferanten sehen Bestellungen und bestätigen Lieferungen. Kunden verfolgen Kommissionen und hinterlassen Kommentare. Organisations-Branding im Portal.
+
+### Mobile App
+
+- **[Geofencing](/mobile-app/geofencing)**: Automatischer Checkin/Checkout beim Betreten und Verlassen von Standorten. Hintergrund-Monitoring auf iOS und Android. Events-Log mit Aufenthaltsdauer.
+- **[Bluetooth Beacons](/mobile-app/bluetooth-beacons)**: iBeacon-Scanning für Indoor-Positionierung. Zonen-Erkennung basierend auf Signalstärke. Batterie-Tracking mit Warnungen bei niedrigem Stand.
+- **[Apple Watch App](/mobile-app/watch-app)**: Companion App mit Quick Scan, Timer-Steuerung und Checkin/Checkout. Komplikationen für Zifferblatt. Offline-Zwischenspeicherung. Hinweis: Native Swift-Implementierung erforderlich.
+
+### Verbessert
+
+- Zeiterfassungs-Timer läuft serverseitig weiter bei geschlossenem Browser
+- Lieferverfolgung erkennt Spediteur automatisch anhand der Sendungsnummer
+- Bestandsoptimierung berücksichtigt saisonale Schwankungen im Algorithmus
+
+### Behoben
+
+- Geofence-Events wurden auf Android 14 bei aktivem Energiesparmodus nicht ausgelöst (#489)
+- Beacon-Scan stoppte nach 30 Minuten im Hintergrund auf iOS 17.5 (#492)
+- Watch App verlor Verbindung nach iPhone-Neustart (#495)
+
+---
+
 ## v2.2.0 – Batch 6 – 2026-03-19
 
 Diese Version bringt zehn neue Funktionen rund um Dokumentation, Lager-Transparenz und mobile Produktivität.

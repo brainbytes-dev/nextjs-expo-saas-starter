@@ -1,0 +1,75 @@
+---
+title: Zeiterfassung
+---
+
+import { Callout } from 'nextra/components'
+
+# Zeiterfassung
+
+Die integrierte Zeiterfassung ermöglicht es, Arbeitszeit direkt in LogistikApp zu erfassen — mit Live-Timer, Projekt- und Kommissionszuweisung und Auswertung in CHF.
+
+## Live-Timer starten
+
+1. Öffnen Sie das **Zeiterfassung**-Modul in der Seitenleiste.
+2. Klicken Sie auf **Timer starten**.
+3. Wählen Sie optional eine **Kommission** oder ein **Projekt** aus dem Dropdown.
+4. Der Timer läuft in Echtzeit — auch wenn Sie andere Seiten öffnen.
+5. Klicken Sie auf **Stoppen**, um den Eintrag abzuschliessen.
+
+<Callout type="info">
+Der Timer läuft serverseitig weiter. Selbst wenn Sie den Browser schliessen, geht keine Zeit verloren.
+</Callout>
+
+## Manuelle Einträge
+
+Falls Sie den Timer nicht genutzt haben:
+
+1. Klicken Sie auf **+ Eintrag hinzufügen**.
+2. Wählen Sie **Datum**, **Startzeit** und **Endzeit**.
+3. Weisen Sie eine Kommission, ein Projekt oder eine Notiz zu.
+4. Speichern Sie den Eintrag.
+
+## Kommission / Projekt zuweisen
+
+Jeder Zeiteintrag kann einer Kommission oder einem Projekt zugewiesen werden. Dies ermöglicht:
+
+- Auswertung der aufgewendeten Stunden pro Kommission
+- Kostenzuordnung auf Projekte
+- Vergleich von geplantem vs. tatsächlichem Aufwand
+
+## Wochenchart
+
+Die Wochenansicht zeigt ein **Balkendiagramm** mit den erfassten Stunden pro Tag (Mo–So). Darunter:
+
+| Kennzahl | Beschreibung |
+|----------|-------------|
+| **Wochentotal** | Summe aller Stunden der aktuellen Woche |
+| **Tagesdurchschnitt** | Wochentotal ÷ Arbeitstage |
+| **Projektsplit** | Anteil pro Projekt in Prozent |
+
+## Stundensätze in CHF
+
+Unter **Einstellungen → Zeiterfassung** definieren Sie Stundensätze:
+
+- **Standard-Stundensatz**: Gilt für alle Mitarbeitenden ohne individuellen Satz
+- **Mitarbeiter-Stundensatz**: Überschreibt den Standard pro Person
+- **Projekt-Stundensatz**: Überschreibt beide für ein bestimmtes Projekt
+
+Die Auswertung rechnet automatisch: Stunden × Stundensatz = **Kosten in CHF**.
+
+## CSV-Export
+
+1. Wechseln Sie in die **Listenansicht** der Zeiteinträge.
+2. Setzen Sie den gewünschten **Datumsbereich**.
+3. Klicken Sie auf **Exportieren → CSV**.
+4. Die Datei enthält: Datum, Mitarbeiter, Projekt, Start, Ende, Dauer, Stundensatz, Betrag (CHF).
+
+<Callout type="info">
+Der CSV-Export ist kompatibel mit gängiger Schweizer Lohnbuchhaltungssoftware (Bexio, Abacus, Run my Accounts).
+</Callout>
+
+## Verwandte Funktionen
+
+- [Kostenstellen & Projekte](/finanzen/kostenstellen) — Kostenauswertung pro Projekt
+- [Geplante Berichte](/automatisierung/geplante-berichte) — Zeitauswertung automatisch per E-Mail
+- [Aktivitätsprotokoll](/erweitert/aktivitaetsprotokoll) — Wer hat wann welche Buchung gemacht

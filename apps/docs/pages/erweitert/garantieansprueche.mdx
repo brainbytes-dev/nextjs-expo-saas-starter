@@ -1,0 +1,78 @@
+---
+title: Garantieansprüche
+---
+
+import { Callout } from 'nextra/components'
+
+# Garantieansprüche
+
+Verwalten Sie Garantiefälle direkt in LogistikApp — vom Entwurf bis zur Erledigung, mit automatischer Nummerierung und strukturiertem Workflow.
+
+## Workflow
+
+Jeder Garantieanspruch durchläuft einen klar definierten Status-Workflow:
+
+```
+Entwurf → Eingereicht → In Prüfung → Genehmigt / Abgelehnt → Erledigt
+```
+
+| Status | Beschreibung |
+|--------|-------------|
+| **Entwurf** | Anspruch wird vorbereitet, noch nicht eingereicht |
+| **Eingereicht** | Beim Lieferanten oder Hersteller eingereicht |
+| **In Prüfung** | Lieferant prüft den Anspruch |
+| **Genehmigt** | Anspruch akzeptiert, Auflösung ausstehend |
+| **Abgelehnt** | Anspruch wurde abgelehnt (mit Begründung) |
+| **Erledigt** | Auflösung abgeschlossen |
+
+## Automatische Claim-Nummern
+
+Jeder Anspruch erhält automatisch eine eindeutige Nummer im Format:
+
+```
+WC-2026-001
+```
+
+- **WC** = Warranty Claim
+- **2026** = Jahr
+- **001** = Laufende Nummer (pro Organisation)
+
+Die Nummerierung ist fortlaufend und unveränderbar.
+
+## Schritt für Schritt: Garantieanspruch erstellen
+
+1. Navigieren Sie zu **Garantieansprüche → + Neuer Anspruch**.
+2. Wählen Sie den betroffenen **Artikel** oder das **Werkzeug** aus.
+3. Beschreiben Sie den **Mangel** im Textfeld.
+4. Laden Sie optional **Fotos** als Nachweis hoch.
+5. LogistikApp prüft automatisch, ob der Artikel noch **innerhalb der Garantiefrist** liegt.
+6. Speichern Sie als **Entwurf** oder klicken Sie direkt auf **Einreichen**.
+
+<Callout type="warning">
+Liegt der Artikel ausserhalb der Garantiefrist, zeigt LogistikApp eine Warnung an. Der Anspruch kann trotzdem erstellt werden — die Entscheidung liegt beim Lieferanten.
+</Callout>
+
+## Auflösungstypen
+
+Wenn ein Anspruch genehmigt wird, wählen Sie die Art der Auflösung:
+
+| Auflösung | Beschreibung |
+|-----------|-------------|
+| **Ersatz** | Lieferant sendet Ersatzartikel — Bestand wird automatisch aktualisiert |
+| **Reparatur** | Artikel wird repariert — Werkzeug wird als «In Reparatur» markiert |
+| **Erstattung** | Gutschrift oder Rückzahlung — Betrag wird im Finanzbericht verbucht |
+
+## Übersicht und Filter
+
+Die Garantieansprüche-Liste bietet Filter nach:
+
+- **Status**: Alle Workflow-Stufen
+- **Zeitraum**: Erstellungsdatum
+- **Lieferant**: Gruppierung nach Hersteller/Lieferant
+- **Auflösung**: Ersatz / Reparatur / Erstattung
+
+## Verwandte Funktionen
+
+- [Versicherung & Garantie](/rueckverfolgung/versicherung) — Garantiefristen pro Artikel verwalten
+- [Lieferanten & Preise](/finanzen/lieferantenpreise) — Lieferantenkontakte für Ansprüche
+- [Foto-Dokumentation](/erweitert/foto-dokumentation) — Fotos als Schadensnachweis

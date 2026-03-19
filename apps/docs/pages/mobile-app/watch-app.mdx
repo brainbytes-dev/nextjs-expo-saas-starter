@@ -1,0 +1,77 @@
+---
+title: Apple Watch App
+---
+
+import { Callout } from 'nextra/components'
+
+# Apple Watch App
+
+Die LogistikApp Companion App für Apple Watch bietet Schnellzugriff auf die wichtigsten Funktionen direkt am Handgelenk — Quick Scan, Timer und Checkin/Checkout.
+
+<Callout type="warning">
+Die Apple Watch App erfordert eine native Swift-Implementierung (WatchKit / SwiftUI). Diese Funktion wird als separates Target innerhalb des Expo-Projekts bereitgestellt und erfordert einen aktiven Apple Developer Account.
+</Callout>
+
+## Voraussetzungen
+
+- Apple Watch Series 5 oder neuer (watchOS 9+)
+- iPhone mit installierter LogistikApp Mobile App
+- Aktive Bluetooth-Verbindung zwischen Watch und iPhone
+
+## Funktionen
+
+### Quick Scan
+
+Scannen Sie Barcodes direkt mit der Apple Watch Kamera:
+
+1. Öffnen Sie die LogistikApp auf der Watch.
+2. Tippen Sie auf **Scan**.
+3. Halten Sie den Barcode vor die Kamera.
+4. Die Watch zeigt Artikelname, Bestand und Standort an.
+5. Wählen Sie eine Schnellaktion: **+1**, **-1** oder **Details auf iPhone**.
+
+<Callout type="info">
+Die Kamera der Apple Watch hat eine begrenzte Auflösung. Für beste Ergebnisse halten Sie den Barcode in 10–15 cm Abstand und sorgen Sie für gute Beleuchtung.
+</Callout>
+
+### Timer
+
+Starten und stoppen Sie die Zeiterfassung vom Handgelenk:
+
+1. Tippen Sie auf **Timer** im Hauptmenü.
+2. Wählen Sie ein **Projekt** aus der Liste (synchronisiert vom iPhone).
+3. Tippen Sie auf **Start** — der Timer läuft als Komplikation auf dem Zifferblatt.
+4. Tippen Sie auf **Stopp**, um den Eintrag abzuschliessen.
+
+Der Timer synchronisiert sich in Echtzeit mit der iPhone-App und der Web-App.
+
+### Checkin / Checkout
+
+Werkzeug-Checkin und -Checkout per Watch:
+
+1. Tippen Sie auf **Checkin** oder **Checkout**.
+2. Scannen Sie den Barcode oder wählen Sie aus den **letzten 5 Werkzeugen**.
+3. Bestätigen Sie mit einem Tap — die Watch gibt haptisches Feedback.
+
+## Komplikationen
+
+Die Watch App bietet zwei Komplikationen für das Zifferblatt:
+
+| Komplikation | Anzeige |
+|-------------|---------|
+| **Timer** | Laufende Zeiterfassung mit Dauer |
+| **Alerts** | Anzahl offener Benachrichtigungen (Mindestbestand, Wartung) |
+
+## Daten-Synchronisation
+
+Die Watch App kommuniziert über **WatchConnectivity** mit der iPhone-App:
+
+- Artikeldaten werden im Hintergrund synchronisiert
+- Buchungen werden sofort an das iPhone übertragen
+- Bei fehlender Verbindung werden Aktionen lokal zwischengespeichert
+
+## Verwandte Funktionen
+
+- [Zeiterfassung](/erweitert/zeiterfassung) — Vollständige Zeiterfassung in der Web-App
+- [Barcode-Scanner](/mobile-app/scanner) — Scanner-Funktionen in der Mobile App
+- [Schnellzugriff-Karten](/mobile-app/schnellzugriff) — Quick Actions auf dem iPhone

@@ -1,0 +1,73 @@
+---
+title: Bestandsoptimierung
+---
+
+import { Callout } from 'nextra/components'
+
+# Bestandsoptimierung
+
+Die Bestandsoptimierung berechnet automatisch empfohlene Min/Max-Werte für jeden Artikel — basierend auf Ihrem tatsächlichen Verbrauch. So vermeiden Sie Überbestände und Stockouts.
+
+## Algorithmus
+
+LogistikApp verwendet einen **gleitenden Durchschnitt** über die letzten 90 Tage:
+
+1. **Durchschnittsverbrauch** = Gesamtverbrauch ÷ Anzahl Tage
+2. **Standardabweichung** = Streuung des täglichen Verbrauchs
+3. **Sicherheitsfaktor** = Konfigurierbar (Standard: 1.5)
+4. **Empfohlener Mindestbestand** = Durchschnittsverbrauch × Lieferzeit + (Standardabweichung × Sicherheitsfaktor)
+5. **Empfohlener Maximalbestand** = Empfohlener Mindestbestand × 2.5
+
+<Callout type="info">
+Der Algorithmus berücksichtigt saisonale Schwankungen. Artikel mit stark variierendem Verbrauch erhalten automatisch einen höheren Sicherheitspuffer.
+</Callout>
+
+## Sicherheitsfaktor anpassen
+
+Unter **Einstellungen → Bestandsoptimierung** stellen Sie den Sicherheitsfaktor ein:
+
+| Faktor | Empfehlung | Servicegrad |
+|--------|-----------|-------------|
+| **1.0** | Kostensensitive Artikel | ~84% |
+| **1.5** | Standard (empfohlen) | ~93% |
+| **2.0** | Kritische Artikel | ~97% |
+| **2.5** | Hochkritisch | ~99% |
+
+## Empfohlene vs. aktuelle Werte
+
+Die Optimierungsansicht zeigt eine Tabelle mit:
+
+| Spalte | Beschreibung |
+|--------|-------------|
+| **Artikel** | Name und Artikelnummer |
+| **Aktueller Min** | Ihr manuell gesetzter Mindestbestand |
+| **Empfohlener Min** | Vom Algorithmus berechnet |
+| **Aktueller Max** | Ihr manuell gesetzter Maximalbestand |
+| **Empfohlener Max** | Vom Algorithmus berechnet |
+| **Abweichung** | Differenz in Prozent |
+
+## Farbkodierung
+
+Jede Zeile ist farblich markiert:
+
+- **Grün**: Aktuelle Werte liegen innerhalb von ±10% der Empfehlung
+- **Gelb**: Abweichung zwischen 10% und 30% — Anpassung empfohlen
+- **Rot**: Abweichung über 30% — dringender Handlungsbedarf
+
+## Schritt für Schritt: Werte übernehmen
+
+1. Navigieren Sie zu **Materialien → Bestandsoptimierung**.
+2. Prüfen Sie die empfohlenen Werte in der Tabelle.
+3. Aktivieren Sie die **Checkbox** bei den Artikeln, deren Werte Sie übernehmen möchten.
+4. Klicken Sie auf **Empfehlungen übernehmen**.
+5. Die neuen Min/Max-Werte werden sofort aktiv.
+
+<Callout type="warning">
+Die Übernahme überschreibt Ihre aktuellen Min/Max-Werte. Prüfen Sie die Empfehlungen vor der Übernahme sorgfältig, besonders bei Artikeln mit unregelmässigem Verbrauch.
+</Callout>
+
+## Verwandte Funktionen
+
+- [Nachfrageprognose](/ai/prognose) — KI-gestützte Vorhersage zukünftiger Verbräuche
+- [Auto-Nachbestellung](/automatisierung/auto-nachbestellung) — Automatische Bestellungen bei Unterschreitung
+- [Geplante Berichte](/automatisierung/geplante-berichte) — Bestandsoptimierungs-Report per E-Mail

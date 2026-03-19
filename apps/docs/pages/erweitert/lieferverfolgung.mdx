@@ -1,0 +1,69 @@
+---
+title: Lieferverfolgung
+---
+
+import { Callout } from 'nextra/components'
+
+# Lieferverfolgung
+
+Die Lieferverfolgung zeigt den Status aller ein- und ausgehenden Sendungen — als Kanban-Board oder Tabelle, mit Drag-and-Drop und direkten Tracking-Links zu Schweizer Spediteuren.
+
+## Kanban-Ansicht
+
+Die Standard-Ansicht zeigt Sendungen als Karten in fünf Spalten:
+
+| Spalte | Bedeutung |
+|--------|-----------|
+| **Vorbereitet** | Sendung erstellt, noch nicht übergeben |
+| **Unterwegs** | Beim Spediteur, Tracking aktiv |
+| **In Zustellung** | Letzte Meile, Zustellung heute erwartet |
+| **Zugestellt** | Erfolgreich empfangen |
+| **Problem** | Fehlgeschlagen, retourniert oder verloren |
+
+Ziehen Sie eine Karte per **Drag-and-Drop** in die nächste Spalte, um den Status zu aktualisieren.
+
+## Tabellenansicht
+
+Wechseln Sie über das Icon oben rechts in die **Tabellenansicht** für eine kompakte Übersicht mit Sortier- und Filterfunktionen. Spalten: Sendungsnummer, Spediteur, Status, Erstellt am, Voraussichtliche Lieferung, Empfänger.
+
+## Schweizer Spediteure
+
+LogistikApp kennt die gängigen Schweizer und europäischen Spediteure:
+
+| Spediteur | Tracking-Prefix | Auto-Link |
+|-----------|----------------|-----------|
+| **Die Post / PostPac** | 99.xx.xxx | post.ch |
+| **DHL Express** | JJD / 00340 | dhl.com |
+| **DPD Schweiz** | 0510 | dpd.ch |
+| **Planzer** | PLZ- | planzer.ch |
+| **Camion Transport** | CT- | camion.ch |
+
+Geben Sie die Sendungsnummer ein — LogistikApp erkennt den Spediteur automatisch und verlinkt die Tracking-Seite.
+
+<Callout type="info">
+Klicken Sie auf das Tracking-Icon neben der Sendungsnummer, um die Spediteur-Seite direkt in einem neuen Tab zu öffnen.
+</Callout>
+
+## Überfällig-Erkennung
+
+Sendungen, deren voraussichtliches Lieferdatum überschritten ist, werden automatisch **rot markiert**. Im Dashboard erscheint ein Badge mit der Anzahl überfälliger Sendungen.
+
+Konfigurieren Sie unter **Einstellungen → Lieferverfolgung**:
+
+- **Toleranz**: Anzahl Tage nach geplantem Lieferdatum, bevor eine Sendung als überfällig gilt (Standard: 1 Tag)
+- **Benachrichtigung**: E-Mail und/oder Push bei überfälligen Sendungen
+
+## Schritt für Schritt: Sendung erfassen
+
+1. Navigieren Sie zu **Lieferverfolgung → + Neue Sendung**.
+2. Wählen Sie den **Typ** (Eingang oder Ausgang).
+3. Geben Sie **Spediteur** und **Sendungsnummer** ein.
+4. Setzen Sie das **voraussichtliche Lieferdatum**.
+5. Verknüpfen Sie optional einen **Lieferschein**.
+6. Speichern — die Sendung erscheint im Kanban unter «Vorbereitet».
+
+## Verwandte Funktionen
+
+- [Lieferscheine](/lieferscheine) — Warenein- und -ausgang dokumentieren
+- [Benachrichtigungszentrale](/erweitert/benachrichtigungen) — Alerts bei überfälligen Sendungen
+- [Workflow-Regeln](/automatisierung/workflow-regeln) — Automatische Aktionen bei Statusänderungen

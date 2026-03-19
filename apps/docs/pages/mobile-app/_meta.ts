@@ -8,5 +8,8 @@ export default {
   "nfc": "NFC-Tags",
   "ar-modus": "AR-Modus",
   "sprachsteuerung": "Sprachsteuerung",
-  "offline-konflikte": "Offline-Konflikte"
+  "offline-konflikte": "Offline-Konflikte",
+  "geofencing": "Geofencing",
+  "bluetooth-beacons": "Bluetooth Beacons",
+  "watch-app": "Apple Watch App"
 }

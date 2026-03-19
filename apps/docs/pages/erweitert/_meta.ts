@@ -16,5 +16,10 @@ export default {
   "lieferschein-pdf": "Lieferschein PDF & Unterschrift",
   "tv-modus": "TV-Modus (Lager-Dashboard)",
   "barcode-generator": "Barcode-Generator",
-  "foto-dokumentation": "Foto-Dokumentation"
+  "foto-dokumentation": "Foto-Dokumentation",
+  "zeiterfassung": "Zeiterfassung",
+  "lieferverfolgung": "Lieferverfolgung",
+  "garantieansprueche": "Garantieansprüche",
+  "bestandsoptimierung": "Bestandsoptimierung",
+  "externe-portale": "Externe Portale"
 }

@@ -1,0 +1,81 @@
+---
+title: Externe Portale
+---
+
+import { Callout } from 'nextra/components'
+
+# Externe Portale (Lieferanten & Kunden)
+
+Mit externen Portalen geben Sie Lieferanten und Kunden begrenzten Zugang zu LogistikApp — ohne vollständigen Account. Jedes Portal ist per Token geschützt und zeigt nur die relevanten Daten.
+
+## Lieferantenportal
+
+Lieferanten sehen ausschliesslich Bestellungen, die an sie gerichtet sind, und können diese bestätigen oder ablehnen.
+
+### Funktionen für Lieferanten
+
+- **Offene Bestellungen** einsehen (Artikel, Menge, gewünschtes Lieferdatum)
+- **Bestellung bestätigen** mit voraussichtlichem Lieferdatum
+- **Teillieferung** melden (Mengenänderung pro Position)
+- **Dokumente hochladen** (Lieferschein, Rechnung)
+
+### Lieferantenportal einrichten
+
+1. Navigieren Sie zu **Einstellungen → Externe Portale → Lieferantenportal**.
+2. Klicken Sie auf **+ Neuer Zugang**.
+3. Wählen Sie den **Lieferanten** aus Ihrer Lieferantenliste.
+4. LogistikApp generiert einen **eindeutigen Zugangslink** (Token-basiert).
+5. Senden Sie den Link per E-Mail an Ihren Lieferanten.
+
+<Callout type="info">
+Jeder Token ist auf einen Lieferanten beschränkt und kann jederzeit widerrufen werden. Tokens laufen nach 90 Tagen ab und müssen erneuert werden.
+</Callout>
+
+## Kundenportal
+
+Kunden sehen ihre Kommissionen und deren Fortschritt, können Kommentare hinterlassen und Dokumente herunterladen.
+
+### Funktionen für Kunden
+
+- **Kommissionen** einsehen (Status, Positionen, Lieferdatum)
+- **Kommentare** hinterlassen (z.B. Änderungswünsche)
+- **Lieferscheine** als PDF herunterladen
+- **Statusverlauf** der Kommission nachvollziehen
+
+### Kundenportal einrichten
+
+1. Navigieren Sie zu **Einstellungen → Externe Portale → Kundenportal**.
+2. Klicken Sie auf **+ Neuer Zugang**.
+3. Geben Sie **Name** und **E-Mail-Adresse** des Kunden ein.
+4. Wählen Sie, welche **Kommissionen** sichtbar sein sollen (alle oder nur bestimmte).
+5. Versenden Sie den generierten Zugangslink.
+
+## Branding
+
+Externe Portale übernehmen das **Branding Ihrer Organisation**:
+
+- Firmenlogo im Header
+- Primärfarbe aus den Unternehmens-Einstellungen
+- Ihr Firmenname im Seitentitel
+
+Passen Sie das Branding unter **Einstellungen → Unternehmen → Branding** an.
+
+## Sicherheit
+
+| Massnahme | Beschreibung |
+|-----------|-------------|
+| **Token-Authentifizierung** | Jeder Zugang hat einen einzigartigen, kryptographisch sicheren Token |
+| **Ablaufdatum** | Tokens laufen nach 90 Tagen ab |
+| **Widerruf** | Tokens können jederzeit sofort deaktiviert werden |
+| **Nur-Lesen** | Kunden können keine Daten ändern (nur Kommentare) |
+| **Aktivitätsprotokoll** | Alle Portal-Zugriffe werden protokolliert |
+
+<Callout type="warning">
+Geben Sie Portal-Links niemals öffentlich weiter. Jeder mit dem Link hat Zugang zu den verknüpften Daten.
+</Callout>
+
+## Verwandte Funktionen
+
+- [Lieferanten & Preise](/finanzen/lieferantenpreise) — Lieferantenstammdaten verwalten
+- [QR Self-Service](/erweitert/qr-self-service) — Öffentliche Buchungsseiten für Mitarbeitende
+- [API-Schlüssel](/einstellungen/api-schluessel) — Programmatischer Zugang für Systeme
