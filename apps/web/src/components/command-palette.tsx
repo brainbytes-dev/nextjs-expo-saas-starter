@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import {
   IconSearch, IconPackage, IconTool, IconMapPin,
   IconPlus, IconHistory, IconSettings, IconLayoutDashboard,
@@ -160,8 +161,8 @@ export function CommandPalette() {
       <DialogContent
         showCloseButton={false}
         className="p-0 gap-0 max-w-[520px] overflow-hidden border-border/60 shadow-2xl"
-        aria-label="Befehlspalette"
       >
+        <VisuallyHidden><DialogTitle>Befehlspalette</DialogTitle></VisuallyHidden>
         {/* Search input row */}
         <div className="flex items-center gap-3 px-4 border-b border-border/60 bg-background">
           <IconSearch className="size-[15px] text-muted-foreground/70 shrink-0" strokeWidth={1.75} />
