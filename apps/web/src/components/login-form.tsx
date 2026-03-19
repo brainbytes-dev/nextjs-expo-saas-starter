@@ -58,12 +58,18 @@ export function LoginForm({
     resolver: zodResolver(loginSchema),
   })
 
+  const [demoLoading, setDemoLoading] = useState(false)
   const handleDemoLogin = async () => {
+    setDemoLoading(true)
     await signIn.email(
-      { email: "demo@example.com", password: "demo" },
+      { email: "demo@logistikapp.ch", password: "demo1234" },
       {
         onSuccess: () => {
           router.push("/dashboard")
+        },
+        onError: () => {
+          toast.error("Demo-Login fehlgeschlagen")
+          setDemoLoading(false)
         },
       }
     )
@@ -283,13 +289,11 @@ export function LoginForm({
             {isSubmitting ? t("loggingIn") : t("login")}
           </Button>
         </Field>
-        {DEMO_MODE && (
-          <Field>
-            <Button type="button" variant="outline" onClick={handleDemoLogin}>
-              Demo testen
-            </Button>
-          </Field>
-        )}
+        <Field>
+          <Button type="button" variant="outline" onClick={handleDemoLogin} disabled={demoLoading}>
+            {demoLoading ? "Wird geladen..." : "Demo testen →"}
+          </Button>
+        </Field>
         <FieldDescription className="text-center">
           {t("noAccount")}{" "}
           <a href="/signup" className="underline underline-offset-4">
