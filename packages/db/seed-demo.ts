@@ -124,6 +124,10 @@ if (existingOrg.length > 0) {
   await sql`DELETE FROM customers WHERE organization_id = ${orgId}`;
   await sql`DELETE FROM projects WHERE organization_id = ${orgId}`;
   await sql`DELETE FROM locations WHERE organization_id = ${orgId}`;
+  await sql`DELETE FROM calibration_records WHERE organization_id = ${orgId}`;
+  await sql`DELETE FROM workflow_rules WHERE organization_id = ${orgId}`;
+  await sql`DELETE FROM permissions WHERE role_id IN (SELECT id FROM roles WHERE organization_id = ${orgId})`;
+  await sql`DELETE FROM roles WHERE organization_id = ${orgId}`;
   await sql`DELETE FROM organization_members WHERE organization_id = ${orgId}`;
   await sql`DELETE FROM organizations WHERE id = ${orgId}`;
   log("Existing org and all related data deleted.");
@@ -1124,6 +1128,469 @@ await sql`
 `;
 log("Alert settings created (email alerts enabled, 7-day maintenance warning)");
 
+// ─── Step 18: RBAC Roles + Permissions ──────────────────────────────────────
+
+section("18 · RBAC Roles + Permissions (5 roles)");
+
+type ResourceAction = { resource: string; action: string };
+
+const allResources = [
+  "materials", "tools", "keys", "locations", "commissions",
+  "orders", "suppliers", "customers", "reports", "settings", "team", "integrations",
+];
+const allActions = ["read", "create", "update", "delete"];
+
+function makePerms(include: { [resource: string]: string[] } | "all" | "readonly"): ResourceAction[] {
+  if (include === "all") {
+    return allResources.flatMap(r => allActions.map(a => ({ resource: r, action: a })));
+  }
+  if (include === "readonly") {
+    return allResources.map(r => ({ resource: r, action: "read" }));
+  }
+  return allResources.flatMap(r => {
+    const actions = include[r] ?? [];
+    return actions.map(a => ({ resource: r, action: a }));
+  });
+}
+
+const roleMap: Record<string, string> = {};
+
+const rbacRoles = [
+  {
+    name: "Inhaber",
+    slug: "owner",
+    isSystem: true,
+    perms: makePerms("all"),
+  },
+  {
+    name: "Administrator",
+    slug: "administrator",
+    isSystem: true,
+    // All except delete team
+    perms: makePerms("all").filter(p => !(p.resource === "team" && p.action === "delete")),
+  },
+  {
+    name: "Lagerverwalter",
+    slug: "lagerverwalter",
+    isSystem: true,
+    perms: makePerms({
+      materials:    ["read", "create", "update", "delete"],
+      tools:        ["read", "create", "update", "delete"],
+      keys:         ["read", "create", "update", "delete"],
+      locations:    ["read", "create", "update", "delete"],
+      commissions:  ["read", "create", "update", "delete"],
+      orders:       ["read", "create", "update"],
+      suppliers:    ["read", "create", "update"],
+      customers:    ["read"],
+      reports:      ["read"],
+      settings:     ["read"],
+      team:         ["read"],
+      integrations: [],
+    }),
+  },
+  {
+    name: "Mitarbeiter",
+    slug: "mitarbeiter",
+    isSystem: true,
+    perms: makePerms({
+      materials:    ["read", "create"],
+      tools:        ["read", "create"],
+      keys:         ["read"],
+      locations:    ["read"],
+      commissions:  ["read", "create"],
+      orders:       ["read"],
+      suppliers:    ["read"],
+      customers:    ["read"],
+      reports:      ["read"],
+      settings:     [],
+      team:         ["read"],
+      integrations: [],
+    }),
+  },
+  {
+    name: "Betrachter",
+    slug: "betrachter",
+    isSystem: true,
+    perms: makePerms("readonly"),
+  },
+];
+
+for (const role of rbacRoles) {
+  const roleId = randomUUID();
+  await sql`
+    INSERT INTO roles (id, organization_id, name, slug, is_system, created_at, updated_at)
+    VALUES (${roleId}, ${orgId}, ${role.name}, ${role.slug}, ${role.isSystem}, NOW(), NOW())
+  `;
+  roleMap[role.slug] = roleId;
+  for (const perm of role.perms) {
+    await sql`
+      INSERT INTO permissions (id, role_id, resource, action, allowed)
+      VALUES (${randomUUID()}, ${roleId}, ${perm.resource}, ${perm.action}, true)
+    `;
+  }
+  log(`Role "${role.name}" (${role.slug}) — ${role.perms.length} permissions`);
+}
+
+// Assign Inhaber role to the demo user membership
+await sql`
+  UPDATE organization_members
+  SET rbac_role_id = ${roleMap["owner"]}
+  WHERE organization_id = ${orgId} AND user_id = ${userId}
+`;
+log("Demo user membership updated with Inhaber role");
+
+// ─── Step 19: Maintenance Events ──────────────────────────────────────────────
+
+section("19 · Maintenance Events (10)");
+
+// Helper: days in the future
+function daysFromNow(n: number): Date {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d;
+}
+
+interface MaintenanceEventDef {
+  toolName: string;
+  daysAgoPerformed: number;
+  notes: string;
+}
+
+const maintenanceEventsData: MaintenanceEventDef[] = [
+  // Completed past maintenance
+  { toolName: "Bohrhammer Hilti TE 70-ATC",         daysAgoPerformed: 55, notes: "Jährliche Hilti-Wartung: Getriebe geölt, Kohlen geprüft, Kalibrierung OK" },
+  { toolName: "Akkuschrauber Hilti SF 6H-A22",       daysAgoPerformed: 48, notes: "Halbjahreswartung: Akku-Check, Futter gereinigt, Drehmoment kalibriert" },
+  { toolName: "Kompressor Atlas Copco SF4",           daysAgoPerformed: 42, notes: "Halbjahreswartung: Luftfilter gewechselt, Riemen geprüft, Druck eingestellt" },
+  { toolName: "Flex Bosch GWS 22-230",               daysAgoPerformed: 35, notes: "Jährliche Wartung: Schutzhaube kontrolliert, Kohlen 70% — noch OK" },
+  { toolName: "Laser-Nivelliergerät Bosch GLL 3-80", daysAgoPerformed: 28, notes: "Kalibrierung und Nivellierkontrolle bestätigt, Klasse 2 Laserleistung geprüft" },
+  { toolName: "Presszange Geberit",                  daysAgoPerformed: 21, notes: "2-Jahres-Wartung: Pressbacken kontrolliert, Hydrauliköl nachgefüllt" },
+  { toolName: "Multimeter Fluke 117",                daysAgoPerformed: 14, notes: "Kalibrierung und Messgenauigkeit bestätigt, Kalibrierzertifikat ausgestellt" },
+  { toolName: "Stichsäge Festool PS 420",            daysAgoPerformed: 10, notes: "Jährliche Wartung: Sägeblattführung eingestellt, Staubabsaugung geprüft" },
+  { toolName: "Handkreissäge Festool TS 55",         daysAgoPerformed:  7, notes: "Wartung: Sägeblatt gewechselt, Parallelanschlag kalibriert" },
+  { toolName: "Kabelmessgerät Fluke 1664 FC",        daysAgoPerformed:  3, notes: "Kalibrierung: Messwiderstand, Isolationsprüfung und RCD-Test bestätigt" },
+];
+
+let meCount = 0;
+for (const me of maintenanceEventsData) {
+  const tId = toolMap[me.toolName];
+  if (!tId) {
+    console.warn(`    WARN: tool not found for maintenance event: ${me.toolName}`);
+    continue;
+  }
+  const performedAt = daysAgo(me.daysAgoPerformed);
+  performedAt.setHours(randomBetween(7, 16), randomBetween(0, 59));
+  await sql`
+    INSERT INTO maintenance_events (id, organization_id, tool_id, performed_by_id, performed_at, notes, created_at)
+    VALUES (
+      ${randomUUID()}, ${orgId}, ${tId}, ${userId},
+      ${performedAt.toISOString()}, ${me.notes}, ${performedAt.toISOString()}
+    )
+  `;
+  meCount++;
+}
+log(`${meCount} maintenance events created`);
+
+// ─── Step 20: Update tools with next_maintenance_date ────────────────────────
+
+section("20 · Tools — set last_maintenance_date + next_maintenance_date");
+
+interface ToolMaintenanceDates {
+  toolName: string;
+  lastMaintenanceDaysAgo: number;
+  nextMaintenanceDaysFromNow: number; // negative = overdue
+}
+
+const toolMaintenanceDates: ToolMaintenanceDates[] = [
+  // Upcoming (next 7 days) — should trigger alerts
+  { toolName: "Bohrhammer Hilti TE 70-ATC",         lastMaintenanceDaysAgo: 55, nextMaintenanceDaysFromNow:  3 },
+  { toolName: "Akkuschrauber Hilti SF 6H-A22",       lastMaintenanceDaysAgo: 48, nextMaintenanceDaysFromNow:  5 },
+  { toolName: "Kompressor Atlas Copco SF4",           lastMaintenanceDaysAgo: 42, nextMaintenanceDaysFromNow:  6 },
+  // Overdue (past due date)
+  { toolName: "Flex Bosch GWS 22-230",               lastMaintenanceDaysAgo: 35, nextMaintenanceDaysFromNow: -4 },
+  { toolName: "Laser-Nivelliergerät Bosch GLL 3-80", lastMaintenanceDaysAgo: 28, nextMaintenanceDaysFromNow: -9 },
+  { toolName: "Presszange Geberit",                  lastMaintenanceDaysAgo: 21, nextMaintenanceDaysFromNow: -2 },
+  // Fine (30+ days away)
+  { toolName: "Multimeter Fluke 117",                lastMaintenanceDaysAgo: 14, nextMaintenanceDaysFromNow: 351 },
+  { toolName: "Stichsäge Festool PS 420",            lastMaintenanceDaysAgo: 10, nextMaintenanceDaysFromNow: 355 },
+  { toolName: "Handkreissäge Festool TS 55",         lastMaintenanceDaysAgo:  7, nextMaintenanceDaysFromNow: 358 },
+  { toolName: "Kabelmessgerät Fluke 1664 FC",        lastMaintenanceDaysAgo:  3, nextMaintenanceDaysFromNow: 362 },
+];
+
+for (const tm of toolMaintenanceDates) {
+  const tId = toolMap[tm.toolName];
+  if (!tId) continue;
+  const lastDate = daysAgo(tm.lastMaintenanceDaysAgo);
+  const nextDate = tm.nextMaintenanceDaysFromNow >= 0
+    ? daysFromNow(tm.nextMaintenanceDaysFromNow)
+    : daysAgo(-tm.nextMaintenanceDaysFromNow);
+  const lastDateStr = lastDate.toISOString().slice(0, 10);
+  const nextDateStr = nextDate.toISOString().slice(0, 10);
+  await sql`
+    UPDATE tools
+    SET last_maintenance_date = ${lastDateStr}, next_maintenance_date = ${nextDateStr}, updated_at = NOW()
+    WHERE id = ${tId}
+  `;
+  const label = tm.nextMaintenanceDaysFromNow < 0
+    ? `OVERDUE (${-tm.nextMaintenanceDaysFromNow}d ago)`
+    : tm.nextMaintenanceDaysFromNow <= 7
+      ? `UPCOMING in ${tm.nextMaintenanceDaysFromNow}d`
+      : `OK (in ${tm.nextMaintenanceDaysFromNow}d)`;
+  log(`${tm.toolName}: next=${nextDateStr} [${label}]`);
+}
+
+// ─── Step 21: Calibration Records ────────────────────────────────────────────
+
+section("21 · Calibration Records (5)");
+
+interface CalibrationRecordDef {
+  toolName: string;
+  calibratedDaysAgo: number;
+  nextCalibrationDate: string;
+  result: "pass" | "fail" | "conditional";
+  certificateUrl?: string;
+  notes: string;
+}
+
+const calibrationRecordsData: CalibrationRecordDef[] = [
+  {
+    toolName: "Multimeter Fluke 117",
+    calibratedDaysAgo: 14,
+    nextCalibrationDate: daysFromNow(351).toISOString().slice(0, 10),
+    result: "pass",
+    certificateUrl: "https://storage.logistikapp.ch/demo/cert-fluke117-2026.pdf",
+    notes: "DAkkS-Kalibrierung bestätigt. Abweichung <0.1% über gesamten Messbereich. Zertifikat Nr. DAK-2026-0341.",
+  },
+  {
+    toolName: "Kabelmessgerät Fluke 1664 FC",
+    calibratedDaysAgo: 3,
+    nextCalibrationDate: daysFromNow(362).toISOString().slice(0, 10),
+    result: "pass",
+    certificateUrl: "https://storage.logistikapp.ch/demo/cert-fluke1664-2026.pdf",
+    notes: "DGUV V3 Kalibrierung: Isolationswiderstand, Erdungsmessung, RCD-Auslösezeit — alle Werte im Normbereich.",
+  },
+  {
+    toolName: "Laser-Nivelliergerät Bosch GLL 3-80",
+    calibratedDaysAgo: 28,
+    nextCalibrationDate: daysFromNow(-9).toISOString().slice(0, 10), // overdue
+    result: "conditional",
+    notes: "Horizontale Achse: +0.3mm/m Abweichung (Grenzwert 0.2mm/m). Kalibrierung empfohlen vor nächstem Einsatz.",
+  },
+  {
+    toolName: "Bohrhammer Hilti TE 70-ATC",
+    calibratedDaysAgo: 55,
+    nextCalibrationDate: daysFromNow(3).toISOString().slice(0, 10),
+    result: "pass",
+    certificateUrl: "https://storage.logistikapp.ch/demo/cert-hilti-te70-2025.pdf",
+    notes: "Hilti Fleet Management Kalibrierung: Schlagenergie und Drehmoment im Soll. Nächste Kalibrierung fällig.",
+  },
+  {
+    toolName: "Kompressor Atlas Copco SF4",
+    calibratedDaysAgo: 42,
+    nextCalibrationDate: daysFromNow(6).toISOString().slice(0, 10),
+    result: "pass",
+    notes: "Druckkalibrierung: Betriebsdruck 6.3 bar (Soll 6.0–6.5 bar). Sicherheitsventil geprüft und bestätigt.",
+  },
+];
+
+let crCount = 0;
+for (const cr of calibrationRecordsData) {
+  const tId = toolMap[cr.toolName];
+  if (!tId) {
+    console.warn(`    WARN: tool not found for calibration: ${cr.toolName}`);
+    continue;
+  }
+  const calibratedAt = daysAgo(cr.calibratedDaysAgo);
+  calibratedAt.setHours(randomBetween(8, 16), randomBetween(0, 59));
+  await sql`
+    INSERT INTO calibration_records (
+      id, organization_id, tool_id, calibrated_at, calibrated_by_id,
+      next_calibration_date, certificate_url, result, notes, created_at
+    ) VALUES (
+      ${randomUUID()}, ${orgId}, ${tId}, ${calibratedAt.toISOString()}, ${userId},
+      ${cr.nextCalibrationDate}, ${cr.certificateUrl ?? null}, ${cr.result}, ${cr.notes},
+      ${calibratedAt.toISOString()}
+    )
+  `;
+  crCount++;
+  log(`Calibration: ${cr.toolName} (${cr.result}) — next: ${cr.nextCalibrationDate}`);
+}
+log(`${crCount} calibration records created`);
+
+// ─── Step 22: Inventory Counts ────────────────────────────────────────────────
+
+section("22 · Inventory Counts (2)");
+
+// --- Completed: Jahresinventur 2026 Hauptlager ---
+const jahresinventurId = randomUUID();
+const jahresinventurStarted = daysAgo(14);
+const jahresinventurCompleted = daysAgo(12);
+
+await sql`
+  INSERT INTO inventory_counts (id, organization_id, name, location_id, status, started_at, completed_at, completed_by, notes, created_at, updated_at)
+  VALUES (
+    ${jahresinventurId}, ${orgId},
+    'Jahresinventur 2026 — Hauptlager',
+    ${locationMap["Hauptlager Zürich"]},
+    'completed',
+    ${jahresinventurStarted.toISOString()},
+    ${jahresinventurCompleted.toISOString()},
+    ${userId},
+    'Vollständige Jahresinventur Hauptlager Zürich. 2 Abweichungen festgestellt.',
+    ${jahresinventurStarted.toISOString()},
+    ${jahresinventurCompleted.toISOString()}
+  )
+`;
+log("Inventory count created: Jahresinventur 2026 — Hauptlager (completed)");
+
+// 10 items — 8 exact, 2 discrepancies
+const jahresinventurItems = [
+  { material: "Kabel NYM-J 3x1.5mm²",     expected: 450, counted: 450, notes: null         },
+  { material: "Kabel NYM-J 5x2.5mm²",     expected: 220, counted: 220, notes: null         },
+  { material: "Steckdose UP Feller",       expected: 85,  counted: 83,  notes: "2 Stk fehlen — vermutlich auf Baustelle Oerlikon" },
+  { material: "LED Leuchtmittel E27 10W",  expected: 120, counted: 120, notes: null         },
+  { material: "Dübel Fischer SX 8",        expected: 800, counted: 800, notes: null         },
+  { material: "Schrauben M6x40 Senkkopf", expected: 620, counted: 655, notes: "35 Stk mehr — Lieferung nicht eingebucht" },
+  { material: "Kupferrohr 15mm",           expected: 80,  counted: 80,  notes: null         },
+  { material: "Kupferrohr 22mm",           expected: 60,  counted: 60,  notes: null         },
+  { material: "Silikon transparent 310ml", expected: 24,  counted: 24,  notes: null         },
+  { material: "Rigipsplatten 12.5mm",      expected: 80,  counted: 80,  notes: null         },
+];
+
+let jaItemCount = 0;
+for (const item of jahresinventurItems) {
+  const mId = materialMap[item.material];
+  const lId = locationMap["Hauptlager Zürich"];
+  if (!mId) { console.warn(`    WARN: material not found: ${item.material}`); continue; }
+  const diff = item.counted - item.expected;
+  await sql`
+    INSERT INTO inventory_count_items (id, count_id, material_id, location_id, expected_quantity, counted_quantity, difference, counted_by, counted_at, notes)
+    VALUES (
+      ${randomUUID()}, ${jahresinventurId}, ${mId}, ${lId},
+      ${item.expected}, ${item.counted}, ${diff},
+      ${userId}, ${jahresinventurCompleted.toISOString()},
+      ${item.notes}
+    )
+  `;
+  jaItemCount++;
+}
+log(`${jaItemCount} items in Jahresinventur (2 discrepancies: Steckdosen -2, Schrauben +35)`);
+
+// --- In-Progress: Stichprobe Fahrzeug 1 ---
+const stichprobeId = randomUUID();
+const stichprobeStarted = daysAgo(2);
+
+await sql`
+  INSERT INTO inventory_counts (id, organization_id, name, location_id, status, started_at, completed_at, completed_by, notes, created_at, updated_at)
+  VALUES (
+    ${stichprobeId}, ${orgId},
+    'Stichprobe Fahrzeug 1',
+    ${locationMap["Fahrzeug 1 - VW Crafter"]},
+    'in_progress',
+    ${stichprobeStarted.toISOString()},
+    null,
+    null,
+    'Stichprobe des Fahrzeugbestands VW Crafter ZH-1234.',
+    ${stichprobeStarted.toISOString()},
+    ${stichprobeStarted.toISOString()}
+  )
+`;
+log("Inventory count created: Stichprobe Fahrzeug 1 (in_progress)");
+
+// 5 items, 3 counted so far
+const stichprobeItems = [
+  { material: "Kabel NYM-J 3x1.5mm²",     expected: 30, counted: 28,   countedAt: daysAgo(1), notes: "2m verbraucht ohne Ausbuchung" },
+  { material: "Dübel Fischer SX 8",        expected: 80, counted: 80,   countedAt: daysAgo(1), notes: null },
+  { material: "Schrauben M6x40 Senkkopf", expected: 120, counted: 115, countedAt: daysAgo(1), notes: "5 Stk fehlen" },
+  { material: "Silikon transparent 310ml", expected: 4,  counted: null, countedAt: null,       notes: null },  // not yet counted
+  { material: "Steckdose UP Feller",       expected: 10, counted: null, countedAt: null,       notes: null },  // not yet counted
+];
+
+let spItemCount = 0;
+for (const item of stichprobeItems) {
+  const mId = materialMap[item.material];
+  const lId = locationMap["Fahrzeug 1 - VW Crafter"];
+  if (!mId) { console.warn(`    WARN: material not found: ${item.material}`); continue; }
+  const diff = item.counted != null ? item.counted - item.expected : null;
+  await sql`
+    INSERT INTO inventory_count_items (id, count_id, material_id, location_id, expected_quantity, counted_quantity, difference, counted_by, counted_at, notes)
+    VALUES (
+      ${randomUUID()}, ${stichprobeId}, ${mId}, ${lId},
+      ${item.expected}, ${item.counted ?? null}, ${diff},
+      ${item.countedAt ? userId : null},
+      ${item.countedAt ? item.countedAt.toISOString() : null},
+      ${item.notes}
+    )
+  `;
+  spItemCount++;
+}
+log(`${spItemCount} items in Stichprobe (3/5 counted)`);
+
+// ─── Step 23: Workflow Rules ──────────────────────────────────────────────────
+
+section("23 · Workflow Rules (2)");
+
+await sql`
+  INSERT INTO workflow_rules (id, organization_id, name, trigger_event, conditions, actions, is_active, priority, created_at, updated_at)
+  VALUES (
+    ${randomUUID()},
+    ${orgId},
+    'Meldebestand-Warnung',
+    'stock.below_reorder',
+    ${JSON.stringify({
+      operator: "and",
+      rules: [
+        { field: "quantity", operator: "lte", value: "reorder_level" },
+      ],
+    })},
+    ${JSON.stringify([
+      {
+        type: "send_email",
+        config: {
+          to: ["demo@logistikapp.ch"],
+          subject: "Meldebestand unterschritten: {{material.name}}",
+          body: "Das Material '{{material.name}}' hat den Meldebestand von {{material.reorder_level}} {{material.unit}} unterschritten. Aktueller Bestand: {{stock.quantity}} {{material.unit}}.",
+        },
+      },
+    ])},
+    true,
+    10,
+    NOW(),
+    NOW()
+  )
+`;
+log('Workflow rule: "Meldebestand-Warnung" (trigger: stock.below_reorder → send email)');
+
+await sql`
+  INSERT INTO workflow_rules (id, organization_id, name, trigger_event, conditions, actions, is_active, priority, created_at, updated_at)
+  VALUES (
+    ${randomUUID()},
+    ${orgId},
+    'Werkzeug überfällig (7 Tage)',
+    'tool.overdue',
+    ${JSON.stringify({
+      operator: "and",
+      rules: [
+        { field: "days_overdue", operator: "gte", value: 7 },
+      ],
+    })},
+    ${JSON.stringify([
+      {
+        type: "send_email",
+        config: {
+          to: ["demo@logistikapp.ch"],
+          subject: "Werkzeug überfällig: {{tool.name}}",
+          body: "Das Werkzeug '{{tool.name}}' ist seit {{booking.days_overdue}} Tagen überfällig. Zuletzt ausgebucht von: {{user.name}} am {{booking.checked_out_at}}.",
+        },
+      },
+    ])},
+    true,
+    20,
+    NOW(),
+    NOW()
+  )
+`;
+log('Workflow rule: "Werkzeug überfällig (7 Tage)" (trigger: tool.overdue, condition daysOverdue >= 7 → send email)');
+
 // ─── Done ─────────────────────────────────────────────────────────────────────
 
 console.log("\n╔══════════════════════════════════════════════════════════╗");
@@ -1145,6 +1612,11 @@ console.log(`  - 5 commissions / Lieferscheine`);
 console.log(`  - 4 suppliers, 3 customers`);
 console.log(`  - 5 tasks`);
 console.log(`  - 4 custom field definitions`);
+console.log(`  - 5 RBAC roles with full permission matrix`);
+console.log(`  - ${meCount} maintenance events (60-day history)`);
+console.log(`  - ${crCount} calibration records`);
+console.log(`  - 2 inventory counts (1 completed, 1 in-progress)`);
+console.log(`  - 2 workflow rules (Meldebestand, Werkzeug-Überfälligkeit)`);
 console.log("");
 
 await sql.end();

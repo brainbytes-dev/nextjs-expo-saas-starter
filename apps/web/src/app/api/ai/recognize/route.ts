@@ -126,10 +126,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let formData: any;
+    let formData: globalThis.FormData;
     try {
-      formData = await request.formData();
+      formData = await request.formData() as unknown as globalThis.FormData;
     } catch {
       return NextResponse.json(
         { error: "Failed to parse form data" },

@@ -1107,13 +1107,11 @@ export default function ToolDetailPage() {
                             tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`}
                           />
                           <Tooltip
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            formatter={(value: any) => [
+                            formatter={(value: number | string) => [
                               `CHF ${Number(value).toLocaleString("de-CH", { minimumFractionDigits: 2 })}`,
                               "",
                             ]}
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            labelFormatter={(label: any) => `Jahr ${label}`}
+                            labelFormatter={(label: number | string) => `Jahr ${label}`}
                           />
                           <Area
                             type="monotone"
