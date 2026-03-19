@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { ModeToggle } from "@/components/theme/theme-toggle"
 import { NotificationBell } from "@/components/notification-bell"
+import { IconSearch } from "@tabler/icons-react"
 
 export function SiteHeader() {
   const router = useRouter()
@@ -23,6 +24,15 @@ export function SiteHeader() {
           className="mx-2 data-[orientation=vertical]:h-4"
         />
         <h1 className="text-base font-medium">Dashboard</h1>
+        {/* Search trigger — opens Cmd+K palette */}
+        <button
+          onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
+          className="ml-4 flex flex-1 max-w-sm items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted/60"
+        >
+          <IconSearch className="size-4" />
+          <span className="hidden sm:inline">Suchen...</span>
+          <kbd className="ml-auto hidden rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground sm:inline">⌘K</kbd>
+        </button>
         <div className="ml-auto flex items-center gap-2">
           <NotificationBell />
           <ModeToggle />
