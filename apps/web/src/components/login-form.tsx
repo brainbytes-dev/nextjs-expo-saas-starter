@@ -12,6 +12,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/ui/password-input"
 import { signIn } from "@/lib/auth-client"
 import { toast } from "sonner"
 import { useForm } from "react-hook-form"
@@ -262,9 +263,8 @@ export function LoginForm({
               {t("forgotPassword")}
             </a>
           </div>
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             {...register("password")}
             disabled={isSubmitting}
           />

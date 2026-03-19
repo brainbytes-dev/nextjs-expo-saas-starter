@@ -12,6 +12,9 @@ import {
   IconClipboardList,
   IconDashboard,
   IconDatabase,
+  IconExternalLink,
+  IconEye,
+  IconEyeOff,
   IconFileInvoice,
   IconHelp,
   IconHistory,
@@ -19,6 +22,7 @@ import {
   IconMapPin,
   IconMap,
   IconPackage,
+  IconPencil,
   IconPlugConnected,
   IconReportAnalytics,
   IconUsers,
@@ -33,6 +37,7 @@ import {
   IconBuilding,
   IconChevronDown,
   IconChartBar,
+  IconCheck,
 } from "@tabler/icons-react"
 import { useTranslations } from "next-intl"
 
@@ -62,6 +67,32 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+
+// ---------------------------------------------------------------------------
+// localStorage key
+// ---------------------------------------------------------------------------
+const STORAGE_KEY = "sidebar_hidden_items"
+
+function loadHiddenItems(): Set<string> {
+  if (typeof window === "undefined") return new Set()
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return new Set()
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed)) return new Set<string>(parsed)
+  } catch {
+    // malformed — ignore
+  }
+  return new Set()
+}
+
+function saveHiddenItems(hidden: Set<string>): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...hidden]))
+  } catch {
+    // storage full or SSR — ignore
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Org Switcher
@@ -190,58 +221,136 @@ function OrgSwitcher({
 }
 
 // ---------------------------------------------------------------------------
+// EditModeToggleRow — shown for each hideable nav item in edit mode
+// ---------------------------------------------------------------------------
+function EditModeRow({
+  icon: Icon,
+  title,
+  hidden,
+  onToggle,
+}: {
+  icon: React.ComponentType<{ className?: string }>
+  title: string
+  hidden: boolean
+  onToggle: () => void
+}) {
+  return (
+    <SidebarMenuItem>
+      <div
+        className={
+          "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-opacity " +
+          (hidden ? "opacity-50" : "opacity-100")
+        }
+      >
+        <Icon className="size-4 shrink-0 text-muted-foreground" />
+        <span className={hidden ? "line-through text-muted-foreground" : "flex-1"}>
+          {title}
+        </span>
+        <button
+          type="button"
+          aria-label={hidden ? `${title} einblenden` : `${title} ausblenden`}
+          title={hidden ? `${title} einblenden` : `${title} ausblenden`}
+          onClick={onToggle}
+          className="ml-auto rounded p-0.5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground"
+        >
+          {hidden ? (
+            <IconEyeOff className="size-4" aria-hidden />
+          ) : (
+            <IconEye className="size-4" aria-hidden />
+          )}
+        </button>
+      </div>
+    </SidebarMenuItem>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Main Sidebar
 // ---------------------------------------------------------------------------
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const t = useTranslations("nav")
   const { logo, orgName } = useBrand()
 
+  // ── Sidebar customisation state ─────────────────────────────────────────
+  const [editMode, setEditMode] = React.useState(false)
+  const [hiddenItems, setHiddenItems] = React.useState<Set<string>>(new Set())
+
+  // Load persisted hidden items once on mount (client-only)
+  React.useEffect(() => {
+    setHiddenItems(loadHiddenItems())
+  }, [])
+
+  const toggleHidden = React.useCallback((key: string) => {
+    setHiddenItems((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) {
+        next.delete(key)
+      } else {
+        next.add(key)
+      }
+      saveHiddenItems(next)
+      return next
+    })
+  }, [])
+
+  const exitEditMode = () => setEditMode(false)
+
+  // ── Nav item definitions ─────────────────────────────────────────────────
   const data = {
     user: {
       name: "shadcn",
       email: "m@example.com",
       avatar: "/avatars/shadcn.jpg",
     },
+    // Items that can be hidden. Key matches what is stored in localStorage.
     navMain: [
       {
         title: t("overview"),
         url: "/dashboard",
         icon: IconDashboard,
+        hideable: false, // always visible
       },
       {
         title: t("materials"),
         url: "/dashboard/materials",
         icon: IconPackage,
+        hideable: true,
       },
       {
         title: t("tools"),
         url: "/dashboard/tools",
         icon: IconTool,
+        hideable: true,
       },
       {
         title: t("keys"),
         url: "/dashboard/keys",
         icon: IconKey,
+        hideable: true,
       },
       {
         title: t("tasks"),
         url: "/dashboard/tasks",
         icon: IconChecklist,
+        hideable: true,
       },
       {
         title: "Inventur",
         url: "/dashboard/inventory",
         icon: IconClipboardCheck,
+        hideable: true,
       },
       {
         title: t("calendar"),
         url: "/dashboard/calendar",
         icon: IconCalendar,
+        hideable: true,
       },
       {
         title: t("reports"),
         url: "/dashboard/reports",
         icon: IconReportAnalytics,
+        hideable: true,
       },
     ],
     documents: [
@@ -249,31 +358,37 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         name: t("locations"),
         url: "/dashboard/locations",
         icon: IconMapPin,
+        hideable: true,
       },
       {
         name: "Karte",
         url: "/dashboard/map",
         icon: IconMap,
+        hideable: true,
       },
       {
         name: t("suppliers"),
         url: "/dashboard/suppliers",
         icon: IconTruck,
+        hideable: true,
       },
       {
         name: t("commissions"),
         url: "/dashboard/commissions",
         icon: IconClipboardList,
+        hideable: true,
       },
       {
         name: t("cart"),
         url: "/dashboard/cart",
         icon: IconShoppingCart,
+        hideable: true,
       },
       {
         name: t("openOrders"),
         url: "/dashboard/orders",
         icon: IconFileInvoice,
+        hideable: true,
       },
     ],
     navClouds: [
@@ -328,58 +443,130 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: t("settings"),
         url: "/dashboard/settings",
         icon: IconSettings,
+        hideable: false, // always visible
       },
       {
         title: t("customFields"),
         url: "/dashboard/settings/custom-fields",
         icon: IconListDetails,
+        hideable: true,
       },
       {
         title: t("alerts"),
         url: "/dashboard/settings/alerts",
         icon: IconBell,
+        hideable: true,
       },
       {
         title: "Automatisierungen",
         url: "/dashboard/settings/automations",
         icon: IconBolt,
+        hideable: true,
       },
       {
         title: "Branding",
         url: "/dashboard/settings/branding",
         icon: IconSettings,
+        hideable: true,
       },
       {
         title: t("team"),
         url: "/dashboard/settings/team",
         icon: IconUsers,
+        hideable: true,
       },
       {
         title: "Rollen",
         url: "/dashboard/settings/roles",
         icon: IconShield,
+        hideable: true,
       },
       {
         title: t("integrations"),
         url: "/dashboard/settings/integrations",
         icon: IconPlugConnected,
-      },
-      {
-        title: t("help"),
-        url: "/dashboard/help",
-        icon: IconHelp,
+        hideable: true,
       },
     ],
   }
+
+  // ── Filtered lists for normal (non-edit) mode ────────────────────────────
+  const visibleNavMain = editMode
+    ? data.navMain
+    : data.navMain.filter((item) => !item.hideable || !hiddenItems.has(item.url))
+
+  const visibleDocuments = editMode
+    ? data.documents
+    : data.documents.filter((item) => !item.hideable || !hiddenItems.has(item.url))
+
+  const visibleNavSecondary = editMode
+    ? data.navSecondary
+    : data.navSecondary.filter((item) => !item.hideable || !hiddenItems.has(item.url))
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
         <OrgSwitcher orgName={orgName} logo={logo} />
       </SidebarHeader>
+
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
+        {/* ── Main nav ──────────────────────────────────────────── */}
+        {editMode ? (
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {data.navMain.map((item) =>
+                  item.hideable ? (
+                    <EditModeRow
+                      key={item.url}
+                      icon={item.icon}
+                      title={item.title}
+                      hidden={hiddenItems.has(item.url)}
+                      onToggle={() => toggleHidden(item.url)}
+                    />
+                  ) : (
+                    // Non-hideable items show as locked/static
+                    <SidebarMenuItem key={item.url}>
+                      <div className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm opacity-60 cursor-default select-none">
+                        <item.icon className="size-4 shrink-0 text-muted-foreground" />
+                        <span className="flex-1">{item.title}</span>
+                        <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground/60">
+                          Immer
+                        </span>
+                      </div>
+                    </SidebarMenuItem>
+                  )
+                )}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : (
+          <NavMain items={visibleNavMain} />
+        )}
+
+        {/* ── Documents / Betrieb ───────────────────────────────── */}
+        {editMode ? (
+          <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+            <SidebarGroupLabel>Betrieb</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {data.documents.map((item) => (
+                  <EditModeRow
+                    key={item.url}
+                    icon={item.icon}
+                    title={item.name}
+                    hidden={hiddenItems.has(item.url)}
+                    onToggle={() => toggleHidden(item.url)}
+                  />
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : (
+          <NavDocuments items={visibleDocuments} />
+        )}
+
+        {/* ── Collapsible sections (Stammdaten / Verlauf) ──────── */}
         <SidebarGroup className="group-data-[collapsible=icon]:hidden">
           {data.navClouds.map((section) => (
             <CollapsibleSection
@@ -390,10 +577,105 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             />
           ))}
         </SidebarGroup>
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+
+        {/* ── Secondary nav ─────────────────────────────────────── */}
+        {editMode ? (
+          <SidebarGroup className="mt-auto">
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {data.navSecondary.map((item) =>
+                  item.hideable ? (
+                    <EditModeRow
+                      key={item.url}
+                      icon={item.icon}
+                      title={item.title}
+                      hidden={hiddenItems.has(item.url)}
+                      onToggle={() => toggleHidden(item.url)}
+                    />
+                  ) : (
+                    <SidebarMenuItem key={item.url}>
+                      <div className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm opacity-60 cursor-default select-none">
+                        <item.icon className="size-4 shrink-0 text-muted-foreground" />
+                        <span className="flex-1">{item.title}</span>
+                        <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground/60">
+                          Immer
+                        </span>
+                      </div>
+                    </SidebarMenuItem>
+                  )
+                )}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : (
+          <>
+            <NavSecondary
+              items={visibleNavSecondary}
+              className="mt-auto"
+            />
+            {/* Hilfe — external link, always shown */}
+            <SidebarGroup className="pb-2">
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <a
+                        href="https://docs.logistikapp.ch"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2"
+                      >
+                        <IconHelp className="size-4 shrink-0" />
+                        <span>{t("help")}</span>
+                        <IconExternalLink className="ml-auto size-3.5 text-muted-foreground/70" aria-hidden />
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
+        )}
+
+        {/* ── Edit mode: Fertig button ───────────────────────────── */}
+        {editMode && (
+          <SidebarGroup className="pb-2">
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild={false}
+                    onClick={exitEditMode}
+                    className="w-full justify-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+                  >
+                    <IconCheck className="size-4" />
+                    <span>Fertig</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
+
       <SidebarFooter>
         <NavUser user={data.user} />
+
+        {/* ── Bearbeiten button — only shown when NOT in edit mode ── */}
+        {!editMode && (
+          <div className="px-2 pb-1">
+            <button
+              type="button"
+              onClick={() => setEditMode(true)}
+              title="Sidebar anpassen"
+              aria-label="Sidebar anpassen"
+              className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground"
+            >
+              <IconPencil className="size-3.5 shrink-0" aria-hidden />
+              <span>Bearbeiten</span>
+            </button>
+          </div>
+        )}
       </SidebarFooter>
     </Sidebar>
   )
