@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
+import { useKeyboardShortcuts } from "@/lib/shortcuts"
+import { useShortcutsDialog } from "@/components/shortcuts-dialog"
 import {
   IconSearch, IconPackage, IconTool, IconMapPin,
   IconPlus, IconHistory, IconSettings, IconLayoutDashboard,
@@ -43,6 +45,17 @@ export function CommandPalette() {
   const [recentItems, setRecentItems] = useState<RecentItem[]>([])
   const [favorites, setFavorites] = useState<FavoriteItem[]>([])
   const router = useRouter()
+  const shortcutsDialog = useShortcutsDialog()
+
+  // Keyboard shortcuts (g+h, g+m, c+t, etc.) — only active when palette is closed
+  useKeyboardShortcuts((shortcut) => {
+    if (shortcut.keys === "?") {
+      shortcutsDialog.setOpen(true)
+    } else if (shortcut.href) {
+      router.push(shortcut.href)
+    }
+    shortcut.action?.()
+  }, !open)
 
   // Open on Cmd+K / Ctrl+K or custom event
   useEffect(() => {

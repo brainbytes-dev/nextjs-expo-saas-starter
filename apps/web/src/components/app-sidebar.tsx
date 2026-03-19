@@ -726,12 +726,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               onClick={() => openShortcuts(true)}
               title="Tastaturkürzel anzeigen (?)"
               aria-label="Tastaturkürzel anzeigen"
-              className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground"
+              className="flex items-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground"
             >
-              <IconKeyboard className="size-3.5 shrink-0" aria-hidden />
-              <kbd className="inline-flex h-4 items-center rounded border border-border/60 bg-background/80 px-1 font-mono text-[9px] leading-none text-muted-foreground/70 shadow-[inset_0_-1px_0_0_rgba(0,0,0,0.06)]">
-                ⌘K
-              </kbd>
+              <IconKeyboard className="size-4" aria-hidden />
             </button>
           </div>
         )}
