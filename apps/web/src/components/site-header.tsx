@@ -26,7 +26,7 @@ export function SiteHeader() {
         <h1 className="text-base font-medium">Dashboard</h1>
         {/* Search trigger — opens Cmd+K palette */}
         <button
-          onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
+          onClick={() => window.dispatchEvent(new Event("open-command-palette"))}
           className="ml-4 flex flex-1 max-w-sm items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted/60"
         >
           <IconSearch className="size-4" />

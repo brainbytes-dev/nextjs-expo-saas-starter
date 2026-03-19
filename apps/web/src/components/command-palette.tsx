@@ -43,7 +43,7 @@ export function CommandPalette() {
   const [favorites, setFavorites] = useState<FavoriteItem[]>([])
   const router = useRouter()
 
-  // Open on Cmd+K / Ctrl+K
+  // Open on Cmd+K / Ctrl+K or custom event
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -51,8 +51,13 @@ export function CommandPalette() {
         setOpen(prev => !prev)
       }
     }
+    const customHandler = () => setOpen(true)
     window.addEventListener("keydown", handler)
-    return () => window.removeEventListener("keydown", handler)
+    window.addEventListener("open-command-palette", customHandler)
+    return () => {
+      window.removeEventListener("keydown", handler)
+      window.removeEventListener("open-command-palette", customHandler)
+    }
   }, [])
 
   // Load dynamic items from localStorage when opening
