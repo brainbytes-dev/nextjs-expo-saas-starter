@@ -622,7 +622,7 @@ function FeatureComparisonSection() {
         { name: "Datenimport (CSV/Excel)", starter: true, pro: true, enterprise: true },
         { name: "Datenexport (CSV/JSON)", starter: true, pro: true, enterprise: true },
         { name: "QR-Codes für Standorte", starter: true, pro: true, enterprise: true },
-        { name: "10 Sprachen", starter: true, pro: true, enterprise: true },
+        { name: "Mehrsprachig (DE, FR, IT)", starter: true, pro: true, enterprise: true },
         { name: "DSGVO Datenexport", starter: true, pro: true, enterprise: true },
       ],
     },

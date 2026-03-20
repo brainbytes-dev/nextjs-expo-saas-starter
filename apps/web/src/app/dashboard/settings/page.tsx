@@ -37,7 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { LanguageSwitcher } from "@/components/language-switcher"
+// import { LanguageSwitcher } from "@/components/language-switcher" // deactivated until FR/IT fully translated
 import { useTranslations } from "next-intl"
 import { IconCamera, IconAlertTriangle, IconCheck, IconShieldLock } from "@tabler/icons-react"
 import { DsgvoExportCard } from "@/components/dsgvo-export-card"
@@ -452,7 +452,8 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4">
-            <LanguageSwitcher />
+            <span className="text-sm text-foreground font-medium">🇨🇭 Deutsch</span>
+            <span className="text-xs text-muted-foreground">(Français, Italiano — demnächst verfügbar)</span>
           </div>
         </CardContent>
       </Card>

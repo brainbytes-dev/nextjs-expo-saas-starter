@@ -13,17 +13,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 
+// Only DE enabled for now — FR/IT coming soon for Swiss market
+// Full translations (EN, ES, PT, PL, TR, NL, JA) deferred until all pages are translated
 const LOCALES = [
-  { value: "de", label: "Deutsch", flag: "🇩🇪" },
-  { value: "fr", label: "Français", flag: "🇫🇷" },
-  { value: "en", label: "English", flag: "🇬🇧" },
-  { value: "it", label: "Italiano", flag: "🇮🇹" },
-  { value: "es", label: "Español", flag: "🇪🇸" },
-  { value: "pt", label: "Português", flag: "🇵🇹" },
-  { value: "pl", label: "Polski", flag: "🇵🇱" },
-  { value: "tr", label: "Türkçe", flag: "🇹🇷" },
-  { value: "nl", label: "Nederlands", flag: "🇳🇱" },
-  { value: "ja", label: "日本語", flag: "🇯🇵" },
+  { value: "de", label: "Deutsch", flag: "🇨🇭" },
+  // { value: "fr", label: "Français", flag: "🇨🇭" },  // TODO: vollständige Übersetzung
+  // { value: "it", label: "Italiano", flag: "🇨🇭" },  // TODO: vollständige Übersetzung
+  // { value: "en", label: "English", flag: "🇬🇧" },
 ] as const
 
 type Locale = (typeof LOCALES)[number]["value"]
