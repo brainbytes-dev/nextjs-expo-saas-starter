@@ -33,5 +33,8 @@ export default {
   "email-posteingang": "Email-Posteingang (Inbox Parser)",
   "sitzungsverwaltung": "Sitzungsverwaltung",
   "ip-zugriff": "IP-Zugriffsbeschränkung",
-  "datenhaltung": "Datenhaltung & Aufbewahrungsfristen"
+  "datenhaltung": "Datenhaltung & Aufbewahrungsfristen",
+  "datenimport": "Smart Import Wizard",
+  "datenexport": "Datenexport (CSV/JSON)",
+  "migration": "Migrations-Assistent"
 }

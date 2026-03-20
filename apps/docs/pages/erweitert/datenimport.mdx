@@ -1,0 +1,61 @@
+---
+title: Smart Import Wizard
+---
+
+# Smart Import Wizard
+
+Der Import-Assistent führt Sie in vier Schritten von der CSV-Datei zum fertigen Datenbestand — mit automatischer Spaltenerkennung und Validierung.
+
+## Import starten
+
+Navigieren Sie zu einer Listenansicht (Materialien, Werkzeuge, Standorte) und klicken Sie auf **Importieren** in der Aktionsleiste. Sie können auch über die Command Palette (`Cmd+K` → «Daten importieren») den Import starten.
+
+## Schritt 1: Datei hochladen
+
+Ziehen Sie eine CSV- oder Excel-Datei (`.csv`, `.xlsx`) per Drag-and-Drop in den Upload-Bereich oder klicken Sie auf **Datei auswählen**.
+
+- Maximale Dateigrösse: **10 MB**
+- Unterstützte Trennzeichen: Komma, Semikolon, Tab (wird automatisch erkannt)
+- Zeichensatz: UTF-8 empfohlen. ISO-8859-1 wird automatisch konvertiert.
+
+> **Tipp:** Laden Sie unter «Vorlage herunterladen» eine vorgefertigte CSV-Vorlage für den jeweiligen Entitätstyp herunter. Die Vorlage enthält alle Pflicht- und optionalen Felder mit Beispieldaten.
+
+## Schritt 2: Spalten-Mapping
+
+Nach dem Upload werden die Spalten Ihrer Datei den LogistikApp-Feldern zugeordnet. Zwei Modi stehen zur Verfügung:
+
+| Modus | Beschreibung |
+|-------|--------------|
+| **KI-gestützt** | OpenAI analysiert die Spaltennamen und ordnet sie automatisch zu. Konfidenz-Badges (hoch/mittel/niedrig) zeigen die Zuordnungsqualität. |
+| **Manuell** | Jede Spalte per Dropdown-Menü dem passenden Feld zuweisen. |
+
+Die KI-Zuordnung berücksichtigt Spaltennamen, Beispielwerte und gelernte Mapping-Regeln aus früheren Importen. Sie können jede Zuordnung manuell korrigieren.
+
+> **Hinweis:** Für die KI-gestützte Zuordnung muss ein OpenAI API-Schlüssel unter [Einstellungen → KI-Funktionen](/einstellungen/ki-funktionen) hinterlegt sein. Ohne Schlüssel steht nur der manuelle Modus zur Verfügung.
+
+## Schritt 3: Validierung
+
+Vor dem Import werden alle Zeilen geprüft:
+
+- **Pflichtfelder**: Fehlende Pflichtfelder werden rot markiert.
+- **Duplikate**: Barcode- oder EAN-Kollisionen mit bestehenden Einträgen werden erkannt.
+- **Formate**: Ungültige Zahlen, Datumsformate oder Einheiten werden gekennzeichnet.
+- **Referenzen**: Nicht existierende Standorte oder Kategorien werden aufgelistet.
+
+Die Vorschau zeigt bis zu **20 Zeilen** mit farbkodiertem Status (grün = gültig, rot = fehlerhaft, gelb = Warnung). Fehlerhafte Zeilen können inline korrigiert oder übersprungen werden.
+
+## Schritt 4: Batch-Import
+
+Klicken Sie auf **Importieren**, um die validierten Daten zu übernehmen.
+
+- Bis zu **5'000 Einträge** pro Import.
+- Importe mit mehr als 100 Einträgen werden asynchron verarbeitet. Sie erhalten eine Benachrichtigung, sobald der Import abgeschlossen ist.
+- Nach Abschluss erscheint eine Zusammenfassung: Erstellt, Übersprungen, Fehler.
+
+## Import-Protokoll
+
+Jeder Import wird mit Zeitstempel, Benutzer, Dateiname und Ergebnis im [Aktivitätsprotokoll](/erweitert/aktivitaetsprotokoll) gespeichert. Bei Fehlern können Sie die Fehler-Datei als CSV herunterladen und korrigiert erneut importieren.
+
+## Berechtigungen
+
+Der Datenimport erfordert die Rolle **Manager** oder **Administrator**. Mitarbeiter können keine Daten importieren.
