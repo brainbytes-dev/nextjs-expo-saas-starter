@@ -80,7 +80,8 @@ export default function CustomerPortalPage() {
     <div className="max-w-5xl mx-auto p-6 space-y-6"><Skeleton className="h-16 w-full" /><Skeleton className="h-48 w-full" /><Skeleton className="h-48 w-full" /></div>
   )
 
-  const primaryColor = data.org.primaryColor || "#2563eb"
+  const primaryColor = data.org.primaryColor || null
+  const brandStyle = primaryColor ? { backgroundColor: primaryColor } : undefined
 
   return (
     <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-6">
@@ -88,7 +89,7 @@ export default function CustomerPortalPage() {
         {data.org.logo ? (
           <Image src={data.org.logo} alt={data.org.name} width={40} height={40} className="h-10 w-10 rounded-lg object-contain" unoptimized />
         ) : (
-          <div className="h-10 w-10 rounded-lg flex items-center justify-center text-white font-bold text-lg" style={{ backgroundColor: primaryColor }}>{data.org.name.charAt(0)}</div>
+          <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg" style={brandStyle}>{data.org.name.charAt(0)}</div>
         )}
         <div className="flex-1">
           <h1 className="text-xl font-semibold text-foreground">{data.org.name}</h1>
@@ -161,7 +162,7 @@ export default function CustomerPortalPage() {
                     ))}
                     <div className="flex gap-2">
                       <Textarea placeholder="Kommentar schreiben..." value={commentDrafts[comm.id] ?? ""} onChange={(e) => setCommentDrafts((prev) => ({ ...prev, [comm.id]: e.target.value }))} className="flex-1 min-h-[50px] bg-background" />
-                      <Button size="sm" className="gap-1.5 self-end" style={{ backgroundColor: primaryColor }} onClick={() => handleSendComment(comm.id)} disabled={sending === comm.id || !commentDrafts[comm.id]?.trim()}>
+                      <Button size="sm" className="gap-1.5 self-end" style={brandStyle} onClick={() => handleSendComment(comm.id)} disabled={sending === comm.id || !commentDrafts[comm.id]?.trim()}>
                         {sending === comm.id ? <IconLoader2 className="size-3.5 animate-spin" /> : <IconSend className="size-3.5" />}Senden
                       </Button>
                     </div>
@@ -174,7 +175,7 @@ export default function CustomerPortalPage() {
       </div>
 
       <div className="text-center py-6 border-t border-border">
-        <p className="text-xs text-muted-foreground">Bereitgestellt von <span className="font-semibold">Logistik<span style={{ color: primaryColor }}>App</span></span></p>
+        <p className="text-xs text-muted-foreground">Bereitgestellt von <span className="font-semibold">Logistik<span className="text-primary" style={primaryColor ? { color: primaryColor } : undefined}>App</span></span></p>
       </div>
     </div>
   )

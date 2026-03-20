@@ -20,7 +20,7 @@ interface BrandContextValue extends BrandConfig {
 // Defaults (match LogistikApp design tokens)
 // ---------------------------------------------------------------------------
 const DEFAULT_BRAND: BrandConfig = {
-  primaryColor: "#2563eb",
+  primaryColor: "#F97316",
   accentColor: "#06b6d4",
   logo: null,
   orgName: "",

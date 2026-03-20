@@ -30,10 +30,10 @@ interface OrgBranding {
 // Preset colours — LogistikApp defaults + common alternatives
 // ---------------------------------------------------------------------------
 const PRIMARY_PRESETS = [
-  { label: "LogistikApp Blau", value: "#2563eb" },
+  { label: "LogistikApp Orange", value: "#F97316" },
+  { label: "Blau", value: "#2563eb" },
   { label: "Grün", value: "#16a34a" },
   { label: "Violett", value: "#7c3aed" },
-  { label: "Orange", value: "#ea580c" },
   { label: "Rot", value: "#dc2626" },
   { label: "Grau", value: "#4b5563" },
 ]
@@ -47,7 +47,7 @@ const ACCENT_PRESETS = [
   { label: "Grau", value: "#6b7280" },
 ]
 
-const DEFAULT_PRIMARY = "#2563eb"
+const DEFAULT_PRIMARY = "#F97316"
 const DEFAULT_ACCENT = "#06b6d4"
 
 // ---------------------------------------------------------------------------

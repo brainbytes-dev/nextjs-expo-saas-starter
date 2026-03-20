@@ -70,7 +70,8 @@ export default function VendorPortalPage() {
     <div className="max-w-5xl mx-auto p-6 space-y-6"><Skeleton className="h-16 w-full" /><Skeleton className="h-48 w-full" /><Skeleton className="h-48 w-full" /></div>
   )
 
-  const primaryColor = data.org.primaryColor || "#2563eb"
+  const primaryColor = data.org.primaryColor || null
+  const brandStyle = primaryColor ? { backgroundColor: primaryColor } : undefined
   const openOrders = data.orders.filter((o) => o.status !== "received" && o.status !== "cancelled")
 
   return (
@@ -79,7 +80,7 @@ export default function VendorPortalPage() {
         {data.org.logo ? (
           <Image src={data.org.logo} alt={data.org.name} width={40} height={40} className="h-10 w-10 rounded-lg object-contain" unoptimized />
         ) : (
-          <div className="h-10 w-10 rounded-lg flex items-center justify-center text-white font-bold text-lg" style={{ backgroundColor: primaryColor }}>{data.org.name.charAt(0)}</div>
+          <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg" style={brandStyle}>{data.org.name.charAt(0)}</div>
         )}
         <div className="flex-1">
           <h1 className="text-xl font-semibold text-foreground">{data.org.name}</h1>
@@ -142,7 +143,7 @@ export default function VendorPortalPage() {
                           {saving === order.id ? <IconLoader2 className="size-3.5 animate-spin" /> : <IconMessageCircle className="size-3.5" />}Notiz speichern
                         </Button>
                         {order.status === "draft" && (
-                          <Button size="sm" className="gap-1.5" style={{ backgroundColor: primaryColor }} onClick={() => handleConfirm(order.id)} disabled={saving === order.id}>
+                          <Button size="sm" className="gap-1.5" style={brandStyle} onClick={() => handleConfirm(order.id)} disabled={saving === order.id}>
                             {saving === order.id ? <IconLoader2 className="size-3.5 animate-spin" /> : <IconCheck className="size-3.5" />}Bestellung bestätigen
                           </Button>
                         )}
@@ -157,7 +158,7 @@ export default function VendorPortalPage() {
       </div>
 
       <div className="text-center py-6 border-t border-border">
-        <p className="text-xs text-muted-foreground">Bereitgestellt von <span className="font-semibold">Logistik<span style={{ color: primaryColor }}>App</span></span></p>
+        <p className="text-xs text-muted-foreground">Bereitgestellt von <span className="font-semibold">Logistik<span className="text-primary" style={primaryColor ? { color: primaryColor } : undefined}>App</span></span></p>
       </div>
     </div>
   )
