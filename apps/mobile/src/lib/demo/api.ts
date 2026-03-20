@@ -9,6 +9,12 @@ import {
   DEMO_COMMISSIONS,
   DEMO_COMMISSION_ENTRIES,
   DEMO_SCAN_RESULT,
+  DEMO_TIME_ENTRIES,
+  DEMO_DELIVERIES,
+  DEMO_WARRANTY_CLAIMS,
+  DEMO_GEOFENCES,
+  DEMO_GEOFENCE_EVENTS,
+  DEMO_BLE_BEACONS,
 } from "./data";
 
 import type {
@@ -16,6 +22,12 @@ import type {
   ScanResult,
   Commission,
   CommissionEntry,
+  TimeEntry,
+  DeliveryTracking,
+  WarrantyClaim,
+  Geofence,
+  GeofenceEvent,
+  BleBeacon,
 } from "../api-types";
 
 // ── Utility ───────────────────────────────────────────────────────────────────
@@ -217,6 +229,154 @@ export function createMaterial(body: {
   notes?: string;
 }): Promise<{ id: string; name: string }> {
   return delay({ id: `mat-demo-${Date.now()}`, name: body.name });
+}
+
+// ── Time Tracking ────────────────────────────────────────────────────────────
+
+export function getTimeEntries(): Promise<TimeEntry[]> {
+  return delay([...DEMO_TIME_ENTRIES]);
+}
+
+export function startTimer(body: {
+  commissionId?: string;
+  projectId?: string;
+  description?: string;
+  billable?: boolean;
+  hourlyRate?: number;
+}): Promise<TimeEntry> {
+  const now = new Date().toISOString();
+  const entry: TimeEntry = {
+    id: `time-demo-${Date.now()}`,
+    userId: "demo-user-123",
+    userName: "Max Muster",
+    commissionId: body.commissionId ?? null,
+    commissionName: null,
+    projectId: body.projectId ?? null,
+    projectName: null,
+    description: body.description ?? null,
+    startTime: now,
+    endTime: null,
+    durationMinutes: null,
+    billable: body.billable ?? true,
+    hourlyRate: body.hourlyRate ?? null,
+    status: "running",
+  };
+  return delay(entry);
+}
+
+export function stopTimer(id: string): Promise<TimeEntry> {
+  const existing = DEMO_TIME_ENTRIES.find((t) => t.id === id);
+  const now = new Date();
+  const base = existing ?? DEMO_TIME_ENTRIES[0];
+  const start = new Date(base.startTime);
+  const durationMinutes = Math.round((now.getTime() - start.getTime()) / 60000);
+  return delay({
+    ...base,
+    id,
+    endTime: now.toISOString(),
+    durationMinutes,
+    status: "stopped",
+  });
+}
+
+export function deleteTimeEntry(_id: string): Promise<void> {
+  console.warn("[demo] deleteTimeEntry called — no-op in demo mode", _id);
+  return delay(undefined);
+}
+
+// ── Delivery Tracking ────────────────────────────────────────────────────────
+
+export function getDeliveries(): Promise<DeliveryTracking[]> {
+  return delay([...DEMO_DELIVERIES]);
+}
+
+export function updateDeliveryStatus(
+  id: string,
+  status: string
+): Promise<DeliveryTracking> {
+  const existing = DEMO_DELIVERIES.find((d) => d.id === id);
+  const base = existing ?? DEMO_DELIVERIES[0];
+  return delay({
+    ...base,
+    id,
+    status,
+    actualDeliveryDate:
+      status === "delivered" ? new Date().toISOString().split("T")[0] : base.actualDeliveryDate,
+  });
+}
+
+// ── Warranty Claims ──────────────────────────────────────────────────────────
+
+export function getWarrantyClaims(): Promise<WarrantyClaim[]> {
+  return delay([...DEMO_WARRANTY_CLAIMS]);
+}
+
+export function createWarrantyClaim(body: {
+  entityType: string;
+  entityName: string;
+  reason: string;
+  description?: string;
+}): Promise<WarrantyClaim> {
+  const now = new Date().toISOString();
+  const claim: WarrantyClaim = {
+    id: `wc-demo-${Date.now()}`,
+    claimNumber: `WC-2026-${String(Math.floor(Math.random() * 900) + 100)}`,
+    entityType: body.entityType,
+    entityName: body.entityName,
+    reason: body.reason,
+    description: body.description ?? null,
+    status: "draft",
+    resolution: null,
+    submittedAt: null,
+    resolvedAt: null,
+    createdAt: now,
+  };
+  return delay(claim);
+}
+
+export function updateClaimStatus(
+  id: string,
+  status: string
+): Promise<WarrantyClaim> {
+  const existing = DEMO_WARRANTY_CLAIMS.find((c) => c.id === id);
+  const base = existing ?? DEMO_WARRANTY_CLAIMS[0];
+  return delay({
+    ...base,
+    id,
+    status,
+    submittedAt:
+      status === "submitted" && !base.submittedAt
+        ? new Date().toISOString()
+        : base.submittedAt,
+    resolvedAt:
+      status === "resolved" && !base.resolvedAt
+        ? new Date().toISOString()
+        : base.resolvedAt,
+  });
+}
+
+// ── Geofences ────────────────────────────────────────────────────────────────
+
+export function getGeofences(): Promise<Geofence[]> {
+  return delay([...DEMO_GEOFENCES]);
+}
+
+export function getGeofenceEvents(): Promise<GeofenceEvent[]> {
+  return delay([...DEMO_GEOFENCE_EVENTS]);
+}
+
+// ── BLE Beacons ──────────────────────────────────────────────────────────────
+
+export function getBleBeacons(): Promise<BleBeacon[]> {
+  return delay([...DEMO_BLE_BEACONS]);
+}
+
+export function reportBeaconSighting(
+  _id: string,
+  _batteryLevel?: number
+): Promise<void> {
+  console.warn("[demo] reportBeaconSighting called — no-op in demo mode", _id);
+  return delay(undefined);
 }
 
 // ── Mock api object ───────────────────────────────────────────────────────────

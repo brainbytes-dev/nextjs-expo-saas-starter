@@ -52,21 +52,26 @@ function hexToHsl(hex: string): string | null {
 
 function applyBrandCssVars(primary: string, accent: string) {
   if (typeof document === "undefined") return
-  const root = document.documentElement
-  root.style.setProperty("--org-primary", primary)
-  root.style.setProperty("--org-accent", accent)
+  // Skip if no custom colors — keep default shadcn theme intact
+  if (!primary && !accent) return
 
-  // Override the actual Tailwind CSS variables so the whole theme changes
-  const primaryHsl = hexToHsl(primary)
-  const accentHsl = hexToHsl(accent)
-  if (primaryHsl) {
-    root.style.setProperty("--primary", primaryHsl)
-    root.style.setProperty("--ring", primaryHsl)
-    root.style.setProperty("--sidebar-primary", primaryHsl)
+  const root = document.documentElement
+  if (primary) {
+    root.style.setProperty("--org-primary", primary)
+    const primaryHsl = hexToHsl(primary)
+    if (primaryHsl) {
+      root.style.setProperty("--primary", primaryHsl)
+      root.style.setProperty("--ring", primaryHsl)
+      root.style.setProperty("--sidebar-primary", primaryHsl)
+    }
   }
-  if (accentHsl) {
-    root.style.setProperty("--secondary", accentHsl)
-    root.style.setProperty("--sidebar-accent", accentHsl)
+  if (accent) {
+    root.style.setProperty("--org-accent", accent)
+    const accentHsl = hexToHsl(accent)
+    if (accentHsl) {
+      root.style.setProperty("--secondary", accentHsl)
+      root.style.setProperty("--sidebar-accent", accentHsl)
+    }
   }
 }
 
@@ -114,11 +119,13 @@ export function BrandProvider({ children }: { children: React.ReactNode }) {
           primaryColor?: string | null
           accentColor?: string | null
         }
+        // Only apply CSS overrides if the org actually has custom colors set.
+        // When null, keep the default shadcn theme variables untouched.
         applyBrand({
           orgName: org.name ?? "",
           logo: org.logo ?? null,
-          primaryColor: org.primaryColor ?? DEFAULT_BRAND.primaryColor,
-          accentColor: org.accentColor ?? DEFAULT_BRAND.accentColor,
+          primaryColor: org.primaryColor ?? "",
+          accentColor: org.accentColor ?? "",
         })
       } catch {
         // Fail open — use defaults
