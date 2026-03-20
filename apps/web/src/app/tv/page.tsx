@@ -139,7 +139,7 @@ function KpiCard({
           : "bg-white/5 border-white/10 text-white",
       ].join(" ")}
     >
-      <Icon className={`size-10 ${alert ? "text-red-400" : "text-orange-400"}`} />
+      <Icon className={`size-10 ${alert ? "text-red-400" : "text-primary"}`} />
       <span className="text-6xl font-black tabular-nums tracking-tight">{value}</span>
       <span className="text-2xl font-semibold text-white/70">{label}</span>
       {sub && <span className="text-lg text-white/50">{sub}</span>}
@@ -243,7 +243,7 @@ function OverdueToolsView({ items }: { items: OverdueTool[] | null }) {
   }
   return (
     <section className="flex-1 flex flex-col gap-6 p-10 overflow-hidden">
-      <h2 className="text-3xl font-bold text-orange-400 uppercase tracking-widest flex items-center gap-3">
+      <h2 className="text-3xl font-bold text-primary uppercase tracking-widest flex items-center gap-3">
         <IconClock className="size-8" />
         Überfällige Werkzeuge ({items.length})
       </h2>
@@ -251,13 +251,13 @@ function OverdueToolsView({ items }: { items: OverdueTool[] | null }) {
         {items.slice(0, 10).map((item) => (
           <div
             key={item.id}
-            className="flex items-center gap-6 rounded-xl px-6 py-4 bg-orange-950/30 border border-orange-800/30"
+            className="flex items-center gap-6 rounded-xl px-6 py-4 bg-primary/10 border border-primary/30"
           >
-            <span className="font-mono text-orange-400/70 text-xl w-28 shrink-0">
+            <span className="font-mono text-primary/70 text-xl w-28 shrink-0">
               {item.number ?? "—"}
             </span>
             <span className="flex-1 text-2xl font-semibold text-white truncate">{item.name}</span>
-            <span className="text-xl text-orange-300 shrink-0">
+            <span className="text-xl text-primary shrink-0">
               {item.assignedUserName ?? "Unbekannt"}
             </span>
             <IconChevronRight className="size-5 text-white/30" />
@@ -287,7 +287,7 @@ function ActivityView({ items }: { items: ActivityItem[] | null }) {
   }
   return (
     <section className="flex-1 flex flex-col gap-6 p-10 overflow-hidden">
-      <h2 className="text-3xl font-bold text-orange-400 uppercase tracking-widest flex items-center gap-3">
+      <h2 className="text-3xl font-bold text-primary uppercase tracking-widest flex items-center gap-3">
         <IconActivity className="size-8" />
         Letzte Aktivitäten
       </h2>
@@ -301,7 +301,7 @@ function ActivityView({ items }: { items: ActivityItem[] | null }) {
               className={[
                 "text-lg font-bold rounded-lg px-3 py-1 w-32 text-center shrink-0",
                 item.source === "stock"
-                  ? "bg-orange-900/50 text-orange-300"
+                  ? "bg-primary/20 text-primary"
                   : "bg-purple-900/50 text-purple-300",
               ].join(" ")}
             >
@@ -444,7 +444,7 @@ function ProgressBar({ duration }: { duration: number }) {
   return (
     <div className="h-1 w-full bg-white/10">
       <div
-        className="h-full bg-orange-500 transition-none"
+        className="h-full bg-primary transition-none"
         style={{ width: `${pct}%` }}
       />
     </div>
@@ -584,7 +584,7 @@ export default function TvPage() {
         {/* Logo / org name */}
         <div className="flex items-center gap-3">
           <div className="text-2xl font-black tracking-tight">
-            Logistik<span className="text-orange-400">App</span>
+            Logistik<span className="text-primary">App</span>
           </div>
           {orgName && (
             <>
@@ -604,7 +604,7 @@ export default function TvPage() {
               className={[
                 "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all",
                 i === viewIndex
-                  ? "bg-orange-600 text-white"
+                  ? "bg-primary text-white"
                   : "bg-white/10 text-white/40 hover:bg-white/15 hover:text-white/60",
               ].join(" ")}
             >
