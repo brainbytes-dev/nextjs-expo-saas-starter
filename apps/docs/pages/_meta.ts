@@ -11,6 +11,7 @@ export default {
   "ai": "KI-Funktionen",
   "automatisierung": "Automatisierung",
   "erweitert": "Erweiterte Funktionen",
+  "hardware": "Hardware & Peripherie",
   "mobile-app": "Mobile App",
   "einstellungen": "Einstellungen",
   "berichte": "Berichte & Analytik",

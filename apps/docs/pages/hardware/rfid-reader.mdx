@@ -1,0 +1,83 @@
+---
+title: RFID-Reader
+---
+
+import { Callout } from 'nextra/components'
+
+# RFID-Reader
+
+LogistikApp unterstützt UHF-RFID-Reader für die berührungslose Massenerfassung von Artikeln. RFID eignet sich besonders für Inventuren und Warenein-/ausgänge mit hohem Durchsatz.
+
+## Funktionsprinzip
+
+UHF-RFID-Tags (EPC Gen2 / ISO 18000-63) können auf Distanzen von bis zu 10 Metern gelesen werden. Jeder Tag enthält eine eindeutige **EPC-96-Nummer** (96 Bit), die in LogistikApp einem Artikel zugeordnet wird.
+
+## Unterstützte Betriebsarten
+
+### Keyboard Wedge (USB)
+
+Der Reader gibt gelesene EPC-Nummern als Tastatureingabe aus — gleich wie ein Barcode-Scanner.
+
+- **Vorteil**: Keine Software-Installation nötig
+- **Nachteil**: Nur ein Tag gleichzeitig, langsamere Erfassung
+- **Empfohlen für**: Einzelne Checkouts/Checkins an einem festen Arbeitsplatz
+
+### Netzwerk (TCP/IP)
+
+Der Reader ist im lokalen Netzwerk erreichbar. LogistikApp kommuniziert direkt über die LLRP-Schnittstelle.
+
+- **Vorteil**: Massenerfassung (hunderte Tags pro Sekunde)
+- **Nachteil**: Erfordert Netzwerkkonfiguration
+- **Empfohlen für**: Inventuren, Wareneingang, Tor-Durchfahrten
+
+## Kompatible Reader
+
+| Hersteller | Modell | Anschluss | Reichweite |
+|---|---|---|---|
+| Zebra | FX7500, FX9600 | Netzwerk | bis 9 m |
+| Impinj | Speedway R420 | Netzwerk | bis 9 m |
+| Nordic ID | HH85, EXA51 | USB / Bluetooth | bis 3 m |
+
+## Schritt-für-Schritt-Einrichtung
+
+### Keyboard-Wedge-Modus
+
+1. Schliessen Sie den Reader per USB an.
+2. Konfigurieren Sie den Reader auf **Keyboard-Wedge-Modus** (Herstellersoftware).
+3. In LogistikApp wird der Reader automatisch erkannt — Barcodes und RFID-Tags werden gleich behandelt.
+
+### Netzwerk-Modus
+
+1. Verbinden Sie den Reader mit Ihrem lokalen Netzwerk.
+2. Öffnen Sie **Einstellungen → Hardware → RFID-Reader**.
+3. Klicken Sie auf **Reader hinzufügen**.
+4. Geben Sie **IP-Adresse** und **Port** ein (Standard: 5084 für LLRP).
+5. Klicken Sie auf **Verbindung testen**.
+6. Speichern Sie die Konfiguration.
+
+## Tag-Zuordnung (EPC → Artikel)
+
+Jeder RFID-Tag muss einmalig einem Artikel zugeordnet werden:
+
+1. Öffnen Sie den Artikel (Material oder Werkzeug).
+2. Klicken Sie auf **Bearbeiten → RFID-Tag zuweisen**.
+3. Halten Sie den Tag vor den Reader — die EPC-Nummer wird automatisch erkannt.
+4. Bestätigen Sie die Zuordnung.
+
+<Callout type="info">
+Bei der Inventur können Sie auch unbekannte Tags erfassen. LogistikApp zeigt diese als «Nicht zugeordnet» an, damit Sie sie nachträglich verknüpfen können.
+</Callout>
+
+## Massen-Inventur mit RFID
+
+1. Starten Sie eine **Inventur** für den gewünschten Standort.
+2. Aktivieren Sie den **RFID-Scan-Modus** in der Inventur-Ansicht.
+3. Bewegen Sie den Reader durch den Lagerbereich — erkannte Artikel werden live in der Liste markiert.
+4. Nicht erfasste Artikel bleiben als «Fehlend» sichtbar.
+5. Schliessen Sie die Inventur wie gewohnt ab.
+
+## Verwandte Funktionen
+
+- [USB/Bluetooth Handscanner](/hardware/handscanner) — Barcode-basierte Erfassung
+- [NFC-Tags](/mobile-app/nfc) — Nahfeld-Tags für Einzelobjekte
+- [Inventur](/inventur) — Vollständiger Inventur-Workflow

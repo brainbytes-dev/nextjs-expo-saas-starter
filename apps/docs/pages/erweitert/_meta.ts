@@ -21,5 +21,7 @@ export default {
   "lieferverfolgung": "Lieferverfolgung",
   "garantieansprueche": "Garantieansprüche",
   "bestandsoptimierung": "Bestandsoptimierung",
-  "externe-portale": "Externe Portale"
+  "externe-portale": "Externe Portale",
+  "willkommenstour": "Willkommenstour",
+  "feature-tiers": "Feature-Tiers (Planvergleich)"
 }

@@ -1,0 +1,62 @@
+---
+title: Willkommenstour
+---
+
+import { Callout } from 'nextra/components'
+
+# Willkommenstour
+
+Die Willkommenstour führt neue Benutzer Schritt für Schritt durch die wichtigsten Funktionen von LogistikApp. Sie startet automatisch beim ersten Login und kann jederzeit erneut ausgelöst werden.
+
+## Ablauf der Tour
+
+Die Tour besteht aus **7 Schritten**, die als Highlight-Tooltips über der Benutzeroberfläche erscheinen:
+
+| Schritt | Element | Beschreibung |
+|---|---|---|
+| 1 | Seitenleiste | Navigation zu allen Modulen: Materialien, Werkzeuge, Standorte, Lieferscheine |
+| 2 | Dashboard-Widgets | Überblick über KPIs, kritische Bestände und aktuelle Aktivitäten |
+| 3 | Schnellsuche (Cmd+K) | Globale Suche und Navigationsbefehle per Tastatur |
+| 4 | Materialien-Liste | Artikel erfassen, filtern, sortieren und bearbeiten |
+| 5 | Scanner-Button | Barcode scannen per Kamera oder angeschlossenem Scanner |
+| 6 | Benachrichtigungen | Glocken-Symbol für Alerts zu Mindestbeständen und Wartung |
+| 7 | Einstellungen | Team-Verwaltung, Hardware, Integrationen und Profil |
+
+Jeder Schritt zeigt einen kurzen Erklärungstext und eine **Weiter**-Schaltfläche. Der Benutzer kann die Tour jederzeit mit **Überspringen** beenden.
+
+## Automatischer Start
+
+Die Tour startet automatisch, wenn:
+
+- Ein Benutzer sich **zum ersten Mal** einloggt
+- Ein Benutzer per **Einladungslink** beitritt und sein Konto aktiviert
+
+<Callout type="info">
+Administratoren, die die Organisation erstellt haben, sehen zusätzlich einen Hinweis auf die Einstellungen für Team-Einladungen und Branchen-Vorlagen.
+</Callout>
+
+## Tour erneut starten
+
+Falls Sie die Tour nochmals durchlaufen möchten:
+
+1. Klicken Sie auf Ihr **Profilbild** (oben rechts).
+2. Wählen Sie **Willkommenstour starten**.
+3. Die Tour beginnt erneut ab Schritt 1.
+
+Alternativ über die Command Palette: Drücken Sie `Cmd+K` und tippen Sie **Tour**.
+
+## Tour für das Team zurücksetzen
+
+Als Administrator können Sie die Tour für einzelne oder alle Teammitglieder zurücksetzen:
+
+1. Öffnen Sie **Einstellungen → Team**.
+2. Klicken Sie auf den Benutzer.
+3. Wählen Sie **Willkommenstour zurücksetzen**.
+
+Beim nächsten Login des Benutzers wird die Tour erneut angezeigt.
+
+## Verwandte Funktionen
+
+- [Branchen-Vorlagen](/erweitert/branchen-vorlagen) — Vorkonfigurierte Setups für verschiedene Branchen
+- [Command Palette (Cmd+K)](/erweitert/command-palette) — Schnellnavigation per Tastatur
+- [Dashboard anpassen](/erweitert/dashboard-widgets) — Widgets nach Bedarf konfigurieren

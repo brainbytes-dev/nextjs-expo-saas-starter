@@ -1,0 +1,82 @@
+---
+title: Etikettendrucker
+---
+
+import { Callout } from 'nextra/components'
+
+# Etikettendrucker
+
+LogistikApp unterstützt professionelle Etikettendrucker von Zebra und Brother für den direkten Druck von Barcode-Etiketten.
+
+## Unterstützte Drucker
+
+### Zebra (ZPL-Protokoll)
+
+Alle Zebra-Drucker mit ZPL-II-Unterstützung werden nativ unterstützt:
+
+- **Desktop**: ZD220, ZD421, ZD621
+- **Industriell**: ZT230, ZT411
+- **Mobil**: ZQ320, ZQ630
+
+LogistikApp generiert ZPL-Befehle direkt und sendet sie an den Drucker — keine Treiber-Software nötig (bei Netzwerkdruckern).
+
+### Brother (QL-Serie)
+
+- **Desktop**: QL-820NWB, QL-1110NWB
+- **Mobil**: RJ-Serie (via Bluetooth)
+
+## Anschluss-Optionen
+
+| Anschluss | Zebra | Brother | Einrichtung |
+|---|---|---|---|
+| USB | Ja | Ja | Druckertreiber installieren |
+| Netzwerk (LAN/WLAN) | Ja | Ja | IP-Adresse in LogistikApp hinterlegen |
+| Bluetooth | Ja (mobil) | Ja (QL-820NWB) | Pairing über Betriebssystem |
+
+## Schritt-für-Schritt-Einrichtung
+
+1. Schliessen Sie den Drucker per USB oder Netzwerk an.
+2. Öffnen Sie **Einstellungen → Hardware → Etikettendrucker**.
+3. Klicken Sie auf **Drucker hinzufügen**.
+4. Wählen Sie den **Druckertyp** (Zebra ZPL / Brother QL / Systemdrucker).
+5. Bei Netzwerkdruckern: Geben Sie die **IP-Adresse** und den **Port** ein (Standard: 9100).
+6. Klicken Sie auf **Testdruck** — ein Testetikett wird ausgegeben.
+7. Speichern Sie die Konfiguration.
+
+## Label-Typen
+
+LogistikApp bietet drei vordefinierte Etikettenvorlagen:
+
+### Material-Etikett
+- Barcode (Code-128 oder EAN-13)
+- Artikelname und Artikelnummer
+- Standort und Kategorie
+
+### Werkzeug-Etikett
+- QR-Code mit Self-Service-URL
+- Werkzeugname und Inventarnummer
+- Nächster Wartungstermin
+
+### Standort-Etikett
+- Grosser QR-Code für Standort-Checkin
+- Standortname und Adresse
+- Organisations-Logo
+
+<Callout type="info">
+Unter **Einstellungen → Hardware → Etikettenvorlagen** können Sie eigene Layouts erstellen und bestehende anpassen.
+</Callout>
+
+## Batch-Druck
+
+1. Wählen Sie in einer Listenansicht mehrere Artikel per Checkbox aus.
+2. Klicken Sie auf **Etiketten drucken** in der Aktionsleiste.
+3. Wählen Sie den Drucker und die Vorlage.
+4. Bestätigen Sie — die Etiketten werden nacheinander gedruckt.
+
+> **Hinweis:** Batch-Druck unterstützt bis zu **200 Etiketten** pro Vorgang.
+
+## Verwandte Funktionen
+
+- [Barcode-Generator](/erweitert/barcode-generator) — Eigene Barcodes generieren
+- [QR Self-Service](/erweitert/qr-self-service) — QR-Codes für Buchung ohne Login
+- [USB/Bluetooth Handscanner](/hardware/handscanner) — Barcodes scannen

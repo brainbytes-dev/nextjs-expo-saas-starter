@@ -6,6 +6,36 @@ title: Changelog
 
 Alle Änderungen, Verbesserungen und Fehlerbehebungen werden hier dokumentiert.
 
+## v2.4.0 – Hardware & Onboarding – 2026-03-20
+
+Diese Version bringt umfassende Hardware-Unterstützung, eine neue Willkommenstour und planbasierte Feature-Steuerung.
+
+### Hardware & Peripherie (neu)
+
+- **[USB/Bluetooth Handscanner](/hardware/handscanner)**: Keyboard-Wedge-Scanner von Zebra, Honeywell und Datalogic. USB- und Bluetooth-Anbindung. Konfigurierbare Suffix-Zeichen und Auto-Suche.
+- **[Etikettendrucker](/hardware/etikettendrucker)**: Zebra ZPL und Brother QL nativ unterstützt. USB-, Netzwerk- und Bluetooth-Anschluss. Drei Etikettenvorlagen: Material, Werkzeug, Standort. Batch-Druck bis 200 Etiketten.
+- **[Bluetooth-Waage](/hardware/bluetooth-waage)**: BLE-Waagen über Web Bluetooth API verbinden. Live-Gewichtsanzeige mit Stabilitäts-Indikator. Automatische Übernahme in Mengenfelder.
+- **[RFID-Reader](/hardware/rfid-reader)**: UHF-RFID via Keyboard Wedge oder Netzwerk (LLRP). EPC-96 Tag-Zuordnung. Massen-Inventur mit Live-Erfassung.
+- **[Schnelltasten & Keypads](/hardware/schnelltasten)**: Programmierbare Keypads (Cherry, X-Keys) mit F1–F12 Belegung. Benutzerdefinierte Tastenkombinationen für Schnellbuchungen.
+
+### Erweiterte Funktionen
+
+- **[Willkommenstour](/erweitert/willkommenstour)**: 7-Schritte Onboarding-Tour für neue Benutzer. Automatischer Start beim ersten Login. Tour jederzeit über Profil oder Command Palette erneut starten. Admin kann Tour für Teammitglieder zurücksetzen.
+- **[Feature-Tiers](/erweitert/feature-tiers)**: Starter/Professional/Enterprise Funktionsvergleich. Schloss-Symbol und Upgrade-Hinweise bei gesperrten Funktionen. 14-tägige Enterprise-Testphase für neue Organisationen.
+
+### Verbessert
+
+- Neue Preisstruktur: Starter CHF 49, Professional CHF 149, Enterprise CHF 399
+- Tooltips an allen wichtigen UI-Elementen für bessere Entdeckbarkeit
+- Hardware-Einstellungsseite unter Einstellungen → Hardware zusammengefasst
+
+### Behoben
+
+- Etikettendruck über Netzwerkdrucker brach bei mehr als 100 Etiketten ab (#501)
+- Bluetooth-Waage verlor Verbindung nach Browser-Tab-Wechsel (#504)
+
+---
+
 ## v2.3.0 – Batch 8+9 – 2026-03-19
 
 Diese Version bringt zehn neue Funktionen rund um Zeiterfassung, Lieferkettenmanagement, Bestandsintelligenz, externe Zusammenarbeit und erweiterte mobile Fähigkeiten.

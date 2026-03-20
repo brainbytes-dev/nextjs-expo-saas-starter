@@ -1,0 +1,62 @@
+---
+title: USB/Bluetooth Handscanner
+---
+
+import { Callout } from 'nextra/components'
+
+# USB/Bluetooth Handscanner
+
+Professionelle Handscanner beschleunigen die Erfassung in Lager und Werkstatt erheblich. LogistikApp unterstützt alle Scanner, die im **Keyboard-Wedge-Modus** arbeiten.
+
+## Funktionsprinzip
+
+Ein Keyboard-Wedge-Scanner verhält sich wie eine Tastatur: Er tippt den gescannten Barcode als Zeichenfolge ein und sendet am Ende einen Enter-Befehl. LogistikApp erkennt diese Eingabe automatisch und verarbeitet sie wie einen manuell eingetippten Code.
+
+## Kompatible Hersteller
+
+| Hersteller | Empfohlene Modelle | Anschluss |
+|---|---|---|
+| Zebra | DS2278, DS3678, LI4278 | USB / Bluetooth |
+| Honeywell | Voyager 1472g, Xenon 1952g | USB / Bluetooth |
+| Datalogic | QuickScan QD2590, Gryphon | USB / Bluetooth |
+
+<Callout type="info">
+Grundsätzlich funktioniert jeder Scanner mit Keyboard-Wedge-Modus — auch günstige Modelle ab ca. CHF 40.
+</Callout>
+
+## Schritt-für-Schritt-Einrichtung
+
+### USB-Scanner
+
+1. Schliessen Sie den Scanner per USB an Ihren Computer an.
+2. Der Scanner wird automatisch als Tastatur erkannt — kein Treiber nötig.
+3. Öffnen Sie LogistikApp und navigieren Sie zu einem Suchfeld oder Buchungsformular.
+4. Scannen Sie einen Barcode — der Code erscheint im Eingabefeld und wird automatisch verarbeitet.
+
+### Bluetooth-Scanner
+
+1. Versetzen Sie den Scanner in den **Pairing-Modus** (siehe Anleitung des Herstellers).
+2. Öffnen Sie die Bluetooth-Einstellungen Ihres Computers oder Tablets.
+3. Koppeln Sie den Scanner als Bluetooth-Tastatur (HID-Profil).
+4. Testen Sie die Eingabe in LogistikApp.
+
+## Einstellungen in LogistikApp
+
+Unter **Einstellungen → Hardware → Scanner** können Sie folgende Optionen konfigurieren:
+
+- **Suffix-Zeichen**: Standard ist `Enter` — passen Sie es an, falls Ihr Scanner ein anderes Suffix sendet (z.B. `Tab`).
+- **Präfix-Filter**: Ignoriert bestimmte Präfix-Zeichen, die manche Scanner voranstellen.
+- **Auto-Suche**: Startet die Suche automatisch nach Empfang eines vollständigen Barcodes.
+- **Scan-Ton**: Akustische Bestätigung bei erfolgreichem Scan (ein/aus).
+
+## Fehlerbehebung
+
+- **Scanner sendet falsche Zeichen**: Stellen Sie die Tastatursprache im Scanner auf **Deutsch (Schweiz)** um (QR-Code im Handbuch).
+- **Barcode wird nicht erkannt**: Prüfen Sie, ob das Barcode-Format aktiviert ist (EAN-13, Code-128, QR).
+- **Bluetooth-Verbindung bricht ab**: Stellen Sie sicher, dass der Scanner nicht in den Energiesparmodus wechselt.
+
+## Verwandte Funktionen
+
+- [Barcode-Generator](/erweitert/barcode-generator) — Eigene Barcodes erstellen
+- [Barcode-Scanner (Mobile)](/mobile-app/scanner) — Kamerabasierter Scanner in der App
+- [Etikettendrucker](/hardware/etikettendrucker) — Etiketten für Ihre Artikel drucken

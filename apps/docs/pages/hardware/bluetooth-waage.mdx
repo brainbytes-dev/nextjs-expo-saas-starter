@@ -1,0 +1,70 @@
+---
+title: Bluetooth-Waage
+---
+
+import { Callout } from 'nextra/components'
+
+# Bluetooth-Waage
+
+LogistikApp kann Gewichtswerte direkt von einer Bluetooth-Waage (BLE) in Buchungsformulare übernehmen. Ideal für Schüttgut, Flüssigkeiten und Verbrauchsmaterial, das gewichtsbasiert erfasst wird.
+
+## Voraussetzungen
+
+- Eine Waage mit **Bluetooth Low Energy (BLE)** Unterstützung
+- Ein Browser mit **Web Bluetooth API** (Chrome, Edge, Opera — kein Firefox oder Safari)
+- Bluetooth am Computer oder Tablet aktiviert
+
+<Callout type="warning">
+Die Web Bluetooth API ist in Firefox und Safari nicht verfügbar. Verwenden Sie Google Chrome oder Microsoft Edge.
+</Callout>
+
+## Kompatible Waagen
+
+| Hersteller | Modell | Kapazität | BLE-Profil |
+|---|---|---|---|
+| Kern | FCB / FKB Serie | 0.1 g – 30 kg | GATT Weight Scale |
+| Ohaus | Scout STX | 0.01 g – 8.2 kg | GATT Weight Scale |
+| A&D | FX-i Serie | 0.001 g – 32 kg | Custom BLE |
+
+<Callout type="info">
+Grundsätzlich funktioniert jede Waage, die das GATT Weight Scale Service Profil (UUID 0x181D) unterstützt.
+</Callout>
+
+## Schritt-für-Schritt-Einrichtung
+
+1. Schalten Sie die Bluetooth-Waage ein und aktivieren Sie den BLE-Modus (siehe Waagen-Anleitung).
+2. Öffnen Sie **Einstellungen → Hardware → Bluetooth-Waage**.
+3. Klicken Sie auf **Waage verbinden** — der Browser zeigt eine Geräteauswahl.
+4. Wählen Sie Ihre Waage aus der Liste und bestätigen Sie die Kopplung.
+5. Der aktuelle Gewichtswert wird live angezeigt.
+6. Klicken Sie auf **Testmessung** um die Verbindung zu prüfen.
+
+## Gewicht in Buchungen übernehmen
+
+Sobald die Waage verbunden ist, erscheint in jedem Mengenfeld ein **Waage-Symbol**:
+
+1. Legen Sie das Material auf die Waage.
+2. Warten Sie, bis der Wert stabil ist (Stabilitäts-Indikator wird grün).
+3. Klicken Sie auf das **Waage-Symbol** neben dem Mengenfeld.
+4. Der gemessene Wert wird automatisch als Menge übernommen.
+5. Die Einheit wird auf **kg** oder **g** gesetzt (je nach Waagenkonfiguration).
+
+## Einstellungen
+
+Unter **Einstellungen → Hardware → Bluetooth-Waage**:
+
+- **Einheit**: Kilogramm (kg) oder Gramm (g)
+- **Dezimalstellen**: 0–3 Nachkommastellen
+- **Stabilitätsschwelle**: Minimale Zeitdauer für stabile Messung (Standard: 2 Sekunden)
+- **Auto-Übernahme**: Gewicht automatisch übernehmen, sobald stabil (ein/aus)
+
+## Fehlerbehebung
+
+- **Waage wird nicht gefunden**: Prüfen Sie, ob BLE am Gerät aktiv ist und der Browser Bluetooth-Berechtigung hat.
+- **Wert springt**: Erhöhen Sie die Stabilitätsschwelle in den Einstellungen.
+- **Verbindung bricht ab**: Stellen Sie sicher, dass die Waage nicht in den Standby wechselt.
+
+## Verwandte Funktionen
+
+- [Materialien](/materialien) — Bestände gewichtsbasiert erfassen
+- [Batch-Scan-Modus](/mobile-app/batch-scan) — Mehrere Artikel nacheinander erfassen

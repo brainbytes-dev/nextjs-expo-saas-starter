@@ -1,0 +1,76 @@
+---
+title: Schnelltasten & Keypads
+---
+
+import { Callout } from 'nextra/components'
+
+# Schnelltasten & Keypads
+
+Programmierbare Keypads ermöglichen Ein-Tasten-Aktionen in LogistikApp. Ideal für Lager-Arbeitsplätze, an denen häufig dieselben Buchungen durchgeführt werden.
+
+## Funktionsprinzip
+
+Programmierbare Keypads senden Tastenkombinationen, die LogistikApp als **Keyboard-Shortcuts** erkennt. Die Tasten F1–F12 sowie benutzerdefinierte Kombinationen können mit Aktionen belegt werden.
+
+## Kompatible Keypads
+
+| Hersteller | Modell | Tasten | Anschluss |
+|---|---|---|---|
+| Cherry | SPOS G86-63400 | 14 programmierbar | USB |
+| X-Keys | XK-24, XK-60 | 24 / 60 programmierbar | USB |
+| Genovation | ControlPad CP48 | 48 programmierbar | USB |
+
+<Callout type="info">
+Jedes Gerät, das Tastaturkürzel senden kann, funktioniert — auch Elgato Stream Deck oder AutoHotkey-Skripte.
+</Callout>
+
+## Standard-Belegung (F1–F12)
+
+LogistikApp reagiert auf folgende Funktionstasten, wenn ein Eingabefeld nicht fokussiert ist:
+
+| Taste | Aktion |
+|---|---|
+| F1 | Hilfe / Dokumentation öffnen |
+| F2 | Schnell-Suche (wie Cmd+K) |
+| F3 | Neues Material erfassen |
+| F4 | Neues Werkzeug erfassen |
+| F5 | Wareneingang starten |
+| F6 | Warenausgang starten |
+| F7 | Neuer Lieferschein |
+| F8 | Scanner-Modus aktivieren |
+| F9 | Letzte Buchung wiederholen |
+| F10 | Dashboard anzeigen |
+| F11 | Vollbild umschalten |
+| F12 | Einstellungen öffnen |
+
+## Belegung anpassen
+
+1. Öffnen Sie **Einstellungen → Hardware → Schnelltasten**.
+2. Klicken Sie auf die Taste, die Sie umbelegen möchten.
+3. Wählen Sie eine **Aktion** aus der Liste (Navigation, Buchung, Scanner usw.).
+4. Optional: Definieren Sie **Parameter** (z.B. Standard-Standort für Wareneingang).
+5. Speichern Sie die Konfiguration.
+
+### Eigene Tastenkombinationen
+
+Neben den F-Tasten können Sie beliebige Kombinationen definieren:
+
+- `Ctrl+Shift+1` bis `Ctrl+Shift+9` für Schnellbuchungen
+- `Ctrl+Alt+S` für Scanner-Modus
+- Beliebige andere Kombinationen, die nicht vom Browser belegt sind
+
+## Schritt-für-Schritt-Einrichtung (Cherry/X-Keys)
+
+1. Installieren Sie die Konfigurationssoftware des Herstellers (Cherry Keys, X-Keys MacroWorks).
+2. Programmieren Sie die gewünschten Tasten mit den LogistikApp-Tastenkombinationen (F1–F12 oder eigene).
+3. Schliessen Sie das Keypad per USB an den Lager-Computer an.
+4. Testen Sie jede Taste in LogistikApp.
+
+<Callout type="warning">
+Stellen Sie sicher, dass die programmierten Tasten nicht mit Browser-Shortcuts kollidieren. F5 (Seite neu laden) ist im Browser standardmässig belegt — LogistikApp überschreibt dies nur bei aktivem Fenster.
+</Callout>
+
+## Verwandte Funktionen
+
+- [Command Palette (Cmd+K)](/erweitert/command-palette) — Schnellnavigation per Tastatur
+- [USB/Bluetooth Handscanner](/hardware/handscanner) — Barcode-Scanner einrichten
