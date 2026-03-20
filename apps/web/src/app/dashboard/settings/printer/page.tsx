@@ -200,8 +200,8 @@ export default function PrinterSettingsPage() {
             </>
           )}
 
-          {/* Browser compatibility notice */}
-          {(settings.connection === "usb" || settings.connection === "bluetooth") && (
+          {/* Browser compatibility notice — only show on non-Chromium browsers */}
+          {(settings.connection === "usb" || settings.connection === "bluetooth") && typeof navigator !== "undefined" && !(/Chrome/.test(navigator.userAgent)) && (
             <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
               <div className="flex items-start gap-2">
                 <IconAlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600" />
