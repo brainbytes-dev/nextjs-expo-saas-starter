@@ -76,7 +76,7 @@ export async function PATCH(
     const body = await request.json();
     const { status, name, notes, targetLocationId, customerId, signature, signedBy, signedAt } = body;
 
-    const validStatuses = ["open", "in_progress", "completed", "cancelled"];
+    const validStatuses = ["open", "in_progress", "ready", "completed", "cancelled"];
     if (status && !validStatuses.includes(status)) {
       return NextResponse.json(
         { error: `status must be one of: ${validStatuses.join(", ")}` },

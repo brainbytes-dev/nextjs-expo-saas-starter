@@ -22,6 +22,7 @@ import {
   IconPlus,
   IconMinus,
   IconAlertTriangle,
+  IconQrcode,
 } from "@tabler/icons-react"
 
 import { Button } from "@/components/ui/button"
@@ -645,6 +646,13 @@ export default function LocationDetailPage() {
                 tCommon={tc}
                 locationName={location.name}
               />
+              <Button
+                variant="outline"
+                onClick={() => router.push(`/dashboard/locations/${id}/qr`)}
+              >
+                <IconQrcode className="size-4" />
+                QR-Code
+              </Button>
               <Button variant="outline" onClick={() => setEditing(true)}>
                 <IconEdit className="size-4" />
                 {tc("edit")}

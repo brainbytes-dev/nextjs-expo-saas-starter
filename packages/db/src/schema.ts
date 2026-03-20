@@ -2058,3 +2058,35 @@ export const labelTemplates = pgTable(
 
 export type LabelTemplate = typeof labelTemplates.$inferSelect;
 export type NewLabelTemplate = typeof labelTemplates.$inferInsert;
+
+// ─── Recurring Orders (Wiederkehrende Bestellungen) ──────────────────
+export const recurringOrders = pgTable(
+  "recurring_orders",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    supplierId: uuid("supplier_id")
+      .notNull()
+      .references(() => suppliers.id),
+    name: text("name").notNull(),
+    items: jsonb("items").notNull(), // [{materialId, quantity}]
+    frequency: text("frequency").notNull(), // "weekly", "biweekly", "monthly"
+    dayOfWeek: integer("day_of_week"), // 0=Sunday, 1=Monday...
+    dayOfMonth: integer("day_of_month"), // 1-28
+    nextRunAt: timestamp("next_run_at"),
+    lastRunAt: timestamp("last_run_at"),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdById: uuid("created_by_id").references(() => users.id),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_recurring_orders_org_id").on(table.organizationId),
+    index("idx_recurring_orders_next_run").on(table.nextRunAt),
+  ]
+);
+
+export type RecurringOrder = typeof recurringOrders.$inferSelect;
+export type NewRecurringOrder = typeof recurringOrders.$inferInsert;

@@ -62,6 +62,8 @@ import {
   IconRuler,
   IconUpload,
   IconTransfer,
+  IconClipboardText,
+  IconRepeat,
 } from "@tabler/icons-react"
 import { useTranslations } from "next-intl"
 import { useShortcutsDialog } from "@/components/shortcuts-dialog"
@@ -412,6 +414,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         hideable: true,
       },
       {
+        title: "Schichtübergabe",
+        url: "/dashboard/shift-handover",
+        icon: IconClipboardText,
+        hideable: true,
+      },
+      {
         title: "Geräte-Auslastung",
         url: "/dashboard/utilization",
         icon: IconChartBar,
@@ -463,6 +471,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         hideable: true,
       },
       {
+        name: "Kommissionen Kanban",
+        url: "/dashboard/commissions/kanban",
+        icon: IconLayoutKanban,
+        hideable: true,
+      },
+      {
         name: "Umbuchungen",
         url: "/dashboard/transfers",
         icon: IconArrowsTransferDown,
@@ -487,9 +501,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         hideable: true,
       },
       {
+        name: "Massendruck",
+        url: "/dashboard/batch-print",
+        icon: IconPrinter,
+        hideable: true,
+      },
+      {
         name: t("openOrders"),
         url: "/dashboard/orders",
         icon: IconFileInvoice,
+        hideable: true,
+      },
+      {
+        name: "Wiederkehrende Bestellungen",
+        url: "/dashboard/recurring-orders",
+        icon: IconRepeat,
         hideable: true,
       },
       {
