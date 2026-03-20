@@ -134,6 +134,13 @@ export default function SettingsScreen() {
       onPress: () => router.push("/(app)/settings/appearance"),
     },
     {
+      id: "voice-assistant",
+      title: "Sprachassistent",
+      leftView: <IconView name="mic.fill" className="bg-cyan-500" />,
+      rightText: Platform.OS === "ios" ? "Siri" : "Google",
+      onPress: () => router.push("/(app)/voice-assistant" as any),
+    },
+    {
       id: "terms",
       title: "AGB",
       leftView: <IconView name="doc.fill" className="bg-gray-500" />,

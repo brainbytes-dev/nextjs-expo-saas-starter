@@ -1,0 +1,57 @@
+---
+title: Datenexport
+---
+
+# Datenexport
+
+LogistikApp ermöglicht den Export aller Daten als CSV oder JSON — direkt aus jeder Listenansicht mit einem Klick.
+
+## ExportButton
+
+Auf jeder Listenseite (Materialien, Werkzeuge, Standorte, Lieferscheine, Bestellungen) befindet sich der **Exportieren**-Button in der Aktionsleiste. Der Export berücksichtigt alle aktiven Filter und Suchbegriffe.
+
+## Exportformate
+
+| Format | Verwendung |
+|--------|------------|
+| **CSV** | Tabellenkalkulationen (Excel, Google Sheets), ERP-Systeme, Buchhaltung |
+| **JSON** | Programmierbare Integrationen, Datensicherung, API-basierte Systeme |
+
+## Was wird exportiert?
+
+Der Export enthält alle sichtbaren Spalten plus Zusatzfelder (Custom Fields). Optional können Sie auswählen:
+
+- **Bestandsdaten pro Standort**: Jeder Standort als eigene Spalte mit aktueller Menge.
+- **Buchungshistorie**: Letzte 90 Tage Bestandsbewegungen als Unterzeilen.
+- **Verknüpfte Daten**: Lieferanten, Kategorien und Tags als zusätzliche Spalten.
+
+> **Tipp:** Kombinieren Sie Filter mit dem Export, um gezielt Teilmengen zu exportieren — z.B. alle Materialien mit Bestand unter Mindestmenge oder alle Werkzeuge an einem bestimmten Standort.
+
+## Export-Umfang
+
+| Szenario | Verhalten |
+|----------|-----------|
+| **Kein Filter aktiv** | Alle Einträge der aktuellen Entität exportieren |
+| **Filter aktiv** | Nur gefilterte Einträge exportieren |
+| **Bulk-Auswahl** | Nur ausgewählte Einträge exportieren (siehe [Bulk-Operationen](/erweitert/bulk-operationen)) |
+
+## Geplante Exporte
+
+Unter [Automatisierung → Geplante Berichte](/automatisierung/geplante-berichte) können Sie Exporte automatisch täglich, wöchentlich oder monatlich per E-Mail erhalten. Der CSV-Export wird als Anhang zugestellt.
+
+## Encoding & Formatierung
+
+- **Zeichensatz**: UTF-8 mit BOM (damit Excel Umlaute korrekt anzeigt).
+- **Trennzeichen CSV**: Semikolon (Schweizer Standard). Konfigurierbar unter Einstellungen → Darstellung.
+- **Datumsformat**: ISO 8601 (`2026-03-20`) oder Schweizer Format (`20.03.2026`) — je nach Spracheinstellung.
+- **Dezimaltrennzeichen**: Punkt oder Komma — abhängig von der Spracheinstellung.
+
+## Limits
+
+- Maximal **50'000 Einträge** pro Export.
+- Exporte mit mehr als 10'000 Einträgen werden im Hintergrund generiert. Sie erhalten eine Benachrichtigung mit Download-Link, sobald die Datei bereit ist.
+- Download-Links sind **24 Stunden** gültig.
+
+## Berechtigungen
+
+Alle Rollen (inkl. Lesezugriff) können Daten exportieren. Administratoren können den Export für einzelne Rollen unter [Einstellungen → Rollen](/einstellungen/rollen) deaktivieren.

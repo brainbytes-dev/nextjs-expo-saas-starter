@@ -1,0 +1,69 @@
+---
+title: IP-Zugriffsbeschränkung
+---
+
+import { Callout } from 'nextra/components'
+
+# IP-Zugriffsbeschränkung
+
+Die IP-Zugriffsbeschränkung (IP Allowlisting) erlaubt den Zugang zu LogistikApp nur von definierten IP-Adressen oder Netzwerkbereichen. Ideal für Unternehmen, die den Zugriff auf das Firmennetzwerk beschränken möchten.
+
+<Callout type="warning">
+Diese Funktion ist nur im **Enterprise**-Plan verfügbar. Eine Fehlkonfiguration kann dazu führen, dass Sie sich selbst aussperren. Lesen Sie die Hinweise sorgfältig.
+</Callout>
+
+## Einrichtung
+
+1. Navigieren Sie zu **Einstellungen → Sicherheit → IP-Zugriff**
+2. Klicken Sie auf **IP-Adresse hinzufügen**
+3. Geben Sie eine einzelne IP oder einen CIDR-Bereich ein:
+   - Einzelne IP: `203.0.113.50`
+   - Netzwerkbereich: `203.0.113.0/24`
+4. Vergeben Sie eine **Bezeichnung** (z.B. «Büro Zürich», «VPN»)
+5. Klicken Sie auf **Speichern**
+
+## Funktionsweise
+
+Sobald mindestens ein IP-Eintrag aktiviert ist, wird jede Anmeldung und jeder API-Request gegen die Allowlist geprüft:
+
+- **Erlaubte IP** — Zugriff wird gewährt
+- **Nicht erlaubte IP** — Zugriff wird blockiert mit Hinweis auf die IP-Beschränkung
+
+Die Prüfung erfolgt auf Netzwerkebene — bestehende Sitzungen von nicht erlaubten IPs werden bei der nächsten Anfrage beendet.
+
+## CIDR-Notation
+
+| Notation | Bereich | Anzahl IPs |
+|----------|---------|-----------|
+| `10.0.0.1/32` | Einzelne IP | 1 |
+| `10.0.0.0/24` | 10.0.0.0 – 10.0.0.255 | 256 |
+| `10.0.0.0/16` | 10.0.0.0 – 10.0.255.255 | 65'536 |
+
+## Sicherheitsmassnahmen
+
+Um eine versehentliche Selbstaussperrung zu vermeiden:
+
+- Ihre **aktuelle IP-Adresse** wird vor dem Speichern angezeigt und muss in mindestens einem Eintrag enthalten sein
+- Änderungen erfordern eine **Passwort-Bestätigung**
+- Die letzte erlaubte IP-Regel kann nicht gelöscht werden — deaktivieren Sie stattdessen die gesamte Funktion
+- Admins können die IP-Beschränkung über einen **Notfall-Link per E-Mail** temporär aufheben
+
+<Callout type="info">
+Mobile Geräte nutzen häufig wechselnde IP-Adressen (Mobilfunk). Wenn Ihr Team die mobile App verwendet, sollten Sie entweder einen VPN einsetzen oder die mobile App von der IP-Beschränkung ausnehmen.
+</Callout>
+
+## API-Zugriff
+
+IP-Beschränkungen gelten auch für API-Requests mit API-Schlüsseln. Stellen Sie sicher, dass Server-IPs für Integrationen in der Allowlist enthalten sind.
+
+## Tipps
+
+- Tragen Sie immer mindestens zwei IP-Bereiche ein (z.B. Büro + VPN), um bei Netzwerkausfällen nicht ausgesperrt zu werden
+- Überprüfen Sie die Allowlist regelmässig, wenn sich Ihre Netzwerkinfrastruktur ändert
+- Dokumentieren Sie alle Einträge mit aussagekräftigen Bezeichnungen
+
+## Verwandte Funktionen
+
+- [Sitzungsverwaltung](/erweitert/sitzungsverwaltung) — Aktive Sitzungen verwalten und beenden
+- [API-Schlüssel](/einstellungen/api-schluessel) — API-Schlüssel mit IP-Whitelist konfigurieren
+- [Aktivitätsprotokoll](/erweitert/aktivitaetsprotokoll) — Blockierte Zugriffe im Audit-Trail einsehen

@@ -53,6 +53,15 @@ import {
   IconLink,
   IconAntenna,
   IconPrinter,
+  IconPuzzle,
+  IconGitBranch,
+  IconDevices,
+  IconShieldLock,
+  IconClock,
+  IconMail,
+  IconRuler,
+  IconUpload,
+  IconTransfer,
 } from "@tabler/icons-react"
 import { useTranslations } from "next-intl"
 import { useShortcutsDialog } from "@/components/shortcuts-dialog"
@@ -61,6 +70,7 @@ import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
+import { OnlineUsers } from "@/components/online-users"
 import { SidebarFavorites } from "@/components/sidebar-favorites"
 import {
   Sidebar,
@@ -408,6 +418,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         hideable: true,
       },
       {
+        title: "KI-Wartungsprognose",
+        url: "/dashboard/maintenance-ai",
+        icon: IconBrain,
+        hideable: true,
+      },
+      {
+        title: "Lieferkette",
+        url: "/dashboard/supply-chain",
+        icon: IconGitBranch,
+        hideable: true,
+      },
+      {
         title: "TV-Modus",
         url: "/tv",
         icon: IconDeviceTv,
@@ -459,6 +481,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         hideable: true,
       },
       {
+        name: "Etiketten-Designer",
+        url: "/dashboard/label-designer",
+        icon: IconRuler,
+        hideable: true,
+      },
+      {
         name: t("openOrders"),
         url: "/dashboard/orders",
         icon: IconFileInvoice,
@@ -486,6 +514,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         name: "Budgets",
         url: "/dashboard/budgets",
         icon: IconWallet,
+        hideable: true,
+      },
+      {
+        name: "Datenimport",
+        url: "/dashboard/import",
+        icon: IconUpload,
+        hideable: true,
+      },
+      {
+        name: "Migration",
+        url: "/dashboard/migration",
+        icon: IconTransfer,
         hideable: true,
       },
     ],
@@ -629,6 +669,36 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: "Externe Portale",
         url: "/dashboard/portals",
         icon: IconLink,
+        hideable: true,
+      },
+      {
+        title: "Plugins",
+        url: "/dashboard/settings/plugins",
+        icon: IconPuzzle,
+        hideable: true,
+      },
+      {
+        title: "Sitzungen",
+        url: "/dashboard/settings/sessions",
+        icon: IconDevices,
+        hideable: true,
+      },
+      {
+        title: "IP-Zugriff",
+        url: "/dashboard/settings/ip-allowlist",
+        icon: IconShieldLock,
+        hideable: true,
+      },
+      {
+        title: "Datenhaltung",
+        url: "/dashboard/settings/data-retention",
+        icon: IconClock,
+        hideable: true,
+      },
+      {
+        title: "E-Mail Posteingang",
+        url: "/dashboard/settings/email-inbox",
+        icon: IconMail,
         hideable: true,
       },
     ],
@@ -806,6 +876,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
 
       <SidebarFooter>
+        <OnlineUsers />
         <NavUser />
 
         {/* ── Footer utility row — only shown when NOT in edit mode ── */}

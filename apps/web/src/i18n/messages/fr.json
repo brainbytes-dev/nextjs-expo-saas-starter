@@ -382,7 +382,13 @@
     "de": "Deutsch",
     "fr": "Français",
     "en": "English",
-    "it": "Italiano"
+    "it": "Italiano",
+    "es": "Español",
+    "pt": "Português",
+    "pl": "Polski",
+    "tr": "Türkçe",
+    "nl": "Nederlands",
+    "ja": "日本語"
   },
   "comments": {
     "title": "Commentaires",

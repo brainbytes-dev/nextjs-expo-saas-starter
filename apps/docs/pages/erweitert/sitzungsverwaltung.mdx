@@ -1,0 +1,59 @@
+---
+title: Sitzungsverwaltung
+---
+
+import { Callout } from 'nextra/components'
+
+# Sitzungsverwaltung
+
+Die Sitzungsverwaltung zeigt alle aktiven Sitzungen Ihres Kontos und ermöglicht das gezielte Abmelden einzelner Geräte oder aller anderen Sitzungen auf einmal.
+
+## Aktive Sitzungen anzeigen
+
+Navigieren Sie zu **Einstellungen → Sicherheit → Aktive Sitzungen**. Für jede Sitzung sehen Sie:
+
+- **Gerät** — Browser und Betriebssystem (z.B. «Chrome auf macOS»)
+- **IP-Adresse** — Letzte bekannte IP
+- **Standort** — Ungefährer Standort basierend auf IP-Geolocation
+- **Letzte Aktivität** — Zeitpunkt der letzten Anfrage
+- **Status** — «Aktuelle Sitzung» für das Gerät, auf dem Sie gerade arbeiten
+
+## Einzelne Sitzung beenden
+
+Klicken Sie neben einer Sitzung auf **Abmelden**, um dieses Gerät remote abzumelden. Die Sitzung wird sofort ungültig — beim nächsten Seitenwechsel auf dem betroffenen Gerät erscheint die Login-Seite.
+
+<Callout type="info">
+Die aktuelle Sitzung kann nicht remote beendet werden. Verwenden Sie dafür den regulären **Abmelden**-Button im Profil-Menü.
+</Callout>
+
+## Alle anderen Sitzungen beenden
+
+Klicken Sie auf **Alle anderen beenden**, um sämtliche Sitzungen ausser der aktuellen sofort zu beenden. Dies ist nützlich, wenn:
+
+- Sie Ihr Passwort geändert haben
+- Sie ein Gerät verloren haben
+- Sie unbekannte Sitzungen in der Liste sehen
+
+Sie werden aufgefordert, Ihr Passwort zur Bestätigung einzugeben.
+
+## Sicherheitshinweise
+
+- Überprüfen Sie Ihre aktiven Sitzungen regelmässig, insbesondere nach Reisen oder bei gemeinsam genutzten Geräten
+- Unbekannte Standorte oder Geräte können auf unbefugten Zugriff hinweisen — ändern Sie in diesem Fall sofort Ihr Passwort
+- Aktivieren Sie **Zwei-Faktor-Authentifizierung (2FA)** für zusätzlichen Schutz
+
+<Callout type="warning">
+Admins können unter **Admin → Benutzer** die Sitzungen anderer Benutzer einsehen und bei Bedarf beenden. Betroffene Benutzer werden per E-Mail benachrichtigt.
+</Callout>
+
+## Tipps
+
+- Nutzen Sie **Alle anderen beenden** nach einem Passwort-Wechsel, um sicherzustellen, dass nur authentifizierte Geräte Zugriff haben
+- Prüfen Sie die Sitzungsliste, bevor Sie ein altes Gerät weitergeben oder entsorgen
+- Kombinieren Sie die Sitzungsverwaltung mit [IP-Zugriffsbeschränkung](/erweitert/ip-zugriff) für maximale Sicherheit
+
+## Verwandte Funktionen
+
+- [IP-Zugriffsbeschränkung](/erweitert/ip-zugriff) — Zugriff auf bestimmte IP-Adressen einschränken
+- [Aktivitätsprotokoll](/erweitert/aktivitaetsprotokoll) — Alle Änderungen im Audit-Trail nachverfolgen
+- [Rollen & Berechtigungen](/einstellungen/rollen) — Zugriffsrechte konfigurieren

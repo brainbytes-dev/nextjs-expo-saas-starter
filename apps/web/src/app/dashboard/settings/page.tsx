@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, useCallback } from "react"
+import { useRef, useState, useCallback, useEffect } from "react"
 import { useSession } from "@/lib/auth-client"
 import { updateProfile, changePassword } from "@/lib/auth-client"
 import { Button } from "@/components/ui/button"
@@ -39,7 +39,11 @@ import {
 } from "@/components/ui/select"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { useTranslations } from "next-intl"
-import { IconCamera, IconAlertTriangle, IconCheck } from "@tabler/icons-react"
+import { IconCamera, IconAlertTriangle, IconCheck, IconShieldLock } from "@tabler/icons-react"
+import { DsgvoExportCard } from "@/components/dsgvo-export-card"
+import { DsgvoDeleteCard } from "@/components/dsgvo-delete-card"
+import Link from "next/link"
+import { Badge } from "@/components/ui/badge"
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -94,6 +98,29 @@ function StatusMessage({
     )
   }
   return null
+}
+
+// ── 2FA Status Badge ─────────────────────────────────────────────────────────
+
+function TwoFactorBadge() {
+  const [enabled, setEnabled] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    fetch("/api/auth/two-factor/status", { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => setEnabled(data.enabled === true))
+      .catch(() => setEnabled(false))
+  }, [])
+
+  if (enabled === null) return null
+  if (!enabled) return null
+
+  return (
+    <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+      <IconCheck className="mr-1 size-3" />
+      Aktiv
+    </Badge>
+  )
 }
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
@@ -544,15 +571,23 @@ export default function SettingsPage() {
             <Separator />
 
             <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Zwei-Faktor-Authentifizierung</p>
-                <p className="text-sm text-muted-foreground">
-                  Zusätzliche Sicherheitsebene für das Konto hinzufügen.
-                </p>
+              <div className="flex items-center gap-2">
+                <div>
+                  <p className="font-medium">Zwei-Faktor-Authentifizierung</p>
+                  <p className="text-sm text-muted-foreground">
+                    Zusätzliche Sicherheitsebene für das Konto hinzufügen.
+                  </p>
+                </div>
               </div>
-              <Button variant="outline" size="sm" disabled>
-                Konfigurieren
-              </Button>
+              <div className="flex items-center gap-2">
+                <TwoFactorBadge />
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/dashboard/settings/two-factor">
+                    <IconShieldLock className="mr-1.5 size-4" />
+                    Konfigurieren
+                  </Link>
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -615,6 +650,16 @@ export default function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* ── DSGVO Datenexport ── */}
+      <DsgvoExportCard />
+
+      <Separator />
+
+      {/* ── DSGVO Kontolöschung ── */}
+      <DsgvoDeleteCard />
+
+      <Separator />
 
       {/* Tour restart */}
       <Card>

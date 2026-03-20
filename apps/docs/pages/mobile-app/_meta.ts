@@ -11,5 +11,7 @@ export default {
   "offline-konflikte": "Offline-Konflikte",
   "geofencing": "Geofencing",
   "bluetooth-beacons": "Bluetooth Beacons",
-  "watch-app": "Apple Watch App"
+  "watch-app": "Apple Watch App",
+  "sprachassistent": "Siri & Google Assistant",
+  "offline-karten": "Offline-Karten"
 }

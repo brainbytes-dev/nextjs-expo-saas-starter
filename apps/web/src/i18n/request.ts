@@ -1,7 +1,7 @@
 import { getRequestConfig } from "next-intl/server";
 import { cookies } from "next/headers";
 
-const SUPPORTED_LOCALES = ["de", "fr", "en", "it"] as const;
+const SUPPORTED_LOCALES = ["de", "fr", "en", "it", "es", "pt", "pl", "tr", "nl", "ja"] as const;
 type Locale = (typeof SUPPORTED_LOCALES)[number];
 
 function isValidLocale(value: string | undefined): value is Locale {

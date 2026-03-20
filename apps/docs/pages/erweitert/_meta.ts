@@ -26,5 +26,15 @@ export default {
   "feature-tiers": "Feature-Tiers (Planvergleich)",
   "ki-assistent": "KI-Assistent (Chat Copilot)",
   "material-alternativen": "Material-Alternativen",
-  "geraete-auslastung": "Geräte-Auslastung"
+  "geraete-auslastung": "Geräte-Auslastung",
+  "wartungsprognose": "Wartungsprognose (Predictive Maintenance)",
+  "lieferkette": "Supply Chain Dashboard",
+  "etiketten-designer": "Etiketten-Designer",
+  "email-posteingang": "Email-Posteingang (Inbox Parser)",
+  "sitzungsverwaltung": "Sitzungsverwaltung",
+  "ip-zugriff": "IP-Zugriffsbeschränkung",
+  "datenhaltung": "Datenhaltung & Aufbewahrungsfristen",
+  "datenimport": "Smart Import Wizard",
+  "datenexport": "Datenexport (CSV/JSON)",
+  "migration": "Migrations-Assistent"
 }

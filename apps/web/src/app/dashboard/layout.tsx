@@ -8,6 +8,7 @@ import { CommandPalette } from "@/components/command-palette"
 import { SiteHeader } from "@/components/site-header"
 import { BrandProvider } from "@/components/brand-provider"
 import { BarcodeScannerProvider } from "@/components/barcode-scanner-provider"
+import { RealtimeProvider } from "@/providers/realtime-provider"
 import { ShortcutsDialogProvider } from "@/components/shortcuts-dialog"
 import { WelcomeTour } from "@/components/welcome-tour"
 import { FeatureGateProvider } from "@/components/feature-gate-provider"
@@ -75,6 +76,7 @@ export default function DashboardLayout({
 
   return (
     <FeatureGateProvider>
+    <RealtimeProvider>
     <BrandProvider>
       <BarcodeScannerProvider>
       <ShortcutsDialogProvider>
@@ -100,6 +102,7 @@ export default function DashboardLayout({
       </ShortcutsDialogProvider>
       </BarcodeScannerProvider>
     </BrandProvider>
+    </RealtimeProvider>
     </FeatureGateProvider>
   )
 }

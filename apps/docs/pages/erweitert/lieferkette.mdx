@@ -1,0 +1,70 @@
+---
+title: Supply Chain Dashboard
+---
+
+import { Callout } from 'nextra/components'
+
+# Supply Chain Dashboard
+
+Das Supply Chain Dashboard gibt Ihnen eine Echtzeit-Übersicht über Ihre gesamte Lieferkette — von der Bestellung beim Lieferanten bis zur Einlagerung am Zielstandort.
+
+## Pipeline-Visualisierung
+
+Die Pipeline zeigt den aktuellen Status aller offenen Vorgänge in fünf Phasen:
+
+1. **Bestellt** — Bestellung beim Lieferanten aufgegeben
+2. **Bestätigt** — Lieferant hat Bestellung bestätigt
+3. **Versendet** — Ware ist unterwegs
+4. **Eingetroffen** — Ware am Standort angekommen
+5. **Eingelagert** — Wareneingang verbucht
+
+Jede Phase zeigt die Anzahl offener Positionen als Badge. Klicken Sie auf eine Phase, um die zugehörigen Vorgänge zu filtern.
+
+## Warenfluss-Chart
+
+Das Sankey-Diagramm visualisiert den Materialfluss zwischen Lieferanten, Standorten und Projekten. Filtern Sie nach:
+
+- **Zeitraum** — Letzte 7, 30 oder 90 Tage
+- **Materialgruppe** — Einzelne Kategorie oder alle
+- **Lieferant** — Spezifischer Lieferant oder alle
+
+## Lieferantenperformance
+
+Die Performance-Tabelle bewertet jeden Lieferanten anhand von drei Kennzahlen:
+
+| Kennzahl | Beschreibung |
+|----------|-------------|
+| **Pünktlichkeit** | Anteil termingerecht gelieferter Bestellungen |
+| **Qualität** | Anteil beanstandungsfreier Lieferungen |
+| **Preistreu** | Abweichung zwischen Angebots- und Rechnungspreis |
+
+Lieferanten werden farbkodiert: grün (≥ 90%), gelb (70–89%), rot (< 70%).
+
+## Top-Verbrauch
+
+Die Top-Verbrauch-Ansicht zeigt die **20 meistverbrauchten Materialien** im gewählten Zeitraum. Pro Material sehen Sie:
+
+- Gesamtverbrauch (Menge und Wert)
+- Durchschnittlicher Tagesverbrauch
+- Prognostizierte Reichweite in Tagen
+- Nachbestellungs-Empfehlung
+
+<Callout type="info">
+Das Supply Chain Dashboard aggregiert Daten aus Bestellungen, Lieferscheinen und Bestandsbewegungen. Für vollständige Lieferantenperformance-Daten sollten Wareneingänge konsequent über Lieferscheine verbucht werden.
+</Callout>
+
+## Dashboard aufrufen
+
+Navigieren Sie zu **Berichte → Supply Chain** oder verwenden Sie die Command Palette (**Cmd+K** → «Supply Chain»).
+
+## Tipps
+
+- Nutzen Sie den Warenfluss-Chart in Team-Meetings, um Engpässe visuell zu identifizieren
+- Setzen Sie Lieferanten mit roter Bewertung auf die Beobachtungsliste
+- Kombinieren Sie die Top-Verbrauch-Ansicht mit der [Auto-Nachbestellung](/automatisierung/auto-nachbestellung) für lückenlose Versorgung
+
+## Verwandte Funktionen
+
+- [Lieferverfolgung](/erweitert/lieferverfolgung) — Sendungsstatus im Detail
+- [Lieferanten & Preise](/finanzen/lieferantenpreise) — Preisvergleich und Lieferzeiten
+- [Nachfrageprognose](/ai/prognose) — KI-basierte Bedarfsvorhersage

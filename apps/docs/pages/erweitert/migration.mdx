@@ -1,0 +1,74 @@
+---
+title: Migrations-Assistent
+---
+
+# Migrations-Assistent
+
+Wechseln Sie von Excel, bexio, PROFFIX oder SAP zu LogistikApp — der Migrations-Assistent begleitet Sie Schritt für Schritt.
+
+## Unterstützte Quellsysteme
+
+| Quellsystem | Importmethode | Entitäten |
+|-------------|---------------|-----------|
+| **Excel / CSV** | Datei-Upload | Materialien, Werkzeuge, Standorte, Lieferanten |
+| **bexio** | API-Verbindung | Artikel, Lager, Kontakte, Bestellungen |
+| **PROFFIX** | CSV-Export | Artikel, Lagerorte, Lieferanten |
+| **SAP Business One** | CSV-Export | Materialstämme, Lagerorte, Geschäftspartner |
+
+## Migration starten
+
+Navigieren Sie zu **Einstellungen → Daten → Migration** und wählen Sie Ihr Quellsystem. Der Assistent passt die Schritte automatisch an das gewählte System an.
+
+## Excel / CSV Migration
+
+1. **Vorlage herunterladen**: Klicken Sie auf «Migrationsvorlage» und wählen Sie den Entitätstyp. Die Vorlage enthält alle Felder mit Beschreibungen und Beispieldaten.
+2. **Daten einfügen**: Kopieren Sie Ihre bestehenden Daten in die Vorlage. Achten Sie auf die Spaltenreihenfolge und Pflichtfelder (rot markiert).
+3. **Hochladen**: Laden Sie die ausgefüllte Vorlage über den [Smart Import Wizard](/erweitert/datenimport) hoch. Die Spalten werden automatisch zugeordnet.
+
+> **Tipp:** Importieren Sie zuerst Standorte, dann Materialien und Werkzeuge. So können Bestandsdaten direkt den richtigen Standorten zugewiesen werden.
+
+## bexio API-Verbindung
+
+Die direkte API-Anbindung importiert Ihre bexio-Daten ohne manuellen Dateiexport.
+
+1. **API-Token erstellen**: Melden Sie sich bei bexio an und erstellen Sie unter *Einstellungen → API Tokens* einen neuen Token mit Leseberechtigung.
+2. **Token eingeben**: Fügen Sie den Token im Migrations-Assistenten unter «bexio API-Token» ein.
+3. **Verbindung testen**: Klicken Sie auf «Verbindung prüfen». Bei Erfolg erscheint eine Übersicht der verfügbaren Daten.
+4. **Entitäten wählen**: Wählen Sie, welche Daten importiert werden sollen (Artikel, Lager, Kontakte).
+5. **Mapping prüfen**: Der Assistent zeigt die Feldzuordnung in einer Vorschau. Passen Sie die Zuordnung bei Bedarf an.
+6. **Importieren**: Starten Sie den Import. Grosse Datenmengen werden asynchron verarbeitet.
+
+> **Hinweis:** Der bexio-Token wird nach dem Import gelöscht und nicht gespeichert. Für regelmässige Synchronisation nutzen Sie die [API-Integration](/einstellungen/integrationen).
+
+## PROFFIX Migration
+
+1. Exportieren Sie in PROFFIX unter *Stammdaten → Artikel → Export* eine CSV-Datei.
+2. Laden Sie die Datei im Migrations-Assistenten hoch.
+3. Der Assistent erkennt PROFFIX-Spalten automatisch (Artikelnummer, Bezeichnung, Lagerort, VK-Preis, EAN).
+4. Prüfen Sie die Zuordnung und starten Sie den Import.
+
+## SAP Business One Migration
+
+1. Exportieren Sie Materialstämme über *Administration → Datenexport → Artikelstammdaten*.
+2. Speichern Sie als CSV (UTF-8).
+3. Laden Sie die Datei im Migrations-Assistenten hoch.
+4. SAP-spezifische Felder (Materialgruppe, Bewertungsklasse) werden automatisch den LogistikApp-Kategorien zugeordnet.
+
+## Vorlagen herunterladen
+
+Unter **Einstellungen → Daten → Migration → Vorlagen** finden Sie vorgefertigte Import-Vorlagen:
+
+- `materialien_vorlage.csv` — Alle Materialfelder inkl. Zusatzfelder
+- `werkzeuge_vorlage.csv` — Werkzeuge mit Wartungsintervallen
+- `standorte_vorlage.csv` — Standorte mit GPS-Koordinaten und Typ
+- `lieferanten_vorlage.csv` — Lieferanten mit Kontaktdaten und Konditionen
+
+## Nach der Migration
+
+- Prüfen Sie die importierten Daten in den Listenansichten.
+- Nutzen Sie die [Duplikat-Erkennung](/erweitert/duplikat-erkennung), um eventuelle Doppeleinträge zu finden.
+- Ergänzen Sie fehlende Felder (Fotos, Barcodes) über die [Bulk-Operationen](/erweitert/bulk-operationen).
+
+## Berechtigungen
+
+Die Migration erfordert die Rolle **Administrator**. Nur Administratoren können Migrationsvorgänge starten und API-Verbindungen konfigurieren.

@@ -1916,3 +1916,145 @@ export const bleBeacons = pgTable(
 
 export type BleBeacon = typeof bleBeacons.$inferSelect;
 export type NewBleBeacon = typeof bleBeacons.$inferInsert;
+
+// ─── Two-Factor Authentication ──────────────────────────────────────
+export const twoFactorSecrets = pgTable(
+  "two_factor_secrets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" })
+      .unique(),
+    secret: text("secret").notNull(),
+    recoveryCodes: jsonb("recovery_codes"),
+    usedRecoveryCodes: jsonb("used_recovery_codes"),
+    enabled: boolean("enabled").default(false).notNull(),
+    verifiedAt: timestamp("verified_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [index("idx_two_factor_secrets_user_id").on(table.userId)]
+);
+
+export type TwoFactorSecret = typeof twoFactorSecrets.$inferSelect;
+export type NewTwoFactorSecret = typeof twoFactorSecrets.$inferInsert;
+
+// ─── Plugins (Marketplace) ──────────────────────────────────────────
+export const plugins = pgTable("plugins", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description"),
+  version: text("version").default("1.0.0"),
+  author: text("author"),
+  icon: text("icon"),
+  category: text("category"), // "import", "export", "integration", "utility"
+  configSchema: jsonb("config_schema"),
+  events: jsonb("events"), // string[]
+  webhookUrl: text("webhook_url"),
+  isBuiltin: boolean("is_builtin").default(false),
+  isPublished: boolean("is_published").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type Plugin = typeof plugins.$inferSelect;
+export type NewPlugin = typeof plugins.$inferInsert;
+
+// ─── Plugin Installations ───────────────────────────────────────────
+export const pluginInstallations = pgTable(
+  "plugin_installations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    pluginId: uuid("plugin_id")
+      .notNull()
+      .references(() => plugins.id, { onDelete: "cascade" }),
+    config: jsonb("config"),
+    enabled: boolean("enabled").default(true),
+    installedBy: uuid("installed_by").references(() => users.id),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_plugin_installations_org_id").on(table.organizationId),
+    index("idx_plugin_installations_plugin_id").on(table.pluginId),
+    uniqueIndex("idx_plugin_installations_org_plugin").on(
+      table.organizationId,
+      table.pluginId
+    ),
+  ]
+);
+
+export type PluginInstallation = typeof pluginInstallations.$inferSelect;
+export type NewPluginInstallation = typeof pluginInstallations.$inferInsert;
+
+// ─── Organization Settings (Security & Retention) ────────────────────
+export const orgSettings = pgTable(
+  "org_settings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    key: text("key").notNull(), // "ip_allowlist", "data_retention", etc.
+    value: jsonb("value").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_org_settings_org_id").on(table.organizationId),
+    uniqueIndex("idx_org_settings_org_key").on(
+      table.organizationId,
+      table.key
+    ),
+  ]
+);
+
+export type OrgSetting = typeof orgSettings.$inferSelect;
+export type NewOrgSetting = typeof orgSettings.$inferInsert;
+
+// ═════════════════════════════════════════════════════════════════════
+// Enterprise Features
+// ═════════════════════════════════════════════════════════════════════
+
+// ─── Reseller Branding (White-Label) ─────────────────────────────────
+export const resellerBranding = pgTable("reseller_branding", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }).unique(),
+  appName: text("app_name"), // e.g. "BauLager Pro" instead of "LogistikApp"
+  logoUrl: text("logo_url"),
+  faviconUrl: text("favicon_url"),
+  primaryColor: text("primary_color"),
+  accentColor: text("accent_color"),
+  customDomain: text("custom_domain"), // e.g. "lager.meinfirma.ch"
+  hideLogistikAppBranding: boolean("hide_logistikapp_branding").default(false),
+  customFooterText: text("custom_footer_text"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type ResellerBranding = typeof resellerBranding.$inferSelect;
+export type NewResellerBranding = typeof resellerBranding.$inferInsert;
+
+// ─── Label Templates (Etiketten-Designer) ────────────────────────────
+export const labelTemplates = pgTable(
+  "label_templates",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    width: integer("width").notNull(), // mm
+    height: integer("height").notNull(), // mm
+    elements: jsonb("elements").notNull(), // LabelElement[]
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [index("idx_label_templates_org_id").on(table.organizationId)]
+);
+
+export type LabelTemplate = typeof labelTemplates.$inferSelect;
+export type NewLabelTemplate = typeof labelTemplates.$inferInsert;

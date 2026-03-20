@@ -6,6 +6,7 @@ import Link from "next/link"
 import { LogoMark } from "@/components/logo"
 import {
   IconArrowLeft,
+  IconBrush,
   IconBuilding,
   IconDashboard,
   IconReceipt,
@@ -28,6 +29,7 @@ const NAV_ITEMS = [
   { href: "/admin/organizations", label: "Organisationen", icon: IconBuilding },
   { href: "/admin/users", label: "Benutzer", icon: IconUsers },
   { href: "/admin/payments", label: "Umsatz", icon: IconReceipt },
+  { href: "/admin/reseller", label: "Reseller / White-Label", icon: IconBrush },
 ]
 
 export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

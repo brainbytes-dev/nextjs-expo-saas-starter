@@ -14,10 +14,16 @@ import {
 import { Button } from "@/components/ui/button"
 
 const LOCALES = [
-  { value: "de", label: "Deutsch", flag: "DE" },
-  { value: "fr", label: "Français", flag: "FR" },
-  { value: "en", label: "English", flag: "EN" },
-  { value: "it", label: "Italiano", flag: "IT" },
+  { value: "de", label: "Deutsch", flag: "🇩🇪" },
+  { value: "fr", label: "Français", flag: "🇫🇷" },
+  { value: "en", label: "English", flag: "🇬🇧" },
+  { value: "it", label: "Italiano", flag: "🇮🇹" },
+  { value: "es", label: "Español", flag: "🇪🇸" },
+  { value: "pt", label: "Português", flag: "🇵🇹" },
+  { value: "pl", label: "Polski", flag: "🇵🇱" },
+  { value: "tr", label: "Türkçe", flag: "🇹🇷" },
+  { value: "nl", label: "Nederlands", flag: "🇳🇱" },
+  { value: "ja", label: "日本語", flag: "🇯🇵" },
 ] as const
 
 type Locale = (typeof LOCALES)[number]["value"]
@@ -69,7 +75,7 @@ export function LanguageSwitcher({ compact = false }: LanguageSwitcherProps) {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" side="top" className="w-40">
+      <DropdownMenuContent align="end" side="top" className="w-40 max-h-64 overflow-y-auto">
         <DropdownMenuRadioGroup value={locale} onValueChange={handleLocaleChange}>
           {LOCALES.map((l) => (
             <DropdownMenuRadioItem key={l.value} value={l.value}>
