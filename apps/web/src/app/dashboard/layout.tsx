@@ -7,6 +7,7 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { CommandPalette } from "@/components/command-palette"
 import { SiteHeader } from "@/components/site-header"
 import { BrandProvider } from "@/components/brand-provider"
+import { BarcodeScannerProvider } from "@/components/barcode-scanner-provider"
 import { ShortcutsDialogProvider } from "@/components/shortcuts-dialog"
 import {
   SidebarInset,
@@ -71,6 +72,7 @@ export default function DashboardLayout({
 
   return (
     <BrandProvider>
+      <BarcodeScannerProvider>
       <ShortcutsDialogProvider>
         <SidebarProvider
           style={{
@@ -90,6 +92,7 @@ export default function DashboardLayout({
           <CommandPalette />
         </SidebarProvider>
       </ShortcutsDialogProvider>
+      </BarcodeScannerProvider>
     </BrandProvider>
   )
 }

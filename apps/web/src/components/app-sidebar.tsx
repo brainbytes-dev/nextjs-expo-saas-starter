@@ -588,6 +588,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         hideable: true,
       },
       {
+        title: "Handscanner",
+        url: "/dashboard/settings/scanner",
+        icon: IconBarcode,
+        hideable: true,
+      },
+      {
         title: t("integrations"),
         url: "/dashboard/settings/integrations",
         icon: IconPlugConnected,
