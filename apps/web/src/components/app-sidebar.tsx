@@ -60,6 +60,8 @@ import {
   IconClock,
   IconMail,
   IconRuler,
+  IconUpload,
+  IconTransfer,
 } from "@tabler/icons-react"
 import { useTranslations } from "next-intl"
 import { useShortcutsDialog } from "@/components/shortcuts-dialog"
@@ -512,6 +514,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         name: "Budgets",
         url: "/dashboard/budgets",
         icon: IconWallet,
+        hideable: true,
+      },
+      {
+        name: "Datenimport",
+        url: "/dashboard/import",
+        icon: IconUpload,
+        hideable: true,
+      },
+      {
+        name: "Migration",
+        url: "/dashboard/migration",
+        icon: IconTransfer,
         hideable: true,
       },
     ],

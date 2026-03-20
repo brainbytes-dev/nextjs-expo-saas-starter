@@ -27,6 +27,10 @@ import {
   IconBluetooth,
   IconDeviceWatch,
   IconKeyboard,
+  IconSparkles,
+  IconFileSpreadsheet,
+  IconTransfer,
+  IconUpload,
 } from "@tabler/icons-react"
 import { BrandLogo } from "@/components/integrations/brand-logo"
 
@@ -488,6 +492,83 @@ function PricingSection() {
   )
 }
 
+/* ─── Migration Section ─────────────────────────────────────── */
+function MigrationSection() {
+  const sources = [
+    { name: "Excel / CSV", short: "XLS", color: "#217346", desc: "Beliebige Tabellen importieren" },
+    { name: "bexio", short: "BX", color: "#0073E6", desc: "Direkte API-Verbindung" },
+    { name: "PROFFIX", short: "PF", color: "#E30613", desc: "Export-Anleitung + Import" },
+    { name: "SAP Business One", short: "SAP", color: "#0FAAFF", desc: "CSV-Export + Import" },
+  ]
+
+  return (
+    <section id="migration" className="mx-auto w-full max-w-7xl px-6 py-24">
+      <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div>
+          <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-4">{`// 06 — Migration`}</div>
+          <h2 className="text-3xl lg:text-4xl font-bold mb-6 leading-tight text-foreground">
+            Wechseln Sie<br />
+            in <span className="text-primary">5 Minuten.</span>
+          </h2>
+          <p className="font-mono text-sm leading-relaxed max-w-md text-muted-foreground mb-8">
+            Egal ob Excel, bexio, PROFFIX oder SAP — Ihre Daten sind in Minuten importiert.
+            Unser Import-Assistent führt Sie Schritt für Schritt.
+          </p>
+
+          {/* AI feature callout */}
+          <div className="flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 p-4 mb-8">
+            <IconSparkles className="size-5 text-primary shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold mb-0.5">KI-gestütztes Column Mapping</p>
+              <p className="text-xs text-muted-foreground">
+                Spalten werden automatisch erkannt und den richtigen Feldern zugeordnet.
+                Manuelle Zuordnung ist jederzeit möglich.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <Link href="/dashboard/migration">
+              <Button className="font-mono text-[11px] tracking-widest uppercase gap-2">
+                <IconTransfer className="size-3.5" />
+                Jetzt migrieren
+              </Button>
+            </Link>
+            <Link href="/dashboard/import">
+              <Button variant="outline" className="font-mono text-[11px] tracking-widest uppercase gap-2">
+                <IconUpload className="size-3.5" />
+                CSV importieren
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Source cards */}
+        <div className="grid grid-cols-2 gap-3">
+          {sources.map((source) => (
+            <div
+              key={source.name}
+              className="relative border border-border rounded-lg p-5 bg-background group hover:border-primary/50 transition-colors duration-200"
+            >
+              <div className="flex items-start gap-3 mb-3">
+                <BrandLogo name={source.name} fallbackColor={source.color} fallbackShort={source.short} size={36} />
+                <div>
+                  <div className="text-sm font-semibold leading-none mb-1">{source.name}</div>
+                  <div className="text-xs text-muted-foreground leading-snug">{source.desc}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <IconFileSpreadsheet className="size-3 text-muted-foreground" />
+                <span className="font-mono text-[9px] tracking-widest uppercase text-muted-foreground">Import bereit</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 /* ─── Peripherals Section ────────────────────────────────────── */
 function PeripheralsSection() {
   const peripherals = [
@@ -504,7 +585,7 @@ function PeripheralsSection() {
   return (
     <section id="peripherals" className="mx-auto w-full max-w-7xl px-6 py-24">
       <div className="mb-10 border-b border-border pb-6">
-        <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{`// 06 — Hardware`}</div>
+        <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{`// 08 — Hardware`}</div>
         <h2 className="text-3xl lg:text-4xl font-bold">Jedes Gerät. Sofort einsatzbereit.</h2>
         <p className="text-muted-foreground mt-2 max-w-2xl">Einstecken, verbinden, loslegen — keine Treiber, keine Konfiguration. LogistikApp unterstützt alle gängigen Lager-Peripheriegeräte.</p>
       </div>
@@ -587,7 +668,7 @@ function FeatureComparisonSection() {
   return (
     <section id="comparison" className="mx-auto w-full max-w-7xl px-6 py-24">
       <div className="mb-10 border-b border-border pb-6">
-        <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{`// 08 — Vergleich`}</div>
+        <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{`// 09 — Vergleich`}</div>
         <h2 className="text-3xl lg:text-4xl font-bold">Alle Funktionen im Überblick</h2>
       </div>
       <div className="overflow-x-auto">
@@ -653,6 +734,7 @@ export default function LandingPage() {
               <a href="#peripherals"  className="hover:text-foreground transition-colors">Hardware</a>
               <a href="#comparison"   className="hover:text-foreground transition-colors">Vergleich</a>
               <a href="#trust"        className="hover:text-foreground transition-colors">Sicherheit</a>
+              <a href="#migration"    className="hover:text-foreground transition-colors">Migration</a>
             </nav>
             <div className="flex items-center gap-1.5">
               <ModeToggle />
@@ -1176,6 +1258,9 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* ══ MIGRATION ═════════════════════════════════════ */}
+        <MigrationSection />
+
         {/* ══ PERIPHERALS ════════════════════════════════════ */}
         <PeripheralsSection />
 
@@ -1220,6 +1305,7 @@ export default function LandingPage() {
                 © {new Date().getFullYear()} BrainBytes GmbH · LogistikApp
               </p>
               <div className="flex gap-6 font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
+                <a href="#migration" className="hover:text-foreground transition-colors">Migration</a>
                 <a href="#peripherals" className="hover:text-foreground transition-colors">Hardware</a>
                 <a href="#comparison" className="hover:text-foreground transition-colors">Vergleich</a>
                 <Link href="/login"  className="hover:text-foreground transition-colors">Anmelden</Link>
