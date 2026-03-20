@@ -1991,3 +1991,70 @@ export const pluginInstallations = pgTable(
 
 export type PluginInstallation = typeof pluginInstallations.$inferSelect;
 export type NewPluginInstallation = typeof pluginInstallations.$inferInsert;
+
+// ─── Organization Settings (Security & Retention) ────────────────────
+export const orgSettings = pgTable(
+  "org_settings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    key: text("key").notNull(), // "ip_allowlist", "data_retention", etc.
+    value: jsonb("value").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_org_settings_org_id").on(table.organizationId),
+    uniqueIndex("idx_org_settings_org_key").on(
+      table.organizationId,
+      table.key
+    ),
+  ]
+);
+
+export type OrgSetting = typeof orgSettings.$inferSelect;
+export type NewOrgSetting = typeof orgSettings.$inferInsert;
+
+// ═════════════════════════════════════════════════════════════════════
+// Enterprise Features
+// ═════════════════════════════════════════════════════════════════════
+
+// ─── Reseller Branding (White-Label) ─────────────────────────────────
+export const resellerBranding = pgTable("reseller_branding", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }).unique(),
+  appName: text("app_name"), // e.g. "BauLager Pro" instead of "LogistikApp"
+  logoUrl: text("logo_url"),
+  faviconUrl: text("favicon_url"),
+  primaryColor: text("primary_color"),
+  accentColor: text("accent_color"),
+  customDomain: text("custom_domain"), // e.g. "lager.meinfirma.ch"
+  hideLogistikAppBranding: boolean("hide_logistikapp_branding").default(false),
+  customFooterText: text("custom_footer_text"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type ResellerBranding = typeof resellerBranding.$inferSelect;
+export type NewResellerBranding = typeof resellerBranding.$inferInsert;
+
+// ─── Label Templates (Etiketten-Designer) ────────────────────────────
+export const labelTemplates = pgTable(
+  "label_templates",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    width: integer("width").notNull(), // mm
+    height: integer("height").notNull(), // mm
+    elements: jsonb("elements").notNull(), // LabelElement[]
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [index("idx_label_templates_org_id").on(table.organizationId)]
+);
+
+export type LabelTemplate = typeof labelTemplates.$inferSelect;
+export type NewLabelTemplate = typeof labelTemplates.$inferInsert;

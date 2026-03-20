@@ -54,6 +54,12 @@ import {
   IconAntenna,
   IconPrinter,
   IconPuzzle,
+  IconGitBranch,
+  IconDevices,
+  IconShieldLock,
+  IconClock,
+  IconMail,
+  IconRuler,
 } from "@tabler/icons-react"
 import { useTranslations } from "next-intl"
 import { useShortcutsDialog } from "@/components/shortcuts-dialog"
@@ -410,6 +416,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         hideable: true,
       },
       {
+        title: "KI-Wartungsprognose",
+        url: "/dashboard/maintenance-ai",
+        icon: IconBrain,
+        hideable: true,
+      },
+      {
+        title: "Lieferkette",
+        url: "/dashboard/supply-chain",
+        icon: IconGitBranch,
+        hideable: true,
+      },
+      {
         title: "TV-Modus",
         url: "/tv",
         icon: IconDeviceTv,
@@ -458,6 +476,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         name: "Barcode-Generator",
         url: "/dashboard/barcode-generator",
         icon: IconBarcode,
+        hideable: true,
+      },
+      {
+        name: "Etiketten-Designer",
+        url: "/dashboard/label-designer",
+        icon: IconRuler,
         hideable: true,
       },
       {
@@ -637,6 +661,30 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: "Plugins",
         url: "/dashboard/settings/plugins",
         icon: IconPuzzle,
+        hideable: true,
+      },
+      {
+        title: "Sitzungen",
+        url: "/dashboard/settings/sessions",
+        icon: IconDevices,
+        hideable: true,
+      },
+      {
+        title: "IP-Zugriff",
+        url: "/dashboard/settings/ip-allowlist",
+        icon: IconShieldLock,
+        hideable: true,
+      },
+      {
+        title: "Datenhaltung",
+        url: "/dashboard/settings/data-retention",
+        icon: IconClock,
+        hideable: true,
+      },
+      {
+        title: "E-Mail Posteingang",
+        url: "/dashboard/settings/email-inbox",
+        icon: IconMail,
         hideable: true,
       },
     ],
