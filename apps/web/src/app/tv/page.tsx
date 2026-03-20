@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback, useRef } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { useSession } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import type { ActivityItem } from "@/app/api/dashboard/activity/route"
@@ -95,6 +95,23 @@ function useNowClock(): string {
   return now.toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
 }
 
+/** Calculate how many list rows fit on screen (no scrolling) */
+function useMaxVisibleRows(headerHeight = 140, rowHeight = 64): number {
+  const [maxRows, setMaxRows] = useState(6)
+  useEffect(() => {
+    function calc() {
+      const available = window.innerHeight - headerHeight
+      // Account for section heading (~50px) + gaps
+      const usable = available - 80
+      setMaxRows(Math.max(2, Math.floor(usable / rowHeight)))
+    }
+    calc()
+    window.addEventListener("resize", calc)
+    return () => window.removeEventListener("resize", calc)
+  }, [headerHeight, rowHeight])
+  return maxRows
+}
+
 function useDateLabel(): string {
   const [label, setLabel] = useState("")
   useEffect(() => {
@@ -185,6 +202,7 @@ function KpiView({ stats }: { stats: DashboardStats | null }) {
 // View: Low Stock
 // ---------------------------------------------------------------------------
 function LowStockView({ items }: { items: LowStockItem[] | null }) {
+  const maxRows = useMaxVisibleRows()
   if (!items) return <LoadingView label="Bestand wird geladen..." />
   if (items.length === 0) {
     return (
@@ -196,13 +214,13 @@ function LowStockView({ items }: { items: LowStockItem[] | null }) {
     )
   }
   return (
-    <section className="flex-1 flex flex-col gap-3 lg:gap-6 p-4 lg:p-10 overflow-y-auto">
+    <section className="flex-1 flex flex-col gap-3 lg:gap-6 p-4 lg:p-10 overflow-hidden">
       <h2 className="text-xl lg:text-3xl font-bold text-red-400 uppercase tracking-widest flex items-center gap-2 lg:gap-3">
-        <IconAlertTriangle className="size-8" />
+        <IconAlertTriangle className="size-6 lg:size-8" />
         Niedriger Bestand ({items.length})
       </h2>
-      <div className="flex-1 flex flex-col gap-2 lg:gap-3 overflow-y-auto">
-        {items.slice(0, 10).map((item) => (
+      <div className="flex-1 flex flex-col gap-2 lg:gap-3 overflow-hidden">
+        {items.slice(0, maxRows).map((item) => (
           <div
             key={item.id}
             className="flex items-center gap-3 lg:gap-6 rounded-xl px-3 lg:px-6 py-2 lg:py-4 bg-red-950/40 border border-red-800/40"
@@ -231,6 +249,7 @@ function LowStockView({ items }: { items: LowStockItem[] | null }) {
 // View: Overdue Tools
 // ---------------------------------------------------------------------------
 function OverdueToolsView({ items }: { items: OverdueTool[] | null }) {
+  const maxRows = useMaxVisibleRows()
   if (!items) return <LoadingView label="Werkzeuge werden geladen..." />
   if (items.length === 0) {
     return (
@@ -242,13 +261,13 @@ function OverdueToolsView({ items }: { items: OverdueTool[] | null }) {
     )
   }
   return (
-    <section className="flex-1 flex flex-col gap-3 lg:gap-6 p-4 lg:p-10 overflow-y-auto">
+    <section className="flex-1 flex flex-col gap-3 lg:gap-6 p-4 lg:p-10 overflow-hidden">
       <h2 className="text-xl lg:text-3xl font-bold text-primary uppercase tracking-widest flex items-center gap-2 lg:gap-3">
-        <IconClock className="size-8" />
+        <IconClock className="size-6 lg:size-8" />
         Überfällige Werkzeuge ({items.length})
       </h2>
-      <div className="flex-1 flex flex-col gap-2 lg:gap-3 overflow-y-auto">
-        {items.slice(0, 10).map((item) => (
+      <div className="flex-1 flex flex-col gap-2 lg:gap-3 overflow-hidden">
+        {items.slice(0, maxRows).map((item) => (
           <div
             key={item.id}
             className="flex items-center gap-3 lg:gap-6 rounded-xl px-3 lg:px-6 py-2 lg:py-4 bg-primary/10 border border-primary/30"
@@ -275,6 +294,7 @@ function OverdueToolsView({ items }: { items: OverdueTool[] | null }) {
 // View: Today's Activity
 // ---------------------------------------------------------------------------
 function ActivityView({ items }: { items: ActivityItem[] | null }) {
+  const maxRows = useMaxVisibleRows()
   if (!items) return <LoadingView label="Aktivität wird geladen..." />
   if (items.length === 0) {
     return (
@@ -286,13 +306,13 @@ function ActivityView({ items }: { items: ActivityItem[] | null }) {
     )
   }
   return (
-    <section className="flex-1 flex flex-col gap-3 lg:gap-6 p-4 lg:p-10 overflow-y-auto">
+    <section className="flex-1 flex flex-col gap-3 lg:gap-6 p-4 lg:p-10 overflow-hidden">
       <h2 className="text-xl lg:text-3xl font-bold text-primary uppercase tracking-widest flex items-center gap-2 lg:gap-3">
-        <IconActivity className="size-8" />
+        <IconActivity className="size-6 lg:size-8" />
         Letzte Aktivitäten
       </h2>
-      <div className="flex-1 flex flex-col gap-2 lg:gap-3 overflow-y-auto">
-        {items.slice(0, 10).map((item) => (
+      <div className="flex-1 flex flex-col gap-2 lg:gap-3 overflow-hidden">
+        {items.slice(0, maxRows).map((item) => (
           <div
             key={item.id}
             className="flex items-center gap-3 lg:gap-6 rounded-xl px-3 lg:px-6 py-2 lg:py-4 bg-white/5 border border-white/10"
@@ -337,6 +357,7 @@ function ActivityView({ items }: { items: ActivityItem[] | null }) {
 // View: Upcoming Maintenance
 // ---------------------------------------------------------------------------
 function MaintenanceView({ items }: { items: MaintenanceItem[] | null }) {
+  const maxRows = useMaxVisibleRows()
   if (!items) return <LoadingView label="Wartungen werden geladen..." />
   if (items.length === 0) {
     return (
@@ -348,13 +369,13 @@ function MaintenanceView({ items }: { items: MaintenanceItem[] | null }) {
     )
   }
   return (
-    <section className="flex-1 flex flex-col gap-3 lg:gap-6 p-4 lg:p-10 overflow-y-auto">
-      <h2 className="text-3xl font-bold text-yellow-400 uppercase tracking-widest flex items-center gap-3">
-        <IconTools className="size-8" />
+    <section className="flex-1 flex flex-col gap-3 lg:gap-6 p-4 lg:p-10 overflow-hidden">
+      <h2 className="text-xl lg:text-3xl font-bold text-yellow-400 uppercase tracking-widest flex items-center gap-2 lg:gap-3">
+        <IconTools className="size-6 lg:size-8" />
         Wartungen ({items.length})
       </h2>
-      <div className="flex-1 flex flex-col gap-2 lg:gap-3 overflow-y-auto">
-        {items.slice(0, 10).map((item) => {
+      <div className="flex-1 flex flex-col gap-2 lg:gap-3 overflow-hidden">
+        {items.slice(0, maxRows).map((item) => {
           const isOverdue = item.status === "overdue"
           const isThisWeek = item.status === "this-week"
           return (
@@ -429,23 +450,22 @@ function EmptyView({
 // Progress bar (auto-advance indicator)
 // ---------------------------------------------------------------------------
 function ProgressBar({ duration }: { duration: number }) {
-  const [pct, setPct] = useState(0)
-  const startRef = useRef(0)
+  const [started, setStarted] = useState(false)
 
   useEffect(() => {
-    startRef.current = Date.now()
-    const id = setInterval(() => {
-      const elapsed = Date.now() - startRef.current
-      setPct(Math.min(100, (elapsed / duration) * 100))
-    }, 100)
-    return () => clearInterval(id)
+    // Start at 0%, then trigger CSS transition to 100%
+    const raf = requestAnimationFrame(() => setStarted(true))
+    return () => { cancelAnimationFrame(raf); setStarted(false) }
   }, [duration])
 
   return (
     <div className="h-1 w-full bg-white/10">
       <div
-        className="h-full bg-primary transition-none"
-        style={{ width: `${pct}%` }}
+        className="h-full bg-primary"
+        style={{
+          width: started ? "100%" : "0%",
+          transition: started ? `width ${duration}ms linear` : "none",
+        }}
       />
     </div>
   )

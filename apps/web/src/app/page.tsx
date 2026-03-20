@@ -412,7 +412,7 @@ function PricingSection() {
   return (
     <section id="pricing" className="mx-auto w-full max-w-7xl px-6 py-24">
       <div className="mb-10 border-b border-border pb-6">
-        <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{`// 04 — Preise`}</div>
+        <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{`// 05 — Preise`}</div>
         <h2 className="text-3xl lg:text-4xl font-bold">Einfach. Transparent.</h2>
       </div>
 
@@ -504,7 +504,7 @@ function PeripheralsSection() {
   return (
     <section id="peripherals" className="mx-auto w-full max-w-7xl px-6 py-24">
       <div className="mb-10 border-b border-border pb-6">
-        <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{`// 05 — Hardware`}</div>
+        <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{`// 04 — Hardware`}</div>
         <h2 className="text-3xl lg:text-4xl font-bold">Jedes Gerät. Sofort einsatzbereit.</h2>
         <p className="text-muted-foreground mt-2 max-w-2xl">Einstecken, verbinden, loslegen — keine Treiber, keine Konfiguration. LogistikApp unterstützt alle gängigen Lager-Peripheriegeräte.</p>
       </div>
@@ -1176,11 +1176,11 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ══ PRICING ══════════════════════════════════════ */}
-        <PricingSection />
-
         {/* ══ PERIPHERALS ════════════════════════════════════ */}
         <PeripheralsSection />
+
+        {/* ══ PRICING ══════════════════════════════════════ */}
+        <PricingSection />
 
         {/* ══ FEATURE COMPARISON ═════════════════════════════ */}
         <FeatureComparisonSection />
