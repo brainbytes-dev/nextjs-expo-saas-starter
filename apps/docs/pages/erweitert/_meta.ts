@@ -23,5 +23,8 @@ export default {
   "bestandsoptimierung": "Bestandsoptimierung",
   "externe-portale": "Externe Portale",
   "willkommenstour": "Willkommenstour",
-  "feature-tiers": "Feature-Tiers (Planvergleich)"
+  "feature-tiers": "Feature-Tiers (Planvergleich)",
+  "ki-assistent": "KI-Assistent (Chat Copilot)",
+  "material-alternativen": "Material-Alternativen",
+  "geraete-auslastung": "Geräte-Auslastung"
 }

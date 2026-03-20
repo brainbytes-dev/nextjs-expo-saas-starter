@@ -1,0 +1,63 @@
+---
+title: KI-Assistent (Chat Copilot)
+---
+
+import { Callout } from 'nextra/components'
+
+# KI-Assistent (Chat Copilot)
+
+Der KI-Assistent ist Ihr persönlicher Copilot in LogistikApp. Stellen Sie Fragen in natürlicher Sprache und erhalten Sie sofort Antworten oder lösen Sie Aktionen aus — ohne ein einziges Menü zu öffnen.
+
+## Chat öffnen
+
+Drücken Sie **Cmd+J** (macOS) oder **Ctrl+J** (Windows/Linux), um den Chat-Panel auf der rechten Seite zu öffnen. Alternativ klicken Sie auf das **KI-Symbol** in der oberen Navigationsleiste.
+
+## Natürliche Sprache
+
+Schreiben Sie Ihre Anfrage so, wie Sie einem Kollegen schreiben würden:
+
+- *«Wie viel Zement haben wir?»* — Bestandsabfrage
+- *«Bestell 50 Schrauben nach»* — Bestellung erstellen
+- *«Welche Werkzeuge sind überfällig?»* — Überfällige Geräte auflisten
+- *«Zeig mir alle Materialien unter Mindestbestand»* — Niedrigbestand-Liste
+
+## Unterstützte Aktionen
+
+Der Assistent versteht sieben Aktionstypen:
+
+| Aktion | Beispiel |
+|--------|---------|
+| **Material suchen** | *«Finde Kabelkanal 40mm»* |
+| **Werkzeuge suchen** | *«Wo ist die Bohrmaschine Hilti TE 30?»* |
+| **Bestand abfragen** | *«Wie viele Dübel haben wir am Standort Zürich?»* |
+| **Niedrigbestand** | *«Was muss nachbestellt werden?»* |
+| **Überfällige Werkzeuge** | *«Welche Geräte sind seit über 7 Tagen ausgeliehen?»* |
+| **Bestellung erstellen** | *«Bestell 100 Kabelbinder bei Würth»* |
+| **Bestandsänderung buchen** | *«Buche 20 Stück Zement ein am Lager Bern»* |
+
+## Einrichtung
+
+1. Navigieren Sie zu **Einstellungen → KI-Funktionen**.
+2. Geben Sie Ihren **OpenAI API-Schlüssel** ein.
+3. Klicken Sie auf **Verbindung testen** — ein grüner Haken bestätigt die Verbindung.
+4. Speichern Sie die Einstellungen.
+
+<Callout type="warning">
+Ihre Daten werden direkt an OpenAI gesendet. LogistikApp speichert keine Chat-Verläufe. Ihr API-Schlüssel wird verschlüsselt in der Datenbank abgelegt und nie an Dritte weitergegeben.
+</Callout>
+
+## Ohne API-Schlüssel
+
+Im **Demo-Modus** funktioniert der Assistent mit vordefinierten Antworten. Um die volle KI-Funktionalität zu nutzen, hinterlegen Sie einen eigenen OpenAI API-Schlüssel.
+
+## Tipps
+
+- Formulieren Sie präzise: *«Bestand Schrauben M8x40 Standort Zürich»* liefert bessere Ergebnisse als *«Schrauben?»*
+- Der Assistent merkt sich den Kontext innerhalb einer Sitzung — Folgefragen sind möglich
+- Aktionen wie Bestellungen werden als **Entwurf** erstellt und müssen manuell bestätigt werden
+
+## Verwandte Funktionen
+
+- [KI-Funktionen konfigurieren](/einstellungen/ki-funktionen) — API-Schlüssel und Einstellungen
+- [Command Palette (Cmd+K)](/erweitert/command-palette) — Schnellnavigation per Tastatur
+- [Nachfrageprognose](/ai/prognose) — KI-basierte Bestandsprognosen

@@ -1,0 +1,66 @@
+---
+title: Material-Alternativen
+---
+
+import { Callout } from 'nextra/components'
+
+# Material-Alternativen
+
+LogistikApp schlägt automatisch Ersatzmaterialien vor, wenn ein Artikel knapp oder nicht verfügbar ist. So vermeiden Sie Produktionsstillstand und finden schnell passende Alternativen.
+
+## Wie es funktioniert
+
+Wenn der Bestand eines Materials unter den Mindestbestand fällt, sucht LogistikApp automatisch nach passenden Alternativen. Die Suche berücksichtigt drei Kriterien:
+
+1. **Gleiche Materialgruppe** — Artikel in derselben Kategorie (z.B. «Befestigungsmaterial»)
+2. **Ähnlicher Name** — Namensähnlichkeit per Levenshtein-Distanz (z.B. «Schraube M8x40» → «Schraube M8x50»)
+3. **Gleiche Einheit** — Nur Materialien mit übereinstimmender Mengeneinheit (Stück, kg, m, etc.)
+
+## Alternativen anzeigen
+
+1. Öffnen Sie die **Detailseite** eines Materials.
+2. Scrollen Sie zum Bereich **Alternativen** — dieser ist als Collapsible-Bereich eingeklappt.
+3. Klicken Sie auf **Alternativen anzeigen**, um die Liste aufzuklappen.
+4. Jede Alternative zeigt: Name, Artikelnummer, aktueller Bestand, Standort und Übereinstimmungsgrad.
+
+<Callout type="info">
+Der Alternativen-Bereich erscheint nur, wenn mindestens eine passende Alternative gefunden wurde. Bei ausreichendem Bestand bleibt er ausgeblendet.
+</Callout>
+
+## Alternative verwenden
+
+1. Klicken Sie auf den **Verwenden**-Button neben einer Alternative.
+2. LogistikApp öffnet das Buchungsformular mit dem Alternativmaterial vorausgefüllt.
+3. Passen Sie bei Bedarf die Menge an und bestätigen Sie die Buchung.
+
+## Sortierung und Bewertung
+
+Alternativen werden nach Relevanz sortiert:
+
+| Kriterium | Gewichtung |
+|-----------|-----------|
+| **Gleiche Kategorie** | Hoch |
+| **Namensähnlichkeit** | Mittel |
+| **Verfügbarer Bestand** | Mittel |
+| **Gleicher Standort** | Niedrig |
+
+Artikel mit höherem Bestand und grösserer Namensähnlichkeit erscheinen zuerst.
+
+## Manuelle Alternativen pflegen
+
+Sie können Alternativen auch manuell zuweisen:
+
+1. Öffnen Sie die Material-Detailseite.
+2. Klicken Sie im Alternativen-Bereich auf **Alternative hinzufügen**.
+3. Suchen Sie das gewünschte Material und bestätigen Sie.
+4. Manuell zugewiesene Alternativen erscheinen immer zuoberst in der Liste.
+
+<Callout type="info">
+Manuelle Zuweisungen sind bidirektional — wenn Sie Material A als Alternative zu Material B hinzufügen, erscheint Material B automatisch auch als Alternative bei Material A.
+</Callout>
+
+## Verwandte Funktionen
+
+- [Bestandsoptimierung](/erweitert/bestandsoptimierung) — Automatische Min/Max-Empfehlungen
+- [Auto-Nachbestellung](/automatisierung/auto-nachbestellung) — Automatische Nachbestellung bei Unterschreitung
+- [Duplikat-Erkennung](/erweitert/duplikat-erkennung) — Ähnliche Materialien zusammenführen

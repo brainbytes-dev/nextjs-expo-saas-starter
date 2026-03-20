@@ -6,6 +6,35 @@ title: Changelog
 
 Alle Änderungen, Verbesserungen und Fehlerbehebungen werden hier dokumentiert.
 
+## v2.5.0 – KI, Alternativen & Auslastung – 2026-03-20
+
+Diese Version bringt einen KI-Chat-Assistenten, intelligente Materialvorschläge, Geräte-Auslastungsanalyse und Verbesserungen für Admins und Enterprise-Kunden.
+
+### KI & Intelligenz
+
+- **[KI-Assistent (Chat Copilot)](/erweitert/ki-assistent)**: Chat-Panel per Cmd+J öffnen. Natürlichsprachige Abfragen und Aktionen: Material suchen, Bestand abfragen, Bestellungen erstellen, Buchungen auslösen. Eigener OpenAI API-Schlüssel für maximalen Datenschutz.
+- **[Material-Alternativen](/erweitert/material-alternativen)**: Automatische Ersatzvorschläge bei niedrigem Bestand. Suche nach gleicher Materialgruppe, ähnlichem Namen und gleicher Einheit. Collapsible-Bereich auf der Material-Detailseite mit «Verwenden»-Button.
+- **[Geräte-Auslastung](/erweitert/geraete-auslastung)**: Auslastungsanalyse pro Werkzeug über 7, 30 oder 90 Tage. Metriken: Buchungen, Ausleih-Stunden, Auslastungsrate. Farbkodierung (grün/gelb/rot) für schnelle Bewertung.
+
+### Admin & Enterprise
+
+- **Admin Dashboard**: Erweiterte Übersicht mit Benutzeraktivität, Speicherverbrauch und Systemstatus
+- **Managed Enterprise Features**: Dedizierte Instanzen, SLA-Dashboard und Priority-Support-Integration für Enterprise-Kunden
+
+### Verbessert
+
+- KI-Assistent erstellt Bestellungen als Entwurf zur manuellen Bestätigung
+- Material-Alternativen werden bidirektional zugewiesen
+- Auslastungs-Widget für das anpassbare Dashboard verfügbar
+
+### Behoben
+
+- KI-Chat verlor Kontext nach Browser-Reload (#512)
+- Alternativen-Suche ignorierte archivierte Materialien nicht (#515)
+- Auslastungsberechnung zählte stornierte Buchungen mit (#518)
+
+---
+
 ## v2.4.0 – Hardware & Onboarding – 2026-03-20
 
 Diese Version bringt umfassende Hardware-Unterstützung, eine neue Willkommenstour und planbasierte Feature-Steuerung.

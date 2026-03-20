@@ -1,0 +1,76 @@
+---
+title: Geräte-Auslastung
+---
+
+import { Callout } from 'nextra/components'
+
+# Geräte-Auslastung
+
+Die Auslastungsanalyse zeigt Ihnen, wie intensiv Ihre Werkzeuge und Geräte genutzt werden. So erkennen Sie auf einen Blick, welche Geräte ausgelastet sind und welche ungenutzt Kosten verursachen.
+
+## Auslastung aufrufen
+
+1. Navigieren Sie zum **Werkzeug-Modul** in der Seitenleiste.
+2. Öffnen Sie die **Detailseite** eines Werkzeugs.
+3. Wechseln Sie zum Tab **Auslastung**.
+
+Alternativ finden Sie eine Gesamtübersicht aller Geräte unter **Berichte → Geräte-Auslastung**.
+
+## Zeitraum wählen
+
+Wählen Sie den Analysezeitraum über die Segment-Buttons:
+
+- **7 Tage** — Kurzfristige Nutzung (aktuelle Woche)
+- **30 Tage** — Monatliche Auslastung (Standard)
+- **90 Tage** — Quartalsübersicht für strategische Entscheidungen
+
+## Metriken
+
+Für jedes Werkzeug werden folgende Kennzahlen berechnet:
+
+| Metrik | Beschreibung |
+|--------|-------------|
+| **Buchungen** | Anzahl Checkout/Checkin-Vorgänge im Zeitraum |
+| **Ausleih-Stunden** | Gesamte Dauer aller Ausleihen in Stunden |
+| **Auslastungsrate** | Ausleih-Stunden ÷ verfügbare Stunden × 100% |
+| **Durchschnittliche Ausleihdauer** | Mittlere Dauer pro Checkout |
+
+## Farbkodierung
+
+Die Auslastungsrate wird farblich dargestellt, damit Sie den Status sofort erkennen:
+
+| Farbe | Auslastung | Bedeutung |
+|-------|-----------|-----------|
+| 🟢 **Grün** | > 50% | Gut ausgelastet |
+| 🟡 **Gelb** | 20–50% | Mässig genutzt |
+| 🔴 **Rot** | < 20% | Unterausgelastet |
+
+<Callout type="info">
+Unterausgelastete Geräte (rot) verursachen Kosten ohne entsprechenden Nutzen. Prüfen Sie, ob diese Geräte verkauft, mit Partnerfirmen geteilt oder an einen anderen Standort verschoben werden können.
+</Callout>
+
+## Gesamtübersicht
+
+Die Berichtsseite **Geräte-Auslastung** zeigt alle Werkzeuge in einer sortierbaren Tabelle:
+
+- Filtern Sie nach **Standort**, **Kategorie** oder **Auslastungsbereich**
+- Sortieren Sie nach Auslastungsrate, um Ausreisser zu finden
+- Exportieren Sie die Daten als **CSV** für weiterführende Analyse
+
+## Auslastung im Dashboard
+
+Fügen Sie das Widget **Geräte-Auslastung** zu Ihrem Dashboard hinzu:
+
+1. Gehen Sie zu **Dashboard → Anpassen**.
+2. Ziehen Sie das Widget **Geräte-Auslastung** per Drag-and-Drop auf Ihr Layout.
+3. Das Widget zeigt die Top-5 am wenigsten genutzten Geräte mit Auslastungsbalken.
+
+<Callout type="info">
+Kombinieren Sie die Auslastungsanalyse mit den [Abschreibungen & TCO](/finanzen/abschreibungen)-Daten, um fundierte Kauf- oder Verkaufsentscheidungen zu treffen.
+</Callout>
+
+## Verwandte Funktionen
+
+- [Abschreibungen & TCO](/finanzen/abschreibungen) — Gesamtkosten pro Gerät berechnen
+- [Wartungs- & Übergabe-Checklisten](/werkzeuge/checklisten) — Gerätezustand dokumentieren
+- [Dashboard anpassen](/erweitert/dashboard-widgets) — Auslastungs-Widget hinzufügen
