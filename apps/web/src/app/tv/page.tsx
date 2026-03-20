@@ -95,21 +95,43 @@ function useNowClock(): string {
   return now.toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
 }
 
-/** Calculate how many list rows fit on screen (no scrolling) */
-function useMaxVisibleRows(headerHeight = 140, rowHeight = 64): number {
-  const [maxRows, setMaxRows] = useState(6)
-  useEffect(() => {
-    function calc() {
-      const available = window.innerHeight - headerHeight
-      // Account for section heading (~50px) + gaps
-      const usable = available - 80
-      setMaxRows(Math.max(2, Math.floor(usable / rowHeight)))
+/**
+ * Auto-scrolling list container for TV mode.
+ * If content overflows, smoothly scrolls down then snaps back to top.
+ */
+function AutoScrollList({ children, className }: { children: React.ReactNode; className?: string }) {
+  const containerRef = useCallback((node: HTMLDivElement | null) => {
+    if (!node) return
+    let raf: number
+    let scrollY = 0
+    const speed = 0.5 // px per frame
+
+    function tick() {
+      if (!node) return
+      const maxScroll = node.scrollHeight - node.clientHeight
+      if (maxScroll <= 0) return // fits on screen, no scrolling needed
+
+      scrollY += speed
+      if (scrollY >= maxScroll + 60) {
+        // Pause at bottom, then snap back
+        scrollY = 0
+        node.scrollTop = 0
+      } else {
+        node.scrollTop = scrollY
+      }
+      raf = requestAnimationFrame(tick)
     }
-    calc()
-    window.addEventListener("resize", calc)
-    return () => window.removeEventListener("resize", calc)
-  }, [headerHeight, rowHeight])
-  return maxRows
+
+    // Start after a short delay
+    const timer = setTimeout(() => { raf = requestAnimationFrame(tick) }, 2000)
+    return () => { clearTimeout(timer); cancelAnimationFrame(raf) }
+  }, [])
+
+  return (
+    <div ref={containerRef} className={`flex-1 overflow-hidden ${className ?? ""}`}>
+      {children}
+    </div>
+  )
 }
 
 function useDateLabel(): string {
@@ -200,7 +222,6 @@ function KpiView({ stats }: { stats: DashboardStats | null }) {
 // View: Low Stock
 // ---------------------------------------------------------------------------
 function LowStockView({ items }: { items: LowStockItem[] | null }) {
-  const maxRows = useMaxVisibleRows()
   if (!items) return <LoadingView label="Bestand wird geladen..." />
   if (items.length === 0) {
     return (
@@ -217,8 +238,8 @@ function LowStockView({ items }: { items: LowStockItem[] | null }) {
         <IconAlertTriangle className="size-6 lg:size-8" />
         Niedriger Bestand ({items.length})
       </h2>
-      <div className="flex-1 flex flex-col gap-2 lg:gap-3 overflow-hidden">
-        {items.slice(0, maxRows).map((item) => (
+      <AutoScrollList className="flex flex-col gap-2 lg:gap-3">
+        {items.map((item) => (
           <div
             key={item.id}
             className="flex items-center gap-3 lg:gap-6 rounded-xl px-3 lg:px-6 py-2 lg:py-4 bg-red-950/40 border border-red-800/40"
@@ -238,7 +259,7 @@ function LowStockView({ items }: { items: LowStockItem[] | null }) {
             )}
           </div>
         ))}
-      </div>
+      </AutoScrollList>
     </section>
   )
 }
@@ -247,7 +268,6 @@ function LowStockView({ items }: { items: LowStockItem[] | null }) {
 // View: Overdue Tools
 // ---------------------------------------------------------------------------
 function OverdueToolsView({ items }: { items: OverdueTool[] | null }) {
-  const maxRows = useMaxVisibleRows()
   if (!items) return <LoadingView label="Werkzeuge werden geladen..." />
   if (items.length === 0) {
     return (
@@ -264,8 +284,8 @@ function OverdueToolsView({ items }: { items: OverdueTool[] | null }) {
         <IconClock className="size-6 lg:size-8" />
         Überfällige Werkzeuge ({items.length})
       </h2>
-      <div className="flex-1 flex flex-col gap-2 lg:gap-3 overflow-hidden">
-        {items.slice(0, maxRows).map((item) => (
+      <AutoScrollList className="flex flex-col gap-2 lg:gap-3">
+        {items.map((item) => (
           <div
             key={item.id}
             className="flex items-center gap-3 lg:gap-6 rounded-xl px-3 lg:px-6 py-2 lg:py-4 bg-primary/10 border border-primary/30"
@@ -283,7 +303,7 @@ function OverdueToolsView({ items }: { items: OverdueTool[] | null }) {
             </span>
           </div>
         ))}
-      </div>
+      </AutoScrollList>
     </section>
   )
 }
@@ -292,7 +312,6 @@ function OverdueToolsView({ items }: { items: OverdueTool[] | null }) {
 // View: Today's Activity
 // ---------------------------------------------------------------------------
 function ActivityView({ items }: { items: ActivityItem[] | null }) {
-  const maxRows = useMaxVisibleRows()
   if (!items) return <LoadingView label="Aktivität wird geladen..." />
   if (items.length === 0) {
     return (
@@ -309,8 +328,8 @@ function ActivityView({ items }: { items: ActivityItem[] | null }) {
         <IconActivity className="size-6 lg:size-8" />
         Letzte Aktivitäten
       </h2>
-      <div className="flex-1 flex flex-col gap-2 lg:gap-3 overflow-hidden">
-        {items.slice(0, maxRows).map((item) => (
+      <AutoScrollList className="flex flex-col gap-2 lg:gap-3">
+        {items.map((item) => (
           <div
             key={item.id}
             className="flex items-center gap-3 lg:gap-6 rounded-xl px-3 lg:px-6 py-2 lg:py-4 bg-white/5 border border-white/10"
@@ -346,7 +365,7 @@ function ActivityView({ items }: { items: ActivityItem[] | null }) {
             </span>
           </div>
         ))}
-      </div>
+      </AutoScrollList>
     </section>
   )
 }
@@ -355,7 +374,6 @@ function ActivityView({ items }: { items: ActivityItem[] | null }) {
 // View: Upcoming Maintenance
 // ---------------------------------------------------------------------------
 function MaintenanceView({ items }: { items: MaintenanceItem[] | null }) {
-  const maxRows = useMaxVisibleRows()
   if (!items) return <LoadingView label="Wartungen werden geladen..." />
   if (items.length === 0) {
     return (
@@ -372,8 +390,8 @@ function MaintenanceView({ items }: { items: MaintenanceItem[] | null }) {
         <IconTools className="size-6 lg:size-8" />
         Wartungen ({items.length})
       </h2>
-      <div className="flex-1 flex flex-col gap-2 lg:gap-3 overflow-hidden">
-        {items.slice(0, maxRows).map((item) => {
+      <AutoScrollList className="flex flex-col gap-2 lg:gap-3">
+        {items.map((item) => {
           const isOverdue = item.status === "overdue"
           const isThisWeek = item.status === "this-week"
           return (
@@ -410,7 +428,7 @@ function MaintenanceView({ items }: { items: MaintenanceItem[] | null }) {
             </div>
           )
         })}
-      </div>
+      </AutoScrollList>
     </section>
   )
 }
