@@ -615,6 +615,24 @@ export default function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Tour restart */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Hilfe</CardTitle>
+          <CardDescription>Onboarding-Tour und Hilfe-Ressourcen</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            variant="outline"
+            onClick={() => {
+              window.dispatchEvent(new Event("restart-welcome-tour"))
+            }}
+          >
+            Willkommenstour neu starten
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   )
 }

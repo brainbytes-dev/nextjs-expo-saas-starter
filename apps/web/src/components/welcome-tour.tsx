@@ -10,10 +10,11 @@ import { IconArrowLeft, IconArrowRight, IconX } from "@tabler/icons-react"
 // ── Tour step definitions ──────────────────────────────────────────────
 
 interface TourStep {
-  /** CSS selector of the element to highlight (null = center overlay) */
   target: string | null
   title: string
   description: string
+  /** If true, open sidebar before highlighting */
+  needsSidebar?: boolean
 }
 
 const STEPS: TourStep[] = [
@@ -28,42 +29,37 @@ const STEPS: TourStep[] = [
     title: "Navigation",
     description:
       "Hier finden Sie alle Bereiche: Material, Werkzeuge, Kommissionen und mehr.",
+    needsSidebar: true,
   },
   {
-    target: "[data-slot='search-trigger'], button:has(.tabler-icon-search)",
+    target: "button:has(.tabler-icon-search), [data-slot='search-trigger']",
     title: "Schnellsuche",
     description:
-      "Suchen Sie blitzschnell mit \u2318K nach Material, Werkzeugen oder Bestellungen.",
+      "Suchen Sie blitzschnell mit ⌘K nach Material, Werkzeugen oder Bestellungen.",
   },
   {
-    target: "a[href='/dashboard/materials'], a[href='/dashboard/material']",
+    target: null,
     title: "Material-Verwaltung",
     description:
-      "Verwalten Sie Ihr gesamtes Inventar. Scannen Sie Barcodes zum schnellen Einbuchen.",
+      "Verwalten Sie Ihr gesamtes Inventar. Scannen Sie Barcodes zum schnellen Einbuchen — mit Kamera oder Handscanner.",
   },
   {
-    target: "a[href='/dashboard/scanner']",
-    title: "Scanner",
+    target: null,
+    title: "Berichte & Analysen",
     description:
-      "Nutzen Sie Ihren Handscanner oder die Kamera zum Barcode-Scannen.",
+      "Behalten Sie den Überblick mit Echtzeit-Berichten, PDF-Exporten und dem TV-Dashboard-Modus.",
   },
   {
-    target: "a[href='/dashboard/reports']",
-    title: "Berichte",
-    description:
-      "Behalten Sie den Überblick mit Echtzeit-Berichten und Analysen.",
-  },
-  {
-    target: "a[href='/dashboard/settings']",
+    target: null,
     title: "Einstellungen",
     description:
-      "Passen Sie LogistikApp an Ihre Bedürfnisse an: Team, Benachrichtigungen, Integrationen.",
+      "Passen Sie LogistikApp an Ihre Bedürfnisse an: Team, Benachrichtigungen, Integrationen, Handscanner und mehr.",
   },
   {
     target: null,
     title: "Los geht's!",
     description:
-      "Sie sind bereit! Bei Fragen finden Sie Hilfe in den Einstellungen oder starten die Tour erneut.",
+      "Sie sind bereit! Starten Sie die Tour erneut unter Einstellungen → Hilfe.",
   },
 ]
 
@@ -89,10 +85,10 @@ function getTooltipPosition(
   const cx = targetRect.left + targetRect.width / 2
   const cy = targetRect.top + targetRect.height / 2
 
-  // Prefer bottom, then top, then right, then left
   const spaceBelow = vh - (targetRect.top + targetRect.height + padding)
   const spaceAbove = targetRect.top - padding
   const spaceRight = vw - (targetRect.left + targetRect.width + padding)
+
   if (spaceBelow >= tooltipHeight + 16) {
     return {
       top: targetRect.top + targetRect.height + padding + 12,
@@ -136,11 +132,20 @@ export function WelcomeTour() {
   // Auto-start on first visit
   useEffect(() => {
     if (!completed) {
-      // Small delay so the dashboard renders first
       const timer = setTimeout(() => setActive(true), 800)
       return () => clearTimeout(timer)
     }
   }, [completed])
+
+  // Listen for manual tour restart
+  useEffect(() => {
+    const handler = () => {
+      setStep(0)
+      setActive(true)
+    }
+    window.addEventListener("restart-welcome-tour", handler)
+    return () => window.removeEventListener("restart-welcome-tour", handler)
+  }, [])
 
   // Find and position spotlight for current step
   const positionStep = useCallback(() => {
@@ -148,26 +153,37 @@ export function WelcomeTour() {
     if (!currentStep) return
 
     if (!currentStep.target) {
-      // Center overlay — no spotlight
       setSpotlight(null)
       setTooltipPos(null)
       return
     }
 
-    // Try each selector (comma separated)
+    // On mobile, try to open sidebar first if needed
+    if (currentStep.needsSidebar && window.innerWidth < 768) {
+      const trigger = document.querySelector("[data-slot='sidebar-trigger']") as HTMLButtonElement | null
+      const sidebar = document.querySelector("[data-slot='sidebar']")
+      if (trigger && sidebar && !sidebar.getAttribute("data-state")?.includes("open")) {
+        trigger.click()
+      }
+    }
+
+    // Try each selector
     const selectors = currentStep.target.split(",").map((s) => s.trim())
     let el: Element | null = null
     for (const sel of selectors) {
-      el = document.querySelector(sel)
+      try { el = document.querySelector(sel) } catch { /* invalid selector */ }
       if (el) break
     }
 
     if (!el) {
-      // Element not found — show as centered
+      // Element not found — show centered
       setSpotlight(null)
       setTooltipPos(null)
       return
     }
+
+    // Scroll element into view if needed
+    el.scrollIntoView({ behavior: "smooth", block: "nearest" })
 
     const rect = el.getBoundingClientRect()
     const pad = 8
@@ -179,23 +195,20 @@ export function WelcomeTour() {
     }
     setSpotlight(spotlightRect)
 
-    // Position tooltip
     const tw = Math.min(360, window.innerWidth - 32)
-    const th = 180 // estimated
+    const th = 180
     const pos = getTooltipPosition(spotlightRect, tw, th, pad)
     setTooltipPos(pos)
   }, [step])
 
   useEffect(() => {
     if (!active) return
-    // Transition animation — defer setState to avoid synchronous call in effect body
     const raf = requestAnimationFrame(() => setIsTransitioning(true))
     const timer = setTimeout(() => {
       positionStep()
       setIsTransitioning(false)
     }, 200)
 
-    // Reposition on resize/scroll
     const handleReposition = () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
       rafRef.current = requestAnimationFrame(positionStep)
@@ -315,18 +328,10 @@ export function WelcomeTour() {
                 transform: `translate(-50%, -50%) ${isTransitioning ? "scale(0.95)" : "scale(1)"}`,
               }
             : tooltipPos
-              ? {
-                  top: tooltipPos.top,
-                  left: tooltipPos.left,
-                }
-              : {
-                  top: "50%",
-                  left: "50%",
-                  transform: "translate(-50%, -50%)",
-                }
+              ? { top: tooltipPos.top, left: tooltipPos.left }
+              : { top: "50%", left: "50%", transform: "translate(-50%, -50%)" }
         }
       >
-        {/* Close button */}
         <button
           onClick={handleClose}
           className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors z-10"
@@ -336,7 +341,6 @@ export function WelcomeTour() {
         </button>
 
         <div className="p-5">
-          {/* Logo on first/last step */}
           {(isFirstStep || isLastStep) && (
             <div className="flex justify-center mb-4">
               <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -352,55 +356,35 @@ export function WelcomeTour() {
             {currentStep?.description}
           </p>
 
-          {/* Step counter + navigation */}
           <div className="mt-5 flex items-center justify-between">
             <span className="text-xs text-muted-foreground tabular-nums">
               Schritt {step + 1} von {STEPS.length}
             </span>
             <div className="flex items-center gap-2">
               {!isFirstStep && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handlePrev}
-                  className="gap-1 h-8 text-xs"
-                >
+                <Button variant="ghost" size="sm" onClick={handlePrev} className="gap-1 h-8 text-xs">
                   <IconArrowLeft className="size-3" />
                   Zurück
                 </Button>
               )}
               {isFirstStep && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleClose}
-                  className="h-8 text-xs"
-                >
+                <Button variant="ghost" size="sm" onClick={handleClose} className="h-8 text-xs">
                   Tour beenden
                 </Button>
               )}
-              <Button
-                size="sm"
-                onClick={handleNext}
-                className="gap-1 h-8 text-xs"
-              >
+              <Button size="sm" onClick={handleNext} className="gap-1 h-8 text-xs">
                 {isLastStep ? "Loslegen" : "Weiter"}
                 {!isLastStep && <IconArrowRight className="size-3" />}
               </Button>
             </div>
           </div>
 
-          {/* Progress dots */}
           <div className="flex justify-center gap-1.5 mt-3">
             {STEPS.map((_, i) => (
               <div
                 key={i}
                 className={`h-1 rounded-full transition-all duration-300 ${
-                  i === step
-                    ? "w-4 bg-primary"
-                    : i < step
-                      ? "w-1.5 bg-primary/40"
-                      : "w-1.5 bg-muted-foreground/20"
+                  i === step ? "w-4 bg-primary" : i < step ? "w-1.5 bg-primary/40" : "w-1.5 bg-muted-foreground/20"
                 }`}
               />
             ))}
