@@ -1,0 +1,75 @@
+---
+title: Etiketten-Designer
+---
+
+import { Callout } from 'nextra/components'
+
+# Etiketten-Designer
+
+Der Etiketten-Designer ermöglicht es Ihnen, individuelle Etiketten per Drag-and-Drop zu gestalten. Erstellen Sie Vorlagen für Materialien, Werkzeuge und Standorte — inklusive Barcode, QR-Code und dynamischer Datenbindung.
+
+## Editor öffnen
+
+Navigieren Sie zu **Einstellungen → Etiketten-Designer** oder öffnen Sie den Designer direkt über die Command Palette (**Cmd+K** → «Etiketten»).
+
+## Elemente
+
+Ziehen Sie folgende Elemente aus der Seitenleiste auf die Etikettenvorlage:
+
+| Element | Beschreibung |
+|---------|-------------|
+| **Text** | Statischer oder dynamischer Text mit Schriftart, Grösse und Ausrichtung |
+| **Barcode** | Code-128, EAN-13 oder EAN-8 mit konfigurierbarer Höhe |
+| **QR-Code** | QR-Code mit frei wählbarem Inhalt oder Datenbindung |
+| **Bild** | Logo oder Symbol (PNG, SVG) |
+| **Linie** | Horizontale oder vertikale Trennlinie |
+| **Rechteck** | Rahmen oder Hintergrundfläche |
+
+## Datenbindung
+
+Textfelder und Codes unterstützen Platzhalter, die beim Druck automatisch befüllt werden:
+
+- `{{name}}` — Artikelname
+- `{{barcode}}` — Barcode-Nummer
+- `{{standort}}` — Aktueller Standort
+- `{{kategorie}}` — Materialgruppe
+- `{{datum}}` — Druckdatum
+- `{{eigenes_feld}}` — Zusatzfelder (Custom Fields)
+
+Platzhalter werden in der Vorschau mit Beispieldaten dargestellt.
+
+## Etikettengrösse
+
+Wählen Sie aus vordefinierten Grössen oder definieren Sie eigene Abmessungen:
+
+- **50 × 25 mm** — Standard (Materialetiketten)
+- **100 × 50 mm** — Gross (Werkzeuge, Regale)
+- **Benutzerdefiniert** — Breite und Höhe frei wählbar (mm)
+
+## ZPL-Export für Zebra-Drucker
+
+Der Designer generiert bei Bedarf **ZPL-Code** (Zebra Programming Language) für den direkten Druck auf Zebra-Etikettendruckern. Klicken Sie auf **Exportieren → ZPL**, um den Code zu kopieren oder direkt an einen verbundenen Drucker zu senden.
+
+<Callout type="info">
+Für den ZPL-Export muss der Zebra-Drucker unter **Einstellungen → Hardware → Etikettendrucker** eingerichtet sein. Alternativ können Sie den ZPL-Code manuell an den Drucker senden.
+</Callout>
+
+## Vorlagen speichern
+
+Speichern Sie Ihre Designs als wiederverwendbare Vorlagen. Jede Vorlage hat einen Namen und kann als **Standard** für einen Artikeltyp (Material, Werkzeug, Standort) festgelegt werden. Vorlagen sind organisationsweit verfügbar.
+
+## Batch-Druck
+
+Wählen Sie in einer Listenansicht mehrere Artikel aus und klicken Sie auf **Etiketten drucken**. Der Designer verwendet die zugewiesene Standardvorlage und druckt bis zu **200 Etiketten** in einem Durchgang.
+
+## Tipps
+
+- Nutzen Sie die **Vorschau-Funktion**, um das Ergebnis vor dem Druck zu prüfen
+- Erstellen Sie separate Vorlagen für verschiedene Etikettenformate (z.B. klein für Materialien, gross für Regale)
+- Testen Sie den ZPL-Export zunächst mit einem einzelnen Etikett
+
+## Verwandte Funktionen
+
+- [Barcode-Generator](/erweitert/barcode-generator) — Barcode-Nummern generieren
+- [Etikettendrucker](/hardware/etikettendrucker) — Drucker einrichten (Zebra, Brother)
+- [Bulk-Operationen](/erweitert/bulk-operationen) — Mehrfachauswahl für Batch-Druck

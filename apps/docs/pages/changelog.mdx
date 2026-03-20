@@ -6,6 +6,45 @@ title: Changelog
 
 Alle Änderungen, Verbesserungen und Fehlerbehebungen werden hier dokumentiert.
 
+## v2.6.0 – Predictive Maintenance, Supply Chain & Security – 2026-03-20
+
+Diese Version bringt prädiktive Wartung, ein Supply Chain Dashboard, einen Etiketten-Designer, KI-gestützten Email-Posteingang und neue Sicherheitsfunktionen.
+
+### KI & Intelligenz
+
+- **[Wartungsprognose (Predictive Maintenance)](/erweitert/wartungsprognose)**: Risk-Score 0–100 pro Werkzeug basierend auf Buchungshistorie und Zustandstrend. Farbkodierung (grün/gelb/rot) und Dashboard-Widget. Automatische Alerts bei hohem Risiko.
+- **[Email-Posteingang (Inbox Parser)](/erweitert/email-posteingang)**: Lieferanten-Emails weiterleiten, KI extrahiert Bestellbestätigungen, Lieferankündigungen und Rechnungsdaten. Entwürfe prüfen und mit einem Klick übernehmen.
+
+### Lieferkette & Etiketten
+
+- **[Supply Chain Dashboard](/erweitert/lieferkette)**: Pipeline-Visualisierung in 5 Phasen, Sankey-Warenfluss-Chart, Lieferantenperformance-Bewertung und Top-Verbrauch-Analyse.
+- **[Etiketten-Designer](/erweitert/etiketten-designer)**: Drag-Drop-Editor mit Text, Barcode, QR-Code und Datenbindung. ZPL-Export für Zebra-Drucker. Vorlagen speichern und organisationsweit teilen.
+
+### Sicherheit & Compliance
+
+- **[Sitzungsverwaltung](/erweitert/sitzungsverwaltung)**: Alle aktiven Sitzungen einsehen. Einzelne Geräte remote abmelden oder alle anderen Sitzungen beenden.
+- **[IP-Zugriffsbeschränkung](/erweitert/ip-zugriff)**: Zugang auf definierte IP-Adressen und CIDR-Bereiche einschränken. Enterprise-Feature mit Sicherheitsmechanismen gegen Selbstaussperrung.
+- **[Datenhaltung & Aufbewahrungsfristen](/erweitert/datenhaltung)**: Aufbewahrungsfristen pro Datentyp konfigurieren. Automatische Bereinigung (täglich 02:00 UTC). DSGVO- und nDSG-konform.
+
+### Mobile App
+
+- **[Siri & Google Assistant](/mobile-app/sprachassistent)**: Vier Sprachbefehle (Bestand abfragen, Werkzeug suchen, Schnellbuchung, letzte Aktivität). Setup-Anleitung pro Plattform.
+- **[Offline-Karten](/mobile-app/offline-karten)**: Schweizer Regionen als Offline-Karte herunterladen. Automatische Umschaltung bei fehlendem Internet. Speicherverwaltung mit Auto-Update.
+
+### Verbessert
+
+- Wartungsprognose-Widget für das anpassbare Dashboard verfügbar
+- Supply Chain Dashboard über Command Palette erreichbar
+- Etiketten-Designer unterstützt Custom Fields als Platzhalter
+
+### Behoben
+
+- Email-Parser erkannte PDF-Anhänge ohne Text-Layer nicht (#521)
+- IP-Allowlist blockierte Zugriff nach IPv6-Umstellung des Providers (#524)
+- Offline-Karten-Download brach bei schwacher Verbindung ohne Fehlermeldung ab (#527)
+
+---
+
 ## v2.5.0 – KI, Alternativen & Auslastung – 2026-03-20
 
 Diese Version bringt einen KI-Chat-Assistenten, intelligente Materialvorschläge, Geräte-Auslastungsanalyse und Verbesserungen für Admins und Enterprise-Kunden.

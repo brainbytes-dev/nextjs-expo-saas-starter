@@ -1,0 +1,65 @@
+---
+title: Datenhaltung & Aufbewahrungsfristen
+---
+
+import { Callout } from 'nextra/components'
+
+# Datenhaltung & Aufbewahrungsfristen
+
+Die Datenhaltung ermöglicht es Ihnen, Aufbewahrungsfristen pro Datentyp festzulegen. Abgelaufene Daten werden automatisch bereinigt — konform mit DSGVO und Schweizer Datenschutzgesetz (nDSG).
+
+## Aufbewahrungsfristen konfigurieren
+
+Navigieren Sie zu **Einstellungen → Datenschutz → Datenhaltung**. Für jeden Datentyp können Sie eine individuelle Aufbewahrungsfrist festlegen:
+
+| Datentyp | Standard | Beschreibung |
+|----------|----------|-------------|
+| **Buchungshistorie** | 365 Tage | Alle Bestandsbewegungen und Werkzeugbuchungen |
+| **Aktivitätsprotokoll** | 180 Tage | Audit-Trail aller Änderungen |
+| **Benachrichtigungen** | 90 Tage | Gelesene und ungelesene Benachrichtigungen |
+| **Chat-Nachrichten** | 30 Tage | KI-Assistent-Konversationen |
+| **Gelöschte Objekte** | 30 Tage | Soft-deleted Materialien, Werkzeuge, Standorte |
+| **Session-Daten** | 14 Tage | Beendete Benutzersitzungen |
+| **Temporäre Dateien** | 7 Tage | Import-Vorschauen, Entwürfe, Zwischenspeicher |
+
+## Auto-Bereinigung
+
+Die automatische Bereinigung läuft täglich um **02:00 Uhr UTC** als Hintergrund-Job. Dabei werden alle Datensätze entfernt, deren Aufbewahrungsfrist abgelaufen ist.
+
+Nach jeder Bereinigung erhalten Admins eine **Zusammenfassung per E-Mail** mit:
+
+- Anzahl gelöschter Datensätze pro Datentyp
+- Freigegeben Speicherplatz
+- Eventuelle Fehler oder übersprungene Einträge
+
+<Callout type="warning">
+Die Bereinigung ist **unwiderruflich**. Gelöschte Daten können nicht wiederhergestellt werden. Stellen Sie sicher, dass Ihre Fristen den gesetzlichen Anforderungen entsprechen, bevor Sie sie verkürzen.
+</Callout>
+
+## DSGVO-Konformität
+
+Die Datenhaltung unterstützt folgende DSGVO-Anforderungen:
+
+- **Speicherbegrenzung** (Art. 5 Abs. 1 lit. e) — Daten werden nur so lange aufbewahrt, wie es für den Zweck erforderlich ist
+- **Recht auf Löschung** (Art. 17) — Benutzer können ihre personenbezogenen Daten jederzeit löschen lassen
+- **Datenportabilität** (Art. 20) — Vollständiger Datenexport vor der Bereinigung möglich
+
+<Callout type="info">
+Für Schweizer Unternehmen gelten zusätzlich die Aufbewahrungspflichten gemäss OR Art. 958f (10 Jahre für Geschäftsunterlagen). Konfigurieren Sie die Fristen entsprechend Ihrer Branche.
+</Callout>
+
+## Manueller Export vor Bereinigung
+
+Unter **Einstellungen → Datenschutz → Datenexport** können Sie einen vollständigen Export aller Daten erstellen, bevor die automatische Bereinigung greift. Der Export wird als ZIP-Datei (JSON + CSV) bereitgestellt.
+
+## Tipps
+
+- Beginnen Sie mit den Standardfristen und passen Sie diese an Ihre Compliance-Anforderungen an
+- Erstellen Sie regelmässige Backups über den Datenexport, bevor Sie Fristen verkürzen
+- Nutzen Sie die [Geplanten Berichte](/automatisierung/geplante-berichte), um vor der Bereinigung automatisch Zusammenfassungen zu erhalten
+
+## Verwandte Funktionen
+
+- [Aktivitätsprotokoll](/erweitert/aktivitaetsprotokoll) — Audit-Trail aller Änderungen
+- [Geplante Berichte](/automatisierung/geplante-berichte) — Automatische Berichte vor Bereinigung
+- [API-Schlüssel](/einstellungen/api-schluessel) — Datenexport über die API

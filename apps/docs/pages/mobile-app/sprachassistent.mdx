@@ -1,0 +1,64 @@
+---
+title: Siri & Google Assistant
+---
+
+import { Callout } from 'nextra/components'
+
+# Siri & Google Assistant
+
+Steuern Sie LogistikApp per Sprachbefehl direkt über Siri (iOS) oder Google Assistant (Android). Vier Befehle stehen zur Verfügung — ideal für freihändiges Arbeiten im Lager oder auf der Baustelle.
+
+## Verfügbare Sprachbefehle
+
+| Befehl | Beispiel | Ergebnis |
+|--------|---------|---------|
+| **Bestand abfragen** | *«Hey Siri, frag LogistikApp nach dem Bestand von Zement»* | Zeigt aktuellen Bestand mit Standort |
+| **Werkzeug suchen** | *«OK Google, wo ist die Bohrmaschine in LogistikApp?»* | Zeigt letzten bekannten Standort und Ausleiher |
+| **Schnellbuchung** | *«Hey Siri, buche 10 Schrauben ein in LogistikApp»* | Erstellt Buchungsentwurf zur Bestätigung |
+| **Letzte Aktivität** | *«OK Google, zeig die letzte Aktivität in LogistikApp»* | Öffnet den Aktivitätsfeed |
+
+## Setup — iOS (Siri)
+
+1. Öffnen Sie die LogistikApp auf Ihrem iPhone
+2. Navigieren Sie zu **Einstellungen → Integrationen → Siri**
+3. Tippen Sie auf **Siri-Kurzbefehle einrichten**
+4. Für jeden Befehl: Tippen Sie auf **Zu Siri hinzufügen** und sprechen Sie den gewünschten Aktivierungssatz
+5. Bestätigen Sie mit **Fertig**
+
+Die Kurzbefehle erscheinen anschliessend in der Kurzbefehle-App und können dort weiter angepasst werden.
+
+<Callout type="info">
+Siri-Kurzbefehle erfordern iOS 16 oder neuer. Stellen Sie sicher, dass Siri unter **iPhone-Einstellungen → Siri & Suchen** aktiviert ist.
+</Callout>
+
+## Setup — Android (Google Assistant)
+
+1. Öffnen Sie die LogistikApp auf Ihrem Android-Gerät
+2. Navigieren Sie zu **Einstellungen → Integrationen → Google Assistant**
+3. Tippen Sie auf **App-Aktionen aktivieren**
+4. Google Assistant erkennt die verfügbaren Befehle automatisch
+5. Testen Sie mit *«OK Google, öffne LogistikApp und suche Zement»*
+
+<Callout type="info">
+Google Assistant App Actions erfordern Android 10 oder neuer und die Google App in der aktuellen Version.
+</Callout>
+
+## Offline-Verhalten
+
+Sprachbefehle benötigen eine Internetverbindung für die Spracherkennung (Siri/Google). Die eigentliche Abfrage in LogistikApp funktioniert anschliessend auch im Offline-Modus, sofern die Daten lokal zwischengespeichert sind.
+
+## Datenschutz
+
+Die Sprachverarbeitung erfolgt vollständig über Apple bzw. Google. LogistikApp erhält nur den erkannten Textbefehl — keine Audiodaten werden an LogistikApp-Server übermittelt.
+
+## Tipps
+
+- Formulieren Sie Befehle kurz und präzise für bessere Erkennung
+- Testen Sie die Befehle in ruhiger Umgebung, bevor Sie sie im Lager verwenden
+- Kombinieren Sie Sprachbefehle mit der [Apple Watch App](/mobile-app/watch-app) für maximale Freihändigkeit
+
+## Verwandte Funktionen
+
+- [Sprachsteuerung](/mobile-app/sprachsteuerung) — In-App Sprachbefehle auf Deutsch
+- [Apple Watch App](/mobile-app/watch-app) — Schnellzugriff am Handgelenk
+- [Offline-Modus](/mobile-app/offline) — Arbeiten ohne Internetverbindung

@@ -1,0 +1,62 @@
+---
+title: Wartungsprognose (Predictive Maintenance)
+---
+
+import { Callout } from 'nextra/components'
+
+# Wartungsprognose (Predictive Maintenance)
+
+Die Wartungsprognose analysiert Buchungshistorie und Zustandstrends Ihrer Werkzeuge und berechnet einen **Risk-Score von 0 bis 100**. So erkennen Sie drohende Ausfälle, bevor sie passieren.
+
+## Risk-Score
+
+Jedes Werkzeug erhält einen fortlaufend aktualisierten Risk-Score:
+
+| Score | Farbe | Bedeutung |
+|-------|-------|-----------|
+| **0–30** | 🟢 Grün | Geringes Risiko — kein Handlungsbedarf |
+| **31–60** | 🟡 Gelb | Mittleres Risiko — Wartung einplanen |
+| **61–100** | 🔴 Rot | Hohes Risiko — sofortige Wartung empfohlen |
+
+Der Score wird auf der Werkzeug-Detailseite als Fortschrittsbalken mit Farbkodierung angezeigt.
+
+## Berechnungsgrundlage
+
+Die Prognose basiert auf drei Faktoren:
+
+1. **Buchungshistorie** — Häufigkeit und Intensität der Nutzung (Ausleihen, Rückgaben, Einsatzstunden)
+2. **Zustandstrend** — Entwicklung der Checklisten-Bewertungen über die letzten Buchungen
+3. **Wartungsintervall** — Verbleibende Tage bis zur nächsten fälligen Wartung
+
+Jeder Faktor wird gewichtet und zu einem Gesamtscore aggregiert. Je mehr historische Daten vorhanden sind, desto präziser die Prognose.
+
+## Dashboard-Widget
+
+Das Wartungsprognose-Widget zeigt die **Top 10 Werkzeuge mit dem höchsten Risk-Score** auf dem Dashboard. Aktivieren Sie es unter **Dashboard → Widget hinzufügen → Wartungsprognose**.
+
+## Benachrichtigungen
+
+Konfigurieren Sie unter **Einstellungen → Benachrichtigungen** automatische Alerts:
+
+- **Gelb-Schwelle** — Benachrichtigung, wenn ein Werkzeug erstmals Score 31 überschreitet
+- **Rot-Schwelle** — Dringende Benachrichtigung ab Score 61, per E-Mail und Push
+
+<Callout type="info">
+Die Wartungsprognose benötigt mindestens 10 Buchungen pro Werkzeug, um belastbare Vorhersagen zu liefern. Bei weniger Daten wird der Score als «Unzureichende Daten» angezeigt.
+</Callout>
+
+## Wartung direkt auslösen
+
+Klicken Sie auf der Werkzeug-Detailseite auf **Wartung planen**, um direkt aus der Prognose einen Wartungsauftrag zu erstellen. Der Risk-Score wird nach Abschluss der Wartung automatisch zurückgesetzt.
+
+## Tipps
+
+- Pflegen Sie Checklisten-Bewertungen konsequent — sie verbessern die Prognosequalität erheblich
+- Nutzen Sie den **Zeitraum-Filter** (30/60/90 Tage), um saisonale Muster zu erkennen
+- Exportieren Sie die Prognose-Übersicht als CSV für Ihre Wartungsplanung
+
+## Verwandte Funktionen
+
+- [Wartungs- & Übergabe-Checklisten](/werkzeuge/checklisten) — Zustandsbewertung bei Buchungen
+- [Geräte-Auslastung](/erweitert/geraete-auslastung) — Auslastungsanalyse pro Werkzeug
+- [Geplante Berichte](/automatisierung/geplante-berichte) — Wartungsprognose per E-Mail erhalten

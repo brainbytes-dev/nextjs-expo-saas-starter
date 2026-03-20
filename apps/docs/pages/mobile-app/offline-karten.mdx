@@ -1,0 +1,72 @@
+---
+title: Offline-Karten
+---
+
+import { Callout } from 'nextra/components'
+
+# Offline-Karten
+
+Laden Sie Schweizer Regionen als Offline-Karte herunter, um Standorte, Baustellen und Fahrzeuge auch ohne Internetverbindung auf der Karte anzuzeigen. Basierend auf OpenStreetMap-Daten.
+
+## Region herunterladen
+
+1. Öffnen Sie die LogistikApp und navigieren Sie zu **Karte**
+2. Tippen Sie auf das **Download-Symbol** (Pfeil nach unten) oben rechts
+3. Wählen Sie eine oder mehrere Regionen aus der Liste:
+
+| Region | Ungefähre Grösse |
+|--------|-----------------|
+| Zürich & Umgebung | ~45 MB |
+| Bern & Mittelland | ~40 MB |
+| Basel & Nordwestschweiz | ~30 MB |
+| Zentralschweiz | ~35 MB |
+| Ostschweiz | ~40 MB |
+| Westschweiz (Romandie) | ~50 MB |
+| Tessin | ~25 MB |
+| Graubünden | ~35 MB |
+| Ganze Schweiz | ~250 MB |
+
+4. Tippen Sie auf **Herunterladen** — der Download startet im Hintergrund
+5. Ein grüner Haken zeigt an, dass die Region verfügbar ist
+
+<Callout type="info">
+Die Kartendaten werden monatlich aktualisiert. Sie erhalten eine Benachrichtigung, wenn ein Update für Ihre heruntergeladenen Regionen verfügbar ist.
+</Callout>
+
+## Automatische Umschaltung
+
+Sobald die Internetverbindung unterbrochen wird, wechselt die Karte automatisch auf die Offline-Daten. Ein **Offline-Badge** oben links zeigt den Status an. Beim Wiederherstellen der Verbindung wird automatisch auf die Online-Karte zurückgeschaltet.
+
+## Standorte auf der Offline-Karte
+
+Alle Ihre Standorte (Lager, Baustellen, Fahrzeuge) werden auch offline als Marker angezeigt, sofern:
+
+- Die GPS-Koordinaten hinterlegt sind
+- Die entsprechende Region heruntergeladen wurde
+
+Tippen Sie auf einen Marker, um Standortdetails und den letzten synchronisierten Bestand zu sehen.
+
+## Speicherverwaltung
+
+Navigieren Sie zu **Einstellungen → Speicher → Offline-Karten**, um Ihre heruntergeladenen Regionen zu verwalten:
+
+- **Speicherverbrauch** — Gesamtgrösse aller heruntergeladenen Karten
+- **Region löschen** — Einzelne Regionen entfernen, um Speicher freizugeben
+- **Alle löschen** — Sämtliche Offline-Karten auf einmal entfernen
+- **Auto-Update** — Automatische Aktualisierung bei WLAN-Verbindung (Standard: aktiviert)
+
+<Callout type="warning">
+Offline-Karten belegen Gerätespeicher. Die gesamte Schweiz benötigt ca. 250 MB. Stellen Sie sicher, dass genügend Speicherplatz verfügbar ist, bevor Sie grosse Regionen herunterladen.
+</Callout>
+
+## Tipps
+
+- Laden Sie nur die Regionen herunter, in denen Ihre Standorte und Baustellen liegen
+- Nutzen Sie **Auto-Update über WLAN**, um die Karten aktuell zu halten, ohne mobile Daten zu verbrauchen
+- Kombinieren Sie Offline-Karten mit dem [Offline-Modus](/mobile-app/offline), um vollständig ohne Internet zu arbeiten
+
+## Verwandte Funktionen
+
+- [Karten-Ansicht](/erweitert/karte) — GPS-Karte aller Standorte (Web)
+- [Offline-Modus](/mobile-app/offline) — Vollständiger Offline-Betrieb
+- [Geofencing](/mobile-app/geofencing) — Automatischer Checkin/Checkout per GPS

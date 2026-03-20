@@ -1,0 +1,60 @@
+---
+title: Email-Posteingang (Inbox Parser)
+---
+
+import { Callout } from 'nextra/components'
+
+# Email-Posteingang (Inbox Parser)
+
+Der Email-Posteingang analysiert weitergeleitete Lieferanten-Emails automatisch per KI und extrahiert Bestellbestätigungen, Lieferankündigungen und Rechnungsdaten. So erfassen Sie eingehende Informationen, ohne sie manuell abtippen zu müssen.
+
+## Funktionsweise
+
+1. **Weiterleiten** — Leiten Sie Lieferanten-Emails an Ihre dedizierte LogistikApp-Adresse weiter (z.B. `inbox-abc123@logistikapp.ch`)
+2. **KI-Extraktion** — Die KI analysiert Betreff, Text und Anhänge (PDF) und erkennt den Dokumenttyp
+3. **Entwurf erstellen** — Extrahierte Daten werden als Entwurf angelegt (Bestellung, Lieferschein oder Rechnung)
+4. **Prüfen & übernehmen** — Sie prüfen den Entwurf und übernehmen ihn mit einem Klick
+
+## Unterstützte Dokumenttypen
+
+| Typ | Extrahierte Felder |
+|-----|-------------------|
+| **Bestellbestätigung** | Lieferant, Bestellnummer, Positionen, Mengen, Preise, Lieferdatum |
+| **Lieferankündigung** | Sendungsnummer, Spediteur, voraussichtliches Lieferdatum, Positionen |
+| **Rechnung** | Rechnungsnummer, Betrag, MwSt., Zahlungsfrist, Positionen |
+
+## Posteingang aufrufen
+
+Navigieren Sie zu **Posteingang** in der Seitenleiste oder verwenden Sie die Command Palette (**Cmd+K** → «Posteingang»). Die Inbox zeigt alle eingegangenen Emails mit Status:
+
+- **Neu** — Email eingegangen, noch nicht verarbeitet
+- **Extrahiert** — KI hat Daten erkannt, Entwurf bereit
+- **Übernommen** — Entwurf wurde ins System übernommen
+- **Abgelehnt** — Manuell als irrelevant markiert
+
+## Entwürfe prüfen
+
+Klicken Sie auf eine extrahierte Email, um den Entwurf zu sehen. Die KI markiert unsichere Felder mit einem gelben Rahmen. Korrigieren Sie bei Bedarf und klicken Sie auf **Übernehmen**, um den Vorgang im System anzulegen.
+
+<Callout type="warning">
+Die KI-Extraktion funktioniert am besten mit strukturierten Emails. Handgeschriebene oder stark formatierte HTML-Emails können zu unvollständiger Erkennung führen. Prüfen Sie Entwürfe immer vor der Übernahme.
+</Callout>
+
+## Einrichtung
+
+1. Navigieren Sie zu **Einstellungen → Integrationen → Email-Posteingang**
+2. Kopieren Sie Ihre dedizierte Weiterleitungsadresse
+3. Richten Sie in Ihrem Email-Client eine **Weiterleitungsregel** für Lieferanten-Emails ein
+4. Stellen Sie sicher, dass ein **OpenAI API-Schlüssel** unter Einstellungen → KI-Funktionen hinterlegt ist
+
+## Tipps
+
+- Erstellen Sie Weiterleitungsregeln pro Lieferant für automatische Zuordnung
+- Nutzen Sie die **Bulk-Übernahme**, um mehrere Entwürfe gleichzeitig zu bestätigen
+- Prüfen Sie regelmässig den Posteingang auf abgelehnte Emails — die KI lernt nicht automatisch aus Korrekturen
+
+## Verwandte Funktionen
+
+- [KI-Assistent (Chat Copilot)](/erweitert/ki-assistent) — KI-gestützte Abfragen und Aktionen
+- [Lieferverfolgung](/erweitert/lieferverfolgung) — Sendungsstatus verfolgen
+- [Auto-Nachbestellung](/automatisierung/auto-nachbestellung) — Automatische Bestellungen bei Mindestbestand
