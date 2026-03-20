@@ -13,8 +13,8 @@ interface TourStep {
   target: string | null
   title: string
   description: string
-  /** If true, open sidebar before highlighting */
   needsSidebar?: boolean
+  scrollSidebar?: boolean
 }
 
 const STEPS: TourStep[] = [
@@ -32,28 +32,52 @@ const STEPS: TourStep[] = [
     needsSidebar: true,
   },
   {
-    target: "button:has(.tabler-icon-search), [data-slot='search-trigger']",
-    title: "Schnellsuche",
-    description:
-      "Suchen Sie blitzschnell mit ⌘K nach Material, Werkzeugen oder Bestellungen.",
-  },
-  {
-    target: null,
+    target: "a[href='/dashboard/materials']",
     title: "Material-Verwaltung",
     description:
       "Verwalten Sie Ihr gesamtes Inventar. Scannen Sie Barcodes zum schnellen Einbuchen — mit Kamera oder Handscanner.",
+    needsSidebar: true,
+    scrollSidebar: true,
   },
   {
-    target: null,
+    target: "a[href='/dashboard/tools']",
+    title: "Werkzeug-Tracking",
+    description:
+      "Aus- und Einchecken, Wartungskalender, Kalibrierung und lückenlose Buchungshistorie.",
+    needsSidebar: true,
+    scrollSidebar: true,
+  },
+  {
+    target: "a[href='/dashboard/time-tracking']",
+    title: "Zeiterfassung",
+    description:
+      "Live-Timer, Stundensätze in CHF, Wochenauswertung und CSV-Export.",
+    needsSidebar: true,
+    scrollSidebar: true,
+  },
+  {
+    target: "a[href='/dashboard/deliveries']",
+    title: "Lieferverfolgung",
+    description:
+      "Kanban-Board mit Drag & Drop. Schweizer Spediteure: Post, DHL, DPD, Planzer.",
+    needsSidebar: true,
+    scrollSidebar: true,
+  },
+  {
+    target: "a[href='/dashboard/reports']",
     title: "Berichte & Analysen",
     description:
       "Behalten Sie den Überblick mit Echtzeit-Berichten, PDF-Exporten und dem TV-Dashboard-Modus.",
+    needsSidebar: true,
+    scrollSidebar: true,
   },
   {
-    target: null,
+    target: "a[href='/dashboard/settings']",
     title: "Einstellungen",
     description:
-      "Passen Sie LogistikApp an Ihre Bedürfnisse an: Team, Benachrichtigungen, Integrationen, Handscanner und mehr.",
+      "Team, Benachrichtigungen, Integrationen, Handscanner, Etikettendrucker und mehr.",
+    needsSidebar: true,
+    scrollSidebar: true,
   },
   {
     target: null,
@@ -89,6 +113,13 @@ function getTooltipPosition(
   const spaceAbove = targetRect.top - padding
   const spaceRight = vw - (targetRect.left + targetRect.width + padding)
 
+  if (spaceRight >= tooltipWidth + 16) {
+    return {
+      top: Math.max(16, Math.min(vh - tooltipHeight - 16, cy - tooltipHeight / 2)),
+      left: targetRect.left + targetRect.width + padding + 12,
+      side: "right",
+    }
+  }
   if (spaceBelow >= tooltipHeight + 16) {
     return {
       top: targetRect.top + targetRect.height + padding + 12,
@@ -103,18 +134,36 @@ function getTooltipPosition(
       side: "top",
     }
   }
-  if (spaceRight >= tooltipWidth + 16) {
-    return {
-      top: Math.max(16, Math.min(vh - tooltipHeight - 16, cy - tooltipHeight / 2)),
-      left: targetRect.left + targetRect.width + padding + 12,
-      side: "right",
-    }
-  }
   return {
     top: Math.max(16, Math.min(vh - tooltipHeight - 16, cy - tooltipHeight / 2)),
     left: Math.max(16, targetRect.left - padding - tooltipWidth - 12),
     side: "left",
   }
+}
+
+// ── Helper: find element, scroll sidebar if needed ─────────────────────
+
+function findAndScrollToTarget(selector: string, scrollSidebar?: boolean): Element | null {
+  const selectors = selector.split(",").map((s) => s.trim())
+  let el: Element | null = null
+  for (const sel of selectors) {
+    try { el = document.querySelector(sel) } catch { /* invalid selector */ }
+    if (el) break
+  }
+
+  if (el && scrollSidebar) {
+    // Scroll the sidebar container so the element is visible
+    const sidebarContent = el.closest("[data-slot='sidebar-content']") || el.closest("[data-sidebar='content']") || el.closest("nav")?.parentElement
+    if (sidebarContent) {
+      const elRect = el.getBoundingClientRect()
+      const containerRect = sidebarContent.getBoundingClientRect()
+      if (elRect.top < containerRect.top || elRect.bottom > containerRect.bottom) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" })
+      }
+    }
+  }
+
+  return el
 }
 
 // ── Tour component ────────────────────────────────────────────────────
@@ -158,47 +207,41 @@ export function WelcomeTour() {
       return
     }
 
-    // On mobile, try to open sidebar first if needed
+    // On mobile, try to open sidebar if needed
     if (currentStep.needsSidebar && window.innerWidth < 768) {
-      const trigger = document.querySelector("[data-slot='sidebar-trigger']") as HTMLButtonElement | null
-      const sidebar = document.querySelector("[data-slot='sidebar']")
-      if (trigger && sidebar && !sidebar.getAttribute("data-state")?.includes("open")) {
-        trigger.click()
+      const trigger = document.querySelector("button[data-sidebar='trigger']") as HTMLButtonElement | null
+      if (trigger) trigger.click()
+    }
+
+    // Small delay to let sidebar open/scroll
+    const delay = currentStep.scrollSidebar ? 100 : 0
+    setTimeout(() => {
+      const el = findAndScrollToTarget(currentStep.target!, currentStep.scrollSidebar)
+
+      if (!el) {
+        setSpotlight(null)
+        setTooltipPos(null)
+        return
       }
-    }
 
-    // Try each selector
-    const selectors = currentStep.target.split(",").map((s) => s.trim())
-    let el: Element | null = null
-    for (const sel of selectors) {
-      try { el = document.querySelector(sel) } catch { /* invalid selector */ }
-      if (el) break
-    }
+      // Wait a tick for scroll to settle
+      requestAnimationFrame(() => {
+        const rect = el.getBoundingClientRect()
+        const pad = 6
+        const spotlightRect: Rect = {
+          top: rect.top - pad,
+          left: rect.left - pad,
+          width: rect.width + pad * 2,
+          height: rect.height + pad * 2,
+        }
+        setSpotlight(spotlightRect)
 
-    if (!el) {
-      // Element not found — show centered
-      setSpotlight(null)
-      setTooltipPos(null)
-      return
-    }
-
-    // Scroll element into view if needed
-    el.scrollIntoView({ behavior: "smooth", block: "nearest" })
-
-    const rect = el.getBoundingClientRect()
-    const pad = 8
-    const spotlightRect: Rect = {
-      top: rect.top - pad,
-      left: rect.left - pad,
-      width: rect.width + pad * 2,
-      height: rect.height + pad * 2,
-    }
-    setSpotlight(spotlightRect)
-
-    const tw = Math.min(360, window.innerWidth - 32)
-    const th = 180
-    const pos = getTooltipPosition(spotlightRect, tw, th, pad)
-    setTooltipPos(pos)
+        const tw = Math.min(360, window.innerWidth - 32)
+        const th = 200
+        const pos = getTooltipPosition(spotlightRect, tw, th, pad)
+        setTooltipPos(pos)
+      })
+    }, delay)
   }, [step])
 
   useEffect(() => {
@@ -207,7 +250,7 @@ export function WelcomeTour() {
     const timer = setTimeout(() => {
       positionStep()
       setIsTransitioning(false)
-    }, 200)
+    }, 250)
 
     const handleReposition = () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
@@ -265,34 +308,23 @@ export function WelcomeTour() {
   return createPortal(
     <div className="fixed inset-0 z-[9999]" aria-modal="true" role="dialog">
       {/* SVG overlay with spotlight cutout */}
-      <svg
-        className="absolute inset-0 w-full h-full transition-all duration-300 ease-out"
-        style={{ pointerEvents: "none" }}
-      >
+      <svg className="absolute inset-0 w-full h-full" style={{ pointerEvents: "none" }}>
         <defs>
           <mask id="tour-spotlight-mask">
             <rect x="0" y="0" width="100%" height="100%" fill="white" />
             {spotlight && (
               <rect
-                x={spotlight.left}
-                y={spotlight.top}
-                width={spotlight.width}
-                height={spotlight.height}
-                rx="8"
-                ry="8"
-                fill="black"
+                x={spotlight.left} y={spotlight.top}
+                width={spotlight.width} height={spotlight.height}
+                rx="8" ry="8" fill="black"
                 className="transition-all duration-300 ease-out"
               />
             )}
           </mask>
         </defs>
         <rect
-          x="0"
-          y="0"
-          width="100%"
-          height="100%"
-          fill="rgba(0,0,0,0.6)"
-          mask="url(#tour-spotlight-mask)"
+          x="0" y="0" width="100%" height="100%"
+          fill="rgba(0,0,0,0.6)" mask="url(#tour-spotlight-mask)"
           style={{ pointerEvents: "auto" }}
           onClick={handleClose}
         />
@@ -302,12 +334,7 @@ export function WelcomeTour() {
       {spotlight && (
         <div
           className="absolute rounded-lg ring-2 ring-primary/60 ring-offset-2 ring-offset-transparent pointer-events-none transition-all duration-300 ease-out"
-          style={{
-            top: spotlight.top,
-            left: spotlight.left,
-            width: spotlight.width,
-            height: spotlight.height,
-          }}
+          style={{ top: spotlight.top, left: spotlight.left, width: spotlight.width, height: spotlight.height }}
         />
       )}
 
@@ -322,11 +349,7 @@ export function WelcomeTour() {
         `}
         style={
           isCenterOverlay
-            ? {
-                top: "50%",
-                left: "50%",
-                transform: `translate(-50%, -50%) ${isTransitioning ? "scale(0.95)" : "scale(1)"}`,
-              }
+            ? { top: "50%", left: "50%", transform: `translate(-50%, -50%) ${isTransitioning ? "scale(0.95)" : "scale(1)"}` }
             : tooltipPos
               ? { top: tooltipPos.top, left: tooltipPos.left }
               : { top: "50%", left: "50%", transform: "translate(-50%, -50%)" }
@@ -349,12 +372,8 @@ export function WelcomeTour() {
             </div>
           )}
 
-          <h3 className="text-base font-semibold text-foreground pr-6">
-            {currentStep?.title}
-          </h3>
-          <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-            {currentStep?.description}
-          </p>
+          <h3 className="text-base font-semibold text-foreground pr-6">{currentStep?.title}</h3>
+          <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{currentStep?.description}</p>
 
           <div className="mt-5 flex items-center justify-between">
             <span className="text-xs text-muted-foreground tabular-nums">
@@ -363,8 +382,7 @@ export function WelcomeTour() {
             <div className="flex items-center gap-2">
               {!isFirstStep && (
                 <Button variant="ghost" size="sm" onClick={handlePrev} className="gap-1 h-8 text-xs">
-                  <IconArrowLeft className="size-3" />
-                  Zurück
+                  <IconArrowLeft className="size-3" />Zurück
                 </Button>
               )}
               {isFirstStep && (
