@@ -219,7 +219,7 @@ function conditionBadge(condition: string | null) {
       className: "bg-secondary/10 text-secondary border-secondary/30",
     },
     damaged: {
-      label: "Besch\u00e4digt",
+      label: "Beschädigt",
       className: "bg-primary/10 text-primary border-border",
     },
     repair: {
@@ -456,10 +456,10 @@ export default function LocationDetailPage() {
           <IconAlertTriangle className="size-10 text-muted-foreground" />
           <h3 className="text-lg font-medium">Lagerort nicht gefunden</h3>
           <p className="text-sm text-muted-foreground">
-            Dieser Lagerort existiert nicht oder wurde gel\u00f6scht.
+            Dieser Lagerort existiert nicht oder wurde gelöscht.
           </p>
           <Button onClick={() => router.push("/dashboard/locations")}>
-            Zur\u00fcck zur \u00dcbersicht
+            Zurück zur Übersicht
           </Button>
         </div>
       </div>
@@ -700,7 +700,7 @@ export default function LocationDetailPage() {
               <div className="text-3xl font-bold tabular-nums">
                 {summary.keys}
               </div>
-              <p className="text-xs text-muted-foreground">Schl\u00fcssel</p>
+              <p className="text-xs text-muted-foreground">Schlüssel</p>
             </CardContent>
           </Card>
         </div>
@@ -720,7 +720,7 @@ export default function LocationDetailPage() {
             </TabsTrigger>
             <TabsTrigger value="keys">
               <IconKey className="size-4" />
-              Schl\u00fcssel
+              Schlüssel
             </TabsTrigger>
           </TabsList>
 
@@ -852,7 +852,7 @@ export default function LocationDetailPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nummer</TableHead>
-                    <TableHead>Schl\u00fcssel</TableHead>
+                    <TableHead>Schlüssel</TableHead>
                     <TableHead>Adresse / Zuordnung</TableHead>
                     <TableHead className="text-right">Anzahl</TableHead>
                   </TableRow>
@@ -872,7 +872,7 @@ export default function LocationDetailPage() {
                         colSpan={4}
                         className="h-24 text-center text-muted-foreground"
                       >
-                        Keine Schl\u00fcssel an diesem Lagerort.
+                        Keine Schlüssel an diesem Lagerort.
                       </TableCell>
                     </TableRow>
                   ) : (

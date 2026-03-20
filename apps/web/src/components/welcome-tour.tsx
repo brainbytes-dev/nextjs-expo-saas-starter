@@ -51,13 +51,13 @@ const STEPS: TourStep[] = [
     target: "a[href='/dashboard/reports']",
     title: "Berichte",
     description:
-      "Behalten Sie den \u00dcberblick mit Echtzeit-Berichten und Analysen.",
+      "Behalten Sie den Überblick mit Echtzeit-Berichten und Analysen.",
   },
   {
     target: "a[href='/dashboard/settings']",
     title: "Einstellungen",
     description:
-      "Passen Sie LogistikApp an Ihre Bed\u00fcrfnisse an: Team, Benachrichtigungen, Integrationen.",
+      "Passen Sie LogistikApp an Ihre Bedürfnisse an: Team, Benachrichtigungen, Integrationen.",
   },
   {
     target: null,
@@ -366,7 +366,7 @@ export function WelcomeTour() {
                   className="gap-1 h-8 text-xs"
                 >
                   <IconArrowLeft className="size-3" />
-                  Zur\u00fcck
+                  Zurück
                 </Button>
               )}
               {isFirstStep && (

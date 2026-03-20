@@ -213,7 +213,7 @@ export default function NewLocationPage() {
                   id="name"
                   value={form.name}
                   onChange={(e) => updateField("name", e.target.value)}
-                  placeholder="z.B. Hauptlager Z\u00fcrich"
+                  placeholder="z.B. Hauptlager Zürich"
                   aria-invalid={!!errors.name}
                 />
                 {errors.name && (
@@ -231,7 +231,7 @@ export default function NewLocationPage() {
                   onValueChange={(v) => updateField("type", v)}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Typ ausw\u00e4hlen..." />
+                    <SelectValue placeholder="Typ auswählen..." />
                   </SelectTrigger>
                   <SelectContent>
                     {LOCATION_TYPES.map((lt) => {
@@ -281,7 +281,7 @@ export default function NewLocationPage() {
                   id="address"
                   value={form.address}
                   onChange={(e) => updateField("address", e.target.value)}
-                  placeholder="z.B. Bahnhofstrasse 10, 8001 Z\u00fcrich"
+                  placeholder="z.B. Bahnhofstrasse 10, 8001 Zürich"
                 />
               </div>
             </CardContent>
@@ -323,7 +323,7 @@ export default function NewLocationPage() {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  Ein Template f\u00fcllt den Lagerort automatisch mit einem
+                  Ein Template füllt den Lagerort automatisch mit einem
                   vordefinierten Materialset.
                 </p>
               </div>
@@ -335,7 +335,7 @@ export default function NewLocationPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">\u00dcbersicht</CardTitle>
+              <CardTitle className="text-base">Übersicht</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div className="flex justify-between">

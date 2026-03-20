@@ -232,7 +232,7 @@ export default function NewMaterialPage() {
                   id="name"
                   value={form.name}
                   onChange={(e) => updateField("name", e.target.value)}
-                  placeholder="z.B. Infusionsl\u00f6sung NaCl 0.9%"
+                  placeholder="z.B. Infusionslösung NaCl 0.9%"
                   aria-invalid={!!errors.name}
                 />
                 {errors.name && (
@@ -262,7 +262,7 @@ export default function NewMaterialPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Stk">St\u00fcck (Stk)</SelectItem>
+                    <SelectItem value="Stk">Stück (Stk)</SelectItem>
                     <SelectItem value="Pkg">Packung (Pkg)</SelectItem>
                     <SelectItem value="Fl">Flasche (Fl)</SelectItem>
                     <SelectItem value="Rll">Rolle (Rll)</SelectItem>
@@ -362,7 +362,7 @@ export default function NewMaterialPage() {
                   onChange={(e) => updateField("expiryDate", e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Wichtig f\u00fcr medizinische Materialien
+                  Wichtig für medizinische Materialien
                 </p>
               </div>
             </CardContent>
@@ -408,7 +408,7 @@ export default function NewMaterialPage() {
                   className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                   value={form.notes}
                   onChange={(e) => updateField("notes", e.target.value)}
-                  placeholder="Zus\u00e4tzliche Hinweise..."
+                  placeholder="Zusätzliche Hinweise..."
                 />
               </div>
             </CardContent>

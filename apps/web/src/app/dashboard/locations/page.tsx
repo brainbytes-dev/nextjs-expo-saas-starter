@@ -588,7 +588,7 @@ export default function LocationsPage() {
             <p className="text-sm text-muted-foreground">
               {debouncedSearch
                 ? "Versuchen Sie einen anderen Suchbegriff"
-                : "Erstellen Sie Ihren ersten Lagerort, um Materialien, Werkzeuge und Schl\u00fcssel zu verwalten."}
+                : "Erstellen Sie Ihren ersten Lagerort, um Materialien, Werkzeuge und Schlüssel zu verwalten."}
             </p>
           </div>
           {!debouncedSearch && (

@@ -420,7 +420,7 @@ export default function NewToolPage() {
                   {form.condition === "good"
                     ? "Gut"
                     : form.condition === "damaged"
-                      ? "Besch\u00e4digt"
+                      ? "Beschädigt"
                       : form.condition === "repair"
                         ? "Reparatur"
                         : "Ausgemustert"}

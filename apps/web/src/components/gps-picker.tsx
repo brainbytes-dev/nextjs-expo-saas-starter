@@ -114,7 +114,7 @@ export default function GpsPicker({ value, onChange }: GpsPickerProps) {
           onClick={() => setShowMap((v) => !v)}
         >
           <IconMapPin className="size-3.5" />
-          {showMap ? "Karte ausblenden" : "Auf Karte w\u00e4hlen"}
+          {showMap ? "Karte ausblenden" : "Auf Karte wählen"}
         </Button>
         {hasCoords && (
           <Button
@@ -124,7 +124,7 @@ export default function GpsPicker({ value, onChange }: GpsPickerProps) {
             onClick={handleClear}
           >
             <IconX className="size-3.5" />
-            Koordinaten l\u00f6schen
+            Koordinaten löschen
           </Button>
         )}
       </div>

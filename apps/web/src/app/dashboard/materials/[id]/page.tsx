@@ -1106,7 +1106,7 @@ export default function MaterialDetailPage() {
             </DialogTitle>
             <DialogDescription>
               {bookingType === "in"
-                ? "Material dem Bestand hinzuf\u00fcgen"
+                ? "Material dem Bestand hinzufügen"
                 : "Material aus dem Bestand entnehmen"}
             </DialogDescription>
           </DialogHeader>
@@ -1118,7 +1118,7 @@ export default function MaterialDetailPage() {
                 onValueChange={setBookingLocationId}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Lagerort w\u00e4hlen" />
+                  <SelectValue placeholder="Lagerort wählen" />
                 </SelectTrigger>
                 <SelectContent>
                   {locations.map((l) => (

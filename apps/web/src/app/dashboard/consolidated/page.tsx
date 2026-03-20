@@ -176,7 +176,7 @@ export default function ConsolidatedPage() {
           Konsolidierter Bericht
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {orgs.length} Organisationen &bull; Gesamtbestand im \u00dcberblick
+          {orgs.length} Organisationen &bull; Gesamtbestand im Überblick
         </p>
       </div>
 
@@ -201,7 +201,7 @@ export default function ConsolidatedPage() {
           colorClass="bg-green-100 text-green-700"
         />
         <KpiCard
-          label="Schl\u00fcssel gesamt"
+          label="Schlüssel gesamt"
           value={totals.keys}
           icon={IconKey}
           colorClass="bg-purple-100 text-purple-700"
@@ -297,7 +297,7 @@ function OrgCard({ org }: { org: OrgStat }) {
           <CountItem icon={IconMapPin} label="Standorte" value={org.counts.locations} />
           <CountItem icon={IconPackage} label="Materialien" value={org.counts.materials} />
           <CountItem icon={IconTool} label="Werkzeuge" value={org.counts.tools} />
-          <CountItem icon={IconKey} label="Schl\u00fcssel" value={org.counts.keys} />
+          <CountItem icon={IconKey} label="Schlüssel" value={org.counts.keys} />
         </div>
 
         {/* Switch link */}
