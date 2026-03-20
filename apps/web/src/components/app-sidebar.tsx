@@ -402,6 +402,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         hideable: true,
       },
       {
+        title: "Geräte-Auslastung",
+        url: "/dashboard/utilization",
+        icon: IconChartBar,
+        hideable: true,
+      },
+      {
         title: "TV-Modus",
         url: "/tv",
         icon: IconDeviceTv,

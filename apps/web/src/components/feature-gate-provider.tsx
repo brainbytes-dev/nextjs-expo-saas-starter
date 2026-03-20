@@ -13,21 +13,18 @@ import { type PlanId, isFeatureAvailable, getRequiredPlan, getPlanDisplayName } 
 // ─── Context Types ────────────────────────────────────────────────────────────
 
 interface FeatureGateContextValue {
-  /** Current plan of the organization */
   plan: PlanId
-  /** Whether the plan data has been loaded */
   loaded: boolean
-  /** Check if a feature is accessible on the current plan */
+  enabledFeatures: string[]
   canAccess: (featureId: string) => boolean
-  /** Get the minimum plan required for a feature */
   getRequired: (featureId: string) => PlanId
-  /** Get display name for the required plan */
   getRequiredPlanName: (featureId: string) => string
 }
 
 const FeatureGateContext = createContext<FeatureGateContextValue>({
   plan: "starter",
   loaded: false,
+  enabledFeatures: [],
   canAccess: () => true,
   getRequired: () => "starter",
   getRequiredPlanName: () => "Starter",
@@ -37,6 +34,7 @@ const FeatureGateContext = createContext<FeatureGateContextValue>({
 
 export function FeatureGateProvider({ children }: { children: ReactNode }) {
   const [plan, setPlan] = useState<PlanId>("starter")
+  const [enabledFeatures, setEnabledFeatures] = useState<string[]>([])
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
@@ -47,8 +45,9 @@ export function FeatureGateProvider({ children }: { children: ReactNode }) {
         const res = await fetch("/api/subscription/status")
         if (!res.ok) throw new Error("Failed to fetch subscription status")
         const data = await res.json()
-        if (!cancelled && data.planId) {
-          setPlan(data.planId as PlanId)
+        if (!cancelled) {
+          if (data.planId) setPlan(data.planId as PlanId)
+          if (Array.isArray(data.enabledFeatures)) setEnabledFeatures(data.enabledFeatures)
         }
       } catch {
         // Fail open: default to starter
@@ -62,8 +61,15 @@ export function FeatureGateProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const canAccess = useCallback(
-    (featureId: string) => isFeatureAvailable(featureId, plan),
-    [plan]
+    (featureId: string) => {
+      // Enterprise with managed features: check enabledFeatures array
+      if (plan === "enterprise" && enabledFeatures.length > 0) {
+        return enabledFeatures.includes(featureId)
+      }
+      // Starter/Pro or Enterprise without overrides: check plan-based access
+      return isFeatureAvailable(featureId, plan)
+    },
+    [plan, enabledFeatures]
   )
 
   const getRequired = useCallback(
@@ -78,7 +84,7 @@ export function FeatureGateProvider({ children }: { children: ReactNode }) {
 
   return (
     <FeatureGateContext.Provider
-      value={{ plan, loaded, canAccess, getRequired, getRequiredPlanName }}
+      value={{ plan, loaded, enabledFeatures, canAccess, getRequired, getRequiredPlanName }}
     >
       {children}
     </FeatureGateContext.Provider>

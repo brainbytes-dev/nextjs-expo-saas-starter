@@ -184,6 +184,9 @@ export const organizations = pgTable("organizations", {
   primaryColor: text("primary_color"),
   accentColor: text("accent_color"),
   aiSettings: jsonb("ai_settings"), // { openaiApiKey?: string }
+  enabledFeatures: jsonb("enabled_features"), // string[] — Enterprise: individually managed feature IDs
+  planOverride: text("plan_override"), // "starter" | "professional" | "enterprise" — admin override
+  adminNotes: text("admin_notes"), // internal notes (only visible in admin panel)
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

@@ -11,6 +11,7 @@ import { BarcodeScannerProvider } from "@/components/barcode-scanner-provider"
 import { ShortcutsDialogProvider } from "@/components/shortcuts-dialog"
 import { WelcomeTour } from "@/components/welcome-tour"
 import { FeatureGateProvider } from "@/components/feature-gate-provider"
+import { AiChatTrigger } from "@/components/ai-chat-trigger"
 import {
   SidebarInset,
   SidebarProvider,
@@ -94,6 +95,7 @@ export default function DashboardLayout({
           </SidebarInset>
           <CommandPalette />
           <WelcomeTour />
+          <AiChatTrigger />
         </SidebarProvider>
       </ShortcutsDialogProvider>
       </BarcodeScannerProvider>
