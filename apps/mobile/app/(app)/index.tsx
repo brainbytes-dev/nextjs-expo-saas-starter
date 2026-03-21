@@ -20,6 +20,7 @@ interface QuickActionDef {
   sublabel: string;
   color: string;
   bg: string;
+  bgDark: string;
   onPress: () => void;
 }
 
@@ -31,7 +32,7 @@ export default function HomeScreen() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const { colors } = useColorScheme();
+  const { colors, isDarkColorScheme: isDark } = useColorScheme();
 
   const fetchStats = useCallback(async () => {
     try {
@@ -88,7 +89,7 @@ export default function HomeScreen() {
       label: "Wareneingang",
       sublabel: "Material einbuchen",
       color: "#16a34a",
-      bg: "#f0fdf4",
+      bg: "#f0fdf4", bgDark: "#052e16",
       onPress: () => goToScanner("camera"),
     },
     {
@@ -96,7 +97,7 @@ export default function HomeScreen() {
       label: "Warenausgang",
       sublabel: "Material ausbuchen",
       color: "#ef4444",
-      bg: "#fef2f2",
+      bg: "#fef2f2", bgDark: "#450a0a",
       onPress: () => goToScanner("camera"),
     },
     {
@@ -104,7 +105,7 @@ export default function HomeScreen() {
       label: "Werkzeug entnehmen",
       sublabel: "Werkzeug auschecken",
       color: "#0d9488",
-      bg: "#f0fdfa",
+      bg: "#f0fdfa", bgDark: "#042f2e",
       onPress: () => goToScanner("camera"),
     },
     {
@@ -112,7 +113,7 @@ export default function HomeScreen() {
       label: "Lieferschein scannen",
       sublabel: "Batch-Scan starten",
       color: "#f97316",
-      bg: "#fff7ed",
+      bg: "#fff7ed", bgDark: "#431407",
       onPress: () => goToScanner("batch"),
     },
     {
@@ -120,7 +121,7 @@ export default function HomeScreen() {
       label: "Zeiterfassung",
       sublabel: "Timer starten & stoppen",
       color: "#8b5cf6",
-      bg: "#f5f3ff",
+      bg: "#f5f3ff", bgDark: "#2e1065",
       onPress: () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         router.push("/(app)/time-tracking");
@@ -131,7 +132,7 @@ export default function HomeScreen() {
       label: "KI-Assistent",
       sublabel: "Fragen zu Bestand & Werkzeugen",
       color: "#0ea5e9",
-      bg: "#f0f9ff",
+      bg: "#f0f9ff", bgDark: "#0c4a6e",
       onPress: () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         router.push("/(app)/ai-chat");
@@ -142,7 +143,7 @@ export default function HomeScreen() {
       label: "Inventur",
       sublabel: "Bestand zählen",
       color: "#6366f1",
-      bg: "#eef2ff",
+      bg: "#eef2ff", bgDark: "#1e1b4b",
       onPress: () => goToScanner("batch"),
     },
     {
@@ -150,7 +151,7 @@ export default function HomeScreen() {
       label: "Lieferungen",
       sublabel: "Lieferungen verfolgen",
       color: "#0ea5e9",
-      bg: "#f0f9ff",
+      bg: "#f0f9ff", bgDark: "#0c4a6e",
       onPress: goToDeliveries,
     },
     {
@@ -158,7 +159,7 @@ export default function HomeScreen() {
       label: "Garantie",
       sublabel: "Ansprüche verwalten",
       color: "#8b5cf6",
-      bg: "#f5f3ff",
+      bg: "#f5f3ff", bgDark: "#2e1065",
       onPress: goToWarrantyClaims,
     },
     {
@@ -166,7 +167,7 @@ export default function HomeScreen() {
       label: "Budgets",
       sublabel: "Ausgaben & Budgets verwalten",
       color: "#16a34a",
-      bg: "#f0fdf4",
+      bg: "#f0fdf4", bgDark: "#052e16",
       onPress: () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         router.push("/(app)/budgets" as any);
@@ -177,7 +178,7 @@ export default function HomeScreen() {
       label: "Wiederkehrende Bestellungen",
       sublabel: "Automatische Nachbestellungen",
       color: "#0ea5e9",
-      bg: "#f0f9ff",
+      bg: "#f0f9ff", bgDark: "#0c4a6e",
       onPress: () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         router.push("/(app)/recurring-orders" as any);
@@ -218,12 +219,12 @@ export default function HomeScreen() {
           <>
             <View className="gap-3">
               <View className="flex-row gap-3">
-                <KpiCard label="Materialien" value={stats.materials} icon="cube" color="#f97316" bg="#fff7ed" />
-                <KpiCard label="Werkzeuge" value={stats.tools} icon="construct" color="#0d9488" bg="#f0fdfa" />
+                <KpiCard label="Materialien" value={stats.materials} icon="cube" color="#f97316" bg="#fff7ed" bgDark="#431407" />
+                <KpiCard label="Werkzeuge" value={stats.tools} icon="construct" color="#0d9488" bg="#f0fdfa" bgDark="#042f2e" />
               </View>
               <View className="flex-row gap-3">
-                <KpiCard label="Schlüssel" value={stats.keys} icon="key" color="#6366f1" bg="#eef2ff" />
-                <KpiCard label="Benutzer" value={`${stats.users}/${stats.maxUsers}`} icon="people" color="#64748b" bg="#f8fafc" />
+                <KpiCard label="Schlüssel" value={stats.keys} icon="key" color="#6366f1" bg="#eef2ff" bgDark="#1e1b4b" />
+                <KpiCard label="Benutzer" value={`${stats.users}/${stats.maxUsers}`} icon="people" color="#64748b" bg="#f8fafc" bgDark="#1e293b" />
               </View>
             </View>
 
@@ -280,7 +281,7 @@ function QuickActionCard({ action }: { action: QuickActionDef }) {
           styles.qaIconWrap,
           {
             backgroundColor:
-              Platform.OS === "ios" ? action.bg : action.color + "18",
+              isDark ? action.bgDark : (Platform.OS === "ios" ? action.bg : action.color + "18"),
           },
         ]}
       >
@@ -300,19 +301,21 @@ function QuickActionCard({ action }: { action: QuickActionDef }) {
 
 // ── KpiCard ────────────────────────────────────────────────────────────
 
-function KpiCard({ label, value, icon, color, bg }: {
+function KpiCard({ label, value, icon, color, bg, bgDark }: {
   label: string;
   value: number | string;
   icon: React.ComponentProps<typeof Ionicons>["name"];
   color: string;
   bg: string;
+  bgDark?: string;
 }) {
+  const { isDarkColorScheme } = useColorScheme();
   return (
     <View className="flex-1">
       <Card className="p-4 gap-1.5">
         <View
           className="w-10 h-10 rounded-full items-center justify-center"
-          style={{ backgroundColor: bg }}
+          style={{ backgroundColor: isDarkColorScheme && bgDark ? bgDark : bg }}
         >
           <Ionicons name={icon} size={20} color={color} />
         </View>
