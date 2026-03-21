@@ -179,6 +179,18 @@ export default function SettingsScreen() {
       onPress: () => router.push("/(app)/shift-handover" as any),
     },
     {
+      id: "budgets",
+      title: "Budgets",
+      leftView: <IconView name="creditcard.fill" className="bg-green-600" />,
+      onPress: () => router.push("/(app)/budgets" as any),
+    },
+    {
+      id: "recurring-orders",
+      title: "Wiederkehrende Bestellungen",
+      leftView: <IconView name="arrow.2.circlepath" className="bg-sky-500" />,
+      onPress: () => router.push("/(app)/recurring-orders" as any),
+    },
+    {
       id: "terms",
       title: "AGB",
       leftView: <IconView name="doc.fill" className="bg-gray-500" />,

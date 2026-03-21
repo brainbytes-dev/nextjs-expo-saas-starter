@@ -16,10 +16,19 @@ import { Button } from "@/components/nativewindui/Button";
 import { Text } from "@/components/nativewindui/Text";
 import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator";
 import { Stepper } from "@/components/nativewindui/Stepper";
-import { type ScanResult } from "@/lib/api";
+import { type ScanResult, api } from "@/lib/api";
 import { stockIn, stockOut, toolCheckout, toolCheckin } from "@/lib/scan-actions";
 import { initNfc, writeNfcTag, cancelNfcScan } from "@/lib/nfc";
 import { isDemoMode } from "@/lib/demo/config";
+
+// ── Alternative material type ──────────────────────────────────────────
+interface MaterialAlternative {
+  id: string;
+  name: string;
+  number: string | null;
+  totalStock: number;
+  unit: string | null;
+}
 
 const APP_BASE_URL = "https://app.logistikapp.ch";
 
@@ -45,6 +54,9 @@ export function ScanResultSheet({
   const [loading, setLoading] = useState(false);
   const [nfcWriting, setNfcWriting] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [altExpanded, setAltExpanded] = useState(false);
+  const [altLoading, setAltLoading] = useState(false);
+  const [alternatives, setAlternatives] = useState<MaterialAlternative[]>([]);
   const visible = result !== null;
 
   const item = result?.item as Record<string, unknown> | null;
@@ -182,8 +194,43 @@ export function ScanResultSheet({
     }
   }
 
+  async function toggleAlternatives() {
+    if (altExpanded) {
+      setAltExpanded(false);
+      return;
+    }
+    if (!item?.id || itemType !== "material") return;
+    setAltExpanded(true);
+    setAltLoading(true);
+    try {
+      const res = await api.get<{ data: MaterialAlternative[] }>(
+        `/api/materials/${item.id}/alternatives`
+      );
+      setAlternatives(res.data);
+    } catch {
+      setAlternatives([]);
+    } finally {
+      setAltLoading(false);
+    }
+  }
+
+  function handleUseAlternative(alt: MaterialAlternative) {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (onAddToCommission) {
+      onAddToCommission("material", alt.id, quantity);
+    } else {
+      toast({
+        title: `${alt.name} ausgewählt`,
+        message: `Bestand: ${alt.totalStock} ${alt.unit ?? "Stk"}`,
+        preset: "done",
+      });
+    }
+  }
+
   function handleDismiss() {
     setQuantity(1);
+    setAltExpanded(false);
+    setAlternatives([]);
     onDismiss();
   }
 
@@ -342,6 +389,97 @@ export function ScanResultSheet({
                         Zu Lieferschein hinzufügen
                       </Text>
                     </Button>
+                  )}
+
+                  {/* Alternatives section — only for materials */}
+                  {itemType === "material" && item?.id && (
+                    <View>
+                      <TouchableOpacity
+                        onPress={toggleAlternatives}
+                        className="flex-row items-center justify-between py-2"
+                      >
+                        <View className="flex-row items-center gap-2">
+                          <Ionicons
+                            name="swap-horizontal-outline"
+                            size={16}
+                            color="#6b7280"
+                          />
+                          <Text className="text-muted-foreground text-sm">
+                            Alternativen
+                          </Text>
+                        </View>
+                        <Ionicons
+                          name={altExpanded ? "chevron-up" : "chevron-down"}
+                          size={16}
+                          color="#6b7280"
+                        />
+                      </TouchableOpacity>
+
+                      {altExpanded && (
+                        <View className="bg-muted/30 rounded-xl p-3 gap-2">
+                          {altLoading ? (
+                            <View className="items-center py-3">
+                              <ActivityIndicator size="small" />
+                            </View>
+                          ) : alternatives.length === 0 ? (
+                            <Text className="text-muted-foreground text-xs text-center py-2">
+                              Keine Alternativen gefunden
+                            </Text>
+                          ) : (
+                            alternatives.map((alt) => (
+                              <View
+                                key={alt.id}
+                                className="flex-row items-center gap-2 bg-card rounded-lg px-3 py-2"
+                              >
+                                <View className="flex-1 gap-0.5">
+                                  <Text
+                                    className="text-sm font-medium"
+                                    numberOfLines={1}
+                                  >
+                                    {alt.name}
+                                  </Text>
+                                  {alt.number && (
+                                    <Text className="text-xs text-muted-foreground">
+                                      #{alt.number}
+                                    </Text>
+                                  )}
+                                </View>
+                                <View
+                                  className="rounded-full px-2 py-0.5"
+                                  style={{
+                                    backgroundColor:
+                                      alt.totalStock > 0
+                                        ? "#f0fdf4"
+                                        : "#fef2f2",
+                                  }}
+                                >
+                                  <Text
+                                    className="text-xs font-semibold"
+                                    style={{
+                                      color:
+                                        alt.totalStock > 0
+                                          ? "#16a34a"
+                                          : "#ef4444",
+                                    }}
+                                  >
+                                    {alt.totalStock}{" "}
+                                    {alt.unit ?? "Stk"}
+                                  </Text>
+                                </View>
+                                <TouchableOpacity
+                                  onPress={() => handleUseAlternative(alt)}
+                                  className="bg-primary rounded-lg px-3 py-1.5"
+                                >
+                                  <Text className="text-white text-xs font-semibold">
+                                    Verwenden
+                                  </Text>
+                                </TouchableOpacity>
+                              </View>
+                            ))
+                          )}
+                        </View>
+                      )}
+                    </View>
                   )}
 
                   {/* NFC write button */}

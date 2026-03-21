@@ -1,7 +1,7 @@
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Tabs, Redirect } from "expo-router";
 import * as React from "react";
-import { Platform, Pressable, PressableProps, View } from "react-native";
+import { AppState, Platform, Pressable, PressableProps, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useDerivedValue,
@@ -21,6 +21,7 @@ import {
   registerForPushNotifications,
   isNotificationsEnabled,
 } from "@/lib/notifications";
+import { checkDeliveryUpdates } from "@/lib/delivery-notifications";
 import { useConflicts } from "@/lib/conflict-resolver";
 
 export default function AppLayout() {
@@ -35,6 +36,24 @@ export default function AppLayout() {
     isNotificationsEnabled().then((enabled) => {
       if (enabled) registerForPushNotifications();
     });
+  }, [data]);
+
+  // Check for delivery status changes on launch and when app returns to
+  // foreground so the user gets local notifications about updates.
+  React.useEffect(() => {
+    if (!data) return;
+
+    // Initial check
+    checkDeliveryUpdates();
+
+    // Re-check when the app comes back from background
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") {
+        checkDeliveryUpdates();
+      }
+    });
+
+    return () => subscription.remove();
   }, [data]);
 
   if (isPending) return null;
@@ -168,6 +187,8 @@ export default function AppLayout() {
       <Tabs.Screen name="time-tracking" options={{ href: null }} />
       <Tabs.Screen name="ai-chat" options={{ href: null }} />
       <Tabs.Screen name="shift-handover" options={{ href: null }} />
+      <Tabs.Screen name="budgets" options={{ href: null }} />
+      <Tabs.Screen name="recurring-orders" options={{ href: null }} />
     </Tabs>
       {isDemoMode && <DemoBanner />}
       <OfflineBanner />

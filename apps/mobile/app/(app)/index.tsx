@@ -161,6 +161,28 @@ export default function HomeScreen() {
       bg: "#f5f3ff",
       onPress: goToWarrantyClaims,
     },
+    {
+      icon: "wallet",
+      label: "Budgets",
+      sublabel: "Ausgaben & Budgets verwalten",
+      color: "#16a34a",
+      bg: "#f0fdf4",
+      onPress: () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        router.push("/(app)/budgets" as any);
+      },
+    },
+    {
+      icon: "repeat",
+      label: "Wiederkehrende Bestellungen",
+      sublabel: "Automatische Nachbestellungen",
+      color: "#0ea5e9",
+      bg: "#f0f9ff",
+      onPress: () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        router.push("/(app)/recurring-orders" as any);
+      },
+    },
   ];
 
   return (
