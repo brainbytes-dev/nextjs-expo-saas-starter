@@ -23,6 +23,7 @@
     "clsx": "^2.1.0",
     "expo": "latest",
     "expo-camera": "~55.0.10",
+    "expo-clipboard": "~55.0.9",
     "expo-device": "~55.0.10",
     "expo-file-system": "~55.0.11",
     "expo-haptics": "~14.1.0",

@@ -208,3 +208,8 @@ const styles = StyleSheet.create({
     bottom: 60,
   },
 });
+
+// Default export for Expo Router (hidden tab screen)
+export default function NfcScreen() {
+  return <NfcScanView onRead={() => {}} isActive={false} onCancel={() => {}} />
+}
