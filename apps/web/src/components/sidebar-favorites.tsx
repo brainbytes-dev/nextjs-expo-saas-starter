@@ -207,10 +207,5 @@ function RecentItemsSection() {
 // ── Combined export ───────────────────────────────────────────────────────────
 
 export function SidebarFavorites() {
-  return (
-    <>
-      <FavoritesSection />
-      <RecentItemsSection />
-    </>
-  )
+  return <RecentItemsSection />
 }
