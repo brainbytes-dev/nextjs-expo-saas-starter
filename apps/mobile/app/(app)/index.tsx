@@ -72,6 +72,16 @@ export default function HomeScreen() {
     router.push("/(app)/commissions");
   }
 
+  function goToDeliveries() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push("/(app)/deliveries");
+  }
+
+  function goToWarrantyClaims() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push("/(app)/warranty-claims");
+  }
+
   const quickActions: QuickActionDef[] = [
     {
       icon: "arrow-down-circle",
@@ -106,12 +116,50 @@ export default function HomeScreen() {
       onPress: () => goToScanner("batch"),
     },
     {
+      icon: "time",
+      label: "Zeiterfassung",
+      sublabel: "Timer starten & stoppen",
+      color: "#8b5cf6",
+      bg: "#f5f3ff",
+      onPress: () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        router.push("/(app)/time-tracking");
+      },
+    },
+    {
+      icon: "chatbubble-ellipses",
+      label: "KI-Assistent",
+      sublabel: "Fragen zu Bestand & Werkzeugen",
+      color: "#0ea5e9",
+      bg: "#f0f9ff",
+      onPress: () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        router.push("/(app)/ai-chat");
+      },
+    },
+    {
       icon: "list",
       label: "Inventur",
       sublabel: "Bestand zählen",
       color: "#6366f1",
       bg: "#eef2ff",
       onPress: () => goToScanner("batch"),
+    },
+    {
+      icon: "cube",
+      label: "Lieferungen",
+      sublabel: "Lieferungen verfolgen",
+      color: "#0ea5e9",
+      bg: "#f0f9ff",
+      onPress: goToDeliveries,
+    },
+    {
+      icon: "shield-checkmark",
+      label: "Garantie",
+      sublabel: "Ansprüche verwalten",
+      color: "#8b5cf6",
+      bg: "#f5f3ff",
+      onPress: goToWarrantyClaims,
     },
   ];
 
@@ -169,6 +217,12 @@ export default function HomeScreen() {
                 )}
                 {stats.overdueToolsCount > 0 && (
                   <AlertRow label="Überfällige Werkzeuge" count={stats.overdueToolsCount} icon="alert-circle" color="#8b5cf6" />
+                )}
+                {stats.pendingDeliveries > 0 && (
+                  <AlertRow label="Offene Lieferungen" count={stats.pendingDeliveries} icon="cube" color="#0ea5e9" />
+                )}
+                {stats.openWarrantyClaims > 0 && (
+                  <AlertRow label="Offene Garantieansprüche" count={stats.openWarrantyClaims} icon="shield-checkmark" color="#8b5cf6" />
                 )}
               </Card>
             )}

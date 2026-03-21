@@ -156,6 +156,8 @@ export default function AppLayout() {
         }}
       />
       {/* Hidden screens that exist as files but should not appear as tabs */}
+      <Tabs.Screen name="deliveries" options={{ href: null }} />
+      <Tabs.Screen name="warranty-claims" options={{ href: null }} />
       <Tabs.Screen name="nfc" options={{ href: null }} />
       <Tabs.Screen name="geofencing" options={{ href: null }} />
       <Tabs.Screen name="watch" options={{ href: null }} />
@@ -163,6 +165,9 @@ export default function AppLayout() {
       <Tabs.Screen name="scanner-settings" options={{ href: null }} />
       <Tabs.Screen name="voice-assistant" options={{ href: null }} />
       <Tabs.Screen name="offline-maps" options={{ href: null }} />
+      <Tabs.Screen name="time-tracking" options={{ href: null }} />
+      <Tabs.Screen name="ai-chat" options={{ href: null }} />
+      <Tabs.Screen name="shift-handover" options={{ href: null }} />
     </Tabs>
       {isDemoMode && <DemoBanner />}
       <OfflineBanner />
