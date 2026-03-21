@@ -474,7 +474,7 @@ function TimeTrackingPageContent() {
         formatTime(e.startTime),
         e.endTime ? formatTime(e.endTime) : "",
         durationH.replace(".", ","),
-        e.billable ? "Ja" : "Nein",
+        e.billable ? tc("yes") : tc("no"),
         e.hourlyRate ? (e.hourlyRate / 100).toFixed(2).replace(".", ",") : "",
       ].join(";")
     })
@@ -510,14 +510,14 @@ function TimeTrackingPageContent() {
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Zeiterfassung</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground text-sm">
-            Arbeitszeiten erfassen, Timer starten und Auswertungen einsehen.
+            {t("subtitle")}
           </p>
         </div>
         <Button variant="outline" onClick={handleExportCSV}>
           <IconDownload className="mr-2 h-4 w-4" />
-          CSV Export
+          {t("csvExport")}
         </Button>
       </div>
 
@@ -532,7 +532,7 @@ function TimeTrackingPageContent() {
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
                     <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
                   </span>
-                  Timer läuft
+                  {t("timerRunning")}
                   {runningEntry.commissionName && (
                     <span> &mdash; {runningEntry.commissionName}</span>
                   )}
@@ -560,16 +560,16 @@ function TimeTrackingPageContent() {
                 ) : (
                   <IconPlayerStop className="mr-2 h-4 w-4" />
                 )}
-                Stoppen
+                {t("stop")}
               </Button>
             </>
           ) : (
             <div className="flex w-full flex-col items-center gap-3">
               <IconClock className="text-muted-foreground h-10 w-10" />
-              <p className="text-muted-foreground text-sm">Kein Timer aktiv</p>
+              <p className="text-muted-foreground text-sm">{t("noTimerActive")}</p>
               <Button onClick={() => setStartDialogOpen(true)}>
                 <IconPlayerPlay className="mr-2 h-4 w-4" />
-                Timer starten
+                {t("startTimer")}
               </Button>
             </div>
           )}
@@ -581,7 +581,7 @@ function TimeTrackingPageContent() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-muted-foreground text-sm font-medium">
-              Heute
+              {t("today")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -591,7 +591,7 @@ function TimeTrackingPageContent() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-muted-foreground text-sm font-medium">
-              Diese Woche
+              {t("thisWeek")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -601,7 +601,7 @@ function TimeTrackingPageContent() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-muted-foreground text-sm font-medium">
-              Abrechenbar (Monat)
+              {t("billableMonth")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -615,7 +615,7 @@ function TimeTrackingPageContent() {
       {/* ── Weekly Bar Chart ────────────────────────────────────────────── */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Wochenübersicht</CardTitle>
+          <CardTitle className="text-base">{t("weekOverview")}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={220}>
@@ -623,7 +623,7 @@ function TimeTrackingPageContent() {
               <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
               <YAxis fontSize={12} tickLine={false} axisLine={false} unit=" h" width={50} />
               <Tooltip
-                formatter={(value) => [`${value} h`, "Stunden"]}
+                formatter={(value) => [`${value} h`, t("hours")]}
                 labelFormatter={(label) => `${label}`}
               />
               <Bar dataKey="stunden" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
@@ -635,14 +635,14 @@ function TimeTrackingPageContent() {
       {/* ── Filter Bar ──────────────────────────────────────────────────── */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Einträge</CardTitle>
+          <CardTitle className="text-base">{t("entries")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap items-end gap-3">
             <div className="relative min-w-[200px] flex-1">
               <IconSearch className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
               <Input
-                placeholder="Suchen..."
+                placeholder={tc("search")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -654,7 +654,7 @@ function TimeTrackingPageContent() {
                   <SelectValue placeholder="Kommission" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Alle Kommissionen</SelectItem>
+                  <SelectItem value="all">{t("allCommissions")}</SelectItem>
                   {commissionsList.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.name}
@@ -669,7 +669,7 @@ function TimeTrackingPageContent() {
                   <SelectValue placeholder="Projekt" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Alle Projekte</SelectItem>
+                  <SelectItem value="all">{t("allProjects")}</SelectItem>
                   {projectsList.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.name}
@@ -703,13 +703,13 @@ function TimeTrackingPageContent() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Datum</TableHead>
-                  <TableHead>Mitarbeiter</TableHead>
-                  <TableHead>Kommission / Projekt</TableHead>
-                  <TableHead>Beschreibung</TableHead>
-                  <TableHead className="text-right">Dauer</TableHead>
-                  <TableHead>Abrechenbar</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>{t("date")}</TableHead>
+                  <TableHead>{t("employee")}</TableHead>
+                  <TableHead>{t("commissionProject")}</TableHead>
+                  <TableHead>{t("description")}</TableHead>
+                  <TableHead className="text-right">{t("duration")}</TableHead>
+                  <TableHead>{t("billable")}</TableHead>
+                  <TableHead>{tc("status")}</TableHead>
                   <TableHead className="w-[50px]" />
                 </TableRow>
               </TableHeader>
@@ -720,7 +720,7 @@ function TimeTrackingPageContent() {
                       colSpan={8}
                       className="text-muted-foreground h-24 text-center"
                     >
-                      Keine Einträge gefunden.
+                      {t("noEntries")}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -757,9 +757,9 @@ function TimeTrackingPageContent() {
                         </TableCell>
                         <TableCell>
                           {entry.billable ? (
-                            <Badge variant="default">Ja</Badge>
+                            <Badge variant="default">{tc("yes")}</Badge>
                           ) : (
-                            <Badge variant="secondary">Nein</Badge>
+                            <Badge variant="secondary">{tc("no")}</Badge>
                           )}
                         </TableCell>
                         <TableCell>
@@ -778,13 +778,13 @@ function TimeTrackingPageContent() {
                             }
                           >
                             {entry.status === "running"
-                              ? "Läuft"
+                              ? t("statusRunning")
                               : entry.status === "stopped"
-                                ? "Gestoppt"
+                                ? t("statusStopped")
                                 : entry.status === "approved"
-                                  ? "Genehmigt"
+                                  ? t("statusApproved")
                                   : entry.status === "rejected"
-                                    ? "Abgelehnt"
+                                    ? t("statusRejected")
                                     : entry.status}
                           </Badge>
                         </TableCell>
@@ -798,14 +798,14 @@ function TimeTrackingPageContent() {
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => openEditDialog(entry)}>
                                 <IconEdit className="mr-2 h-4 w-4" />
-                                Bearbeiten
+                                {tc("edit")}
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleDelete(entry.id)}
                                 className="text-destructive"
                               >
                                 <IconTrash className="mr-2 h-4 w-4" />
-                                Löschen
+                                {tc("delete")}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -824,17 +824,17 @@ function TimeTrackingPageContent() {
       <Dialog open={startDialogOpen} onOpenChange={setStartDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Timer starten</DialogTitle>
+            <DialogTitle>{t("startTimer")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Kommission</Label>
+              <Label>{t("commission")}</Label>
               <Select value={newCommissionId} onValueChange={setNewCommissionId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Keine Kommission" />
+                  <SelectValue placeholder={t("noCommission")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Keine Kommission</SelectItem>
+                  <SelectItem value="none">{t("noCommission")}</SelectItem>
                   {commissionsList.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.name}
@@ -845,13 +845,13 @@ function TimeTrackingPageContent() {
             </div>
 
             <div className="space-y-2">
-              <Label>Projekt (optional)</Label>
+              <Label>{t("projectOptional")}</Label>
               <Select value={newProjectId} onValueChange={setNewProjectId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Kein Projekt" />
+                  <SelectValue placeholder={t("noProject")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Kein Projekt</SelectItem>
+                  <SelectItem value="none">{t("noProject")}</SelectItem>
                   {projectsList.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.name}
@@ -862,18 +862,18 @@ function TimeTrackingPageContent() {
             </div>
 
             <div className="space-y-2">
-              <Label>Beschreibung</Label>
+              <Label>{t("description")}</Label>
               <Textarea
                 value={newDescription}
                 onChange={(e) => setNewDescription(e.target.value)}
-                placeholder="Was wird gemacht?"
+                placeholder={t("descriptionPlaceholder")}
                 rows={3}
               />
             </div>
 
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5">
-                <Label htmlFor="billable-switch">Abrechenbar</Label>
+                <Label htmlFor="billable-switch">{t("billable")}</Label>
                 <InfoTooltip text={TOOLTIPS.timeTrackingBillable} />
               </span>
               <Switch
@@ -885,7 +885,7 @@ function TimeTrackingPageContent() {
 
             <div className="space-y-2">
               <span className="flex items-center gap-1.5">
-                <Label>Stundensatz (CHF)</Label>
+                <Label>{t("hourlyRateCHF")}</Label>
                 <InfoTooltip text={TOOLTIPS.timeTrackingRate} />
               </span>
               <Input
@@ -894,7 +894,7 @@ function TimeTrackingPageContent() {
                 min="0"
                 value={newHourlyRate}
                 onChange={(e) => setNewHourlyRate(e.target.value)}
-                placeholder="z.B. 120.00"
+                placeholder={t("hourlyRatePlaceholder")}
               />
             </div>
           </div>
@@ -903,7 +903,7 @@ function TimeTrackingPageContent() {
               variant="outline"
               onClick={() => setStartDialogOpen(false)}
             >
-              Abbrechen
+              {tc("cancel")}
             </Button>
             <Button onClick={handleStartTimer} disabled={saving}>
               {saving ? (
@@ -911,7 +911,7 @@ function TimeTrackingPageContent() {
               ) : (
                 <IconPlayerPlay className="mr-2 h-4 w-4" />
               )}
-              Starten
+              {t("start")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -921,17 +921,17 @@ function TimeTrackingPageContent() {
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Eintrag bearbeiten</DialogTitle>
+            <DialogTitle>{t("editEntry")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Kommission</Label>
+              <Label>{t("commission")}</Label>
               <Select value={editCommissionId} onValueChange={setEditCommissionId}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Keine Kommission</SelectItem>
+                  <SelectItem value="none">{t("noCommission")}</SelectItem>
                   {commissionsList.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.name}
@@ -942,13 +942,13 @@ function TimeTrackingPageContent() {
             </div>
 
             <div className="space-y-2">
-              <Label>Projekt</Label>
+              <Label>{t("project")}</Label>
               <Select value={editProjectId} onValueChange={setEditProjectId}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Kein Projekt</SelectItem>
+                  <SelectItem value="none">{t("noProject")}</SelectItem>
                   {projectsList.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.name}
@@ -959,7 +959,7 @@ function TimeTrackingPageContent() {
             </div>
 
             <div className="space-y-2">
-              <Label>Beschreibung</Label>
+              <Label>{t("description")}</Label>
               <Textarea
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
@@ -969,7 +969,7 @@ function TimeTrackingPageContent() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Start</Label>
+                <Label>{t("start")}</Label>
                 <Input
                   type="datetime-local"
                   value={editStartTime}
@@ -977,7 +977,7 @@ function TimeTrackingPageContent() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Ende</Label>
+                <Label>{t("end")}</Label>
                 <Input
                   type="datetime-local"
                   value={editEndTime}
@@ -987,7 +987,7 @@ function TimeTrackingPageContent() {
             </div>
 
             <div className="flex items-center justify-between">
-              <Label htmlFor="edit-billable-switch">Abrechenbar</Label>
+              <Label htmlFor="edit-billable-switch">{t("billable")}</Label>
               <Switch
                 id="edit-billable-switch"
                 checked={editBillable}
@@ -996,24 +996,24 @@ function TimeTrackingPageContent() {
             </div>
 
             <div className="space-y-2">
-              <Label>Stundensatz (CHF)</Label>
+              <Label>{t("hourlyRateCHF")}</Label>
               <Input
                 type="number"
                 step="0.5"
                 min="0"
                 value={editHourlyRate}
                 onChange={(e) => setEditHourlyRate(e.target.value)}
-                placeholder="z.B. 120.00"
+                placeholder={t("hourlyRatePlaceholder")}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
-              Abbrechen
+              {tc("cancel")}
             </Button>
             <Button onClick={handleSaveEdit} disabled={saving}>
               {saving && <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Speichern
+              {tc("save")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -32,7 +32,7 @@ export function ExportButton({
     setLoading(true)
     try {
       const res = await fetch(`/api/export?entity=${entity}&format=${format}`)
-      if (!res.ok) throw new Error("Export fehlgeschlagen")
+      if (!res.ok) throw new Error(t("exportFailed"))
 
       const blob = await res.blob()
       const contentDisposition = res.headers.get("Content-Disposition") || ""

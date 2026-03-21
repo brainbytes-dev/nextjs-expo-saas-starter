@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
+import { useTranslations } from "next-intl"
 import { FeatureGate } from "@/components/upgrade-prompt"
 import {
   IconShieldCheck,
@@ -92,45 +93,45 @@ interface WarrantyRecord {
 
 const STATUS_CONFIG: Record<
   ClaimStatus,
-  { label: string; variant: string; className: string }
+  { labelKey: string; variant: string; className: string }
 > = {
   draft: {
-    label: "Entwurf",
+    labelKey: "status.draft",
     variant: "outline",
     className: "border-gray-400 text-gray-700 bg-gray-50",
   },
   submitted: {
-    label: "Eingereicht",
+    labelKey: "status.submitted",
     variant: "outline",
     className: "border-blue-400 text-blue-700 bg-blue-50",
   },
   in_review: {
-    label: "In Prüfung",
+    labelKey: "status.inReview",
     variant: "outline",
     className: "border-yellow-400 text-yellow-700 bg-yellow-50",
   },
   approved: {
-    label: "Genehmigt",
+    labelKey: "status.approved",
     variant: "outline",
     className: "border-green-500 text-green-700 bg-green-50",
   },
   rejected: {
-    label: "Abgelehnt",
+    labelKey: "status.rejected",
     variant: "outline",
     className: "border-red-400 text-red-700 bg-red-50",
   },
   resolved: {
-    label: "Erledigt",
+    labelKey: "status.resolved",
     variant: "outline",
     className: "border-purple-400 text-purple-700 bg-purple-50",
   },
 }
 
-const RESOLUTION_LABELS: Record<string, string> = {
-  replacement: "Ersatz",
-  repair: "Reparatur",
-  refund: "Erstattung",
-  rejected: "Abgelehnt",
+const RESOLUTION_LABEL_KEYS: Record<string, string> = {
+  replacement: "resolution.replacement",
+  repair: "resolution.repair",
+  refund: "resolution.refund",
+  rejected: "resolution.rejected",
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -158,10 +159,11 @@ function formatDateTime(iso: string | null) {
 // ─── Status Badge ────────────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: ClaimStatus }) {
+  const t = useTranslations("warranties")
   const config = STATUS_CONFIG[status]
   return (
     <Badge variant="outline" className={config.className}>
-      {config.label}
+      {t(config.labelKey)}
     </Badge>
   )
 }
@@ -177,6 +179,8 @@ export default function WarrantyClaimsPage() {
 }
 
 function WarrantyClaimsPageContent() {
+  const t = useTranslations("warranties")
+  const tc = useTranslations("common")
   const { orgId } = useOrganization()
 
   const [claims, setClaims] = useState<WarrantyClaim[]>([])
@@ -361,14 +365,14 @@ function WarrantyClaimsPageContent() {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Garantieansprüche</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Verwalte Garantieansprüche für deine Werkzeuge und Materialien.
+            {t("subtitle")}
           </p>
         </div>
         <Button onClick={openNewDialog}>
           <IconPlus className="size-4 mr-2" />
-          Neuen Anspruch stellen
+          {t("newClaim")}
         </Button>
       </div>
 
@@ -377,7 +381,7 @@ function WarrantyClaimsPageContent() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Offene Ansprüche
+              {t("openClaims")}
             </CardTitle>
             <IconShieldCheck className="size-4 text-muted-foreground" />
           </CardHeader>
@@ -386,7 +390,7 @@ function WarrantyClaimsPageContent() {
               {loading ? <Skeleton className="h-7 w-12" /> : stats.openCount}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Entwurf, eingereicht oder in Prüfung
+              {t("openClaimsDescription")}
             </p>
           </CardContent>
         </Card>
@@ -394,7 +398,7 @@ function WarrantyClaimsPageContent() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Genehmigt
+              {t("status.approved")}
             </CardTitle>
             <IconCheck className="size-4 text-muted-foreground" />
           </CardHeader>
@@ -403,7 +407,7 @@ function WarrantyClaimsPageContent() {
               {loading ? <Skeleton className="h-7 w-12" /> : stats.approvedCount}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Ansprüche genehmigt
+              {t("claimsApproved")}
             </p>
           </CardContent>
         </Card>
@@ -411,7 +415,7 @@ function WarrantyClaimsPageContent() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Ø Bearbeitungszeit
+              {t("avgProcessingTime")}
             </CardTitle>
             <IconClock className="size-4 text-muted-foreground" />
           </CardHeader>
@@ -420,13 +424,13 @@ function WarrantyClaimsPageContent() {
               {loading ? (
                 <Skeleton className="h-7 w-16" />
               ) : stats.resolvedCount > 0 ? (
-                `${stats.avgDays} Tage`
+                t("days", { count: stats.avgDays })
               ) : (
                 "—"
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Durchschnittlich bis zur Erledigung
+              {t("avgToResolution")}
             </p>
           </CardContent>
         </Card>
@@ -436,7 +440,7 @@ function WarrantyClaimsPageContent() {
       <div className="relative max-w-sm">
         <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         <Input
-          placeholder="Nach Anspruch-Nr., Grund oder Gerät suchen..."
+          placeholder={t("searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9"
@@ -455,13 +459,13 @@ function WarrantyClaimsPageContent() {
           <IconShieldCheck className="size-10 text-muted-foreground/50 mb-4" />
           <p className="text-muted-foreground text-sm">
             {search.trim()
-              ? "Keine Garantieansprüche gefunden"
-              : "Noch keine Garantieansprüche vorhanden"}
+              ? t("noClaimsFound")
+              : t("noClaimsYet")}
           </p>
           {!search.trim() && (
             <Button variant="outline" className="mt-4" onClick={openNewDialog}>
               <IconPlus className="size-4 mr-2" />
-              Ersten Anspruch stellen
+              {t("createFirst")}
             </Button>
           )}
         </div>
@@ -470,12 +474,12 @@ function WarrantyClaimsPageContent() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Anspruch-Nr.</TableHead>
-                <TableHead>Gerät/Material</TableHead>
-                <TableHead>Grund</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Eingereicht am</TableHead>
-                <TableHead>Bearbeiter</TableHead>
+                <TableHead>{t("claimNumber")}</TableHead>
+                <TableHead>{t("deviceMaterial")}</TableHead>
+                <TableHead>{t("reason")}</TableHead>
+                <TableHead>{tc("status")}</TableHead>
+                <TableHead>{t("submittedAt")}</TableHead>
+                <TableHead>{t("assignee")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -490,9 +494,9 @@ function WarrantyClaimsPageContent() {
                   </TableCell>
                   <TableCell>
                     <div>
-                      <span>{claim.entityName ?? "Unbekannt"}</span>
+                      <span>{claim.entityName ?? t("unknown")}</span>
                       <span className="text-xs text-muted-foreground ml-1.5">
-                        ({claim.entityType === "tool" ? "Werkzeug" : "Material"})
+                        ({claim.entityType === "tool" ? t("entityTool") : t("entityMaterial")})
                       </span>
                     </div>
                   </TableCell>
@@ -519,15 +523,15 @@ function WarrantyClaimsPageContent() {
       <Dialog open={newDialogOpen} onOpenChange={setNewDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Neuen Garantieanspruch stellen</DialogTitle>
+            <DialogTitle>{t("newClaimTitle")}</DialogTitle>
             <DialogDescription>
-              Wähle einen bestehenden Garantieeintrag aus und beschreibe den Grund.
+              {t("newClaimDescription")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="warranty-record">Garantieeintrag</Label>
+              <Label htmlFor="warranty-record">{t("warrantyRecord")}</Label>
               {loadingRecords ? (
                 <Skeleton className="h-10 w-full" />
               ) : (
@@ -538,17 +542,17 @@ function WarrantyClaimsPageContent() {
                   }
                 >
                   <SelectTrigger id="warranty-record">
-                    <SelectValue placeholder="Garantieeintrag auswählen..." />
+                    <SelectValue placeholder={t("selectWarrantyRecord")} />
                   </SelectTrigger>
                   <SelectContent>
                     {warrantyRecords.length === 0 ? (
                       <SelectItem value="_empty" disabled>
-                        Keine Garantieeinträge vorhanden
+                        {t("noWarrantyRecords")}
                       </SelectItem>
                     ) : (
                       warrantyRecords.map((wr) => (
                         <SelectItem key={wr.id} value={wr.id}>
-                          {wr.provider ?? "Ohne Anbieter"} — {wr.entityType === "tool" ? "Werkzeug" : "Material"}{" "}
+                          {wr.provider ?? t("noProvider")} — {wr.entityType === "tool" ? t("entityTool") : t("entityMaterial")}{" "}
                           {wr.warrantyEnd ? `(bis ${formatDate(wr.warrantyEnd)})` : ""}
                         </SelectItem>
                       ))
@@ -559,10 +563,10 @@ function WarrantyClaimsPageContent() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="claim-reason">Grund</Label>
+              <Label htmlFor="claim-reason">{t("reason")}</Label>
               <Input
                 id="claim-reason"
-                placeholder="z.B. Defekt, Verschleiss, Beschädigung..."
+                placeholder={t("reasonPlaceholder")}
                 value={newClaim.reason}
                 onChange={(e) =>
                   setNewClaim((prev) => ({ ...prev, reason: e.target.value }))
@@ -571,10 +575,10 @@ function WarrantyClaimsPageContent() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="claim-description">Beschreibung (optional)</Label>
+              <Label htmlFor="claim-description">{t("descriptionOptional")}</Label>
               <Textarea
                 id="claim-description"
-                placeholder="Details zum Problem..."
+                placeholder={t("descriptionPlaceholder")}
                 value={newClaim.description}
                 onChange={(e) =>
                   setNewClaim((prev) => ({ ...prev, description: e.target.value }))
@@ -590,13 +594,13 @@ function WarrantyClaimsPageContent() {
               onClick={() => setNewDialogOpen(false)}
               disabled={creating}
             >
-              Abbrechen
+              {tc("cancel")}
             </Button>
             <Button
               onClick={handleCreate}
               disabled={creating || !newClaim.warrantyRecordId || !newClaim.reason.trim()}
             >
-              {creating ? "Wird erstellt..." : "Anspruch erstellen"}
+              {creating ? t("creating") : t("createClaim")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -609,11 +613,11 @@ function WarrantyClaimsPageContent() {
             <>
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
-                  {selectedClaim.claimNumber ?? "Garantieanspruch"}
+                  {selectedClaim.claimNumber ?? t("warrantyClaim")}
                   <StatusBadge status={selectedClaim.status} />
                 </DialogTitle>
                 <DialogDescription>
-                  {selectedClaim.entityName ?? "Unbekannt"} ({selectedClaim.entityType === "tool" ? "Werkzeug" : "Material"})
+                  {selectedClaim.entityName ?? t("unknown")} ({selectedClaim.entityType === "tool" ? t("entityTool") : t("entityMaterial")})
                   {selectedClaim.warrantyProvider && ` — ${selectedClaim.warrantyProvider}`}
                 </DialogDescription>
               </DialogHeader>
@@ -621,25 +625,25 @@ function WarrantyClaimsPageContent() {
               <div className="space-y-4">
                 {/* Info grid */}
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                  <span className="text-muted-foreground">Grund</span>
+                  <span className="text-muted-foreground">{t("reason")}</span>
                   <span>{selectedClaim.reason}</span>
 
                   {selectedClaim.description && (
                     <>
-                      <span className="text-muted-foreground">Beschreibung</span>
+                      <span className="text-muted-foreground">{t("description")}</span>
                       <span>{selectedClaim.description}</span>
                     </>
                   )}
 
-                  <span className="text-muted-foreground">Eingereicht von</span>
+                  <span className="text-muted-foreground">{t("submittedBy")}</span>
                   <span>
                     {selectedClaim.submittedByName ?? selectedClaim.submittedByEmail ?? "—"}
                   </span>
 
-                  <span className="text-muted-foreground">Bearbeiter</span>
+                  <span className="text-muted-foreground">{t("assignee")}</span>
                   <span>{selectedClaim.assignedToName ?? "—"}</span>
 
-                  <span className="text-muted-foreground">Garantie-Zeitraum</span>
+                  <span className="text-muted-foreground">{t("warrantyPeriod")}</span>
                   <span>
                     {selectedClaim.warrantyStart || selectedClaim.warrantyEnd
                       ? `${formatDate(selectedClaim.warrantyStart)} – ${formatDate(selectedClaim.warrantyEnd)}`
@@ -649,40 +653,40 @@ function WarrantyClaimsPageContent() {
 
                 {/* Status Timeline */}
                 <div className="space-y-1.5">
-                  <h4 className="text-sm font-medium">Verlauf</h4>
+                  <h4 className="text-sm font-medium">{t("timeline")}</h4>
                   <div className="space-y-1 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <div className="size-2 rounded-full bg-gray-400" />
-                      <span>Erstellt am {formatDateTime(selectedClaim.createdAt)}</span>
+                      <span>{t("createdAt", { date: formatDateTime(selectedClaim.createdAt) })}</span>
                     </div>
                     {selectedClaim.submittedAt && (
                       <div className="flex items-center gap-2">
                         <div className="size-2 rounded-full bg-blue-400" />
-                        <span>Eingereicht am {formatDateTime(selectedClaim.submittedAt)}</span>
+                        <span>{t("submittedAtDate", { date: formatDateTime(selectedClaim.submittedAt) })}</span>
                       </div>
                     )}
                     {selectedClaim.status === "in_review" && (
                       <div className="flex items-center gap-2">
                         <div className="size-2 rounded-full bg-yellow-400" />
-                        <span>In Prüfung</span>
+                        <span>{t("status.inReview")}</span>
                       </div>
                     )}
                     {(selectedClaim.status === "approved" || selectedClaim.status === "resolved") && (
                       <div className="flex items-center gap-2">
                         <div className="size-2 rounded-full bg-green-500" />
-                        <span>Genehmigt</span>
+                        <span>{t("status.approved")}</span>
                       </div>
                     )}
                     {selectedClaim.status === "rejected" && (
                       <div className="flex items-center gap-2">
                         <div className="size-2 rounded-full bg-red-500" />
-                        <span>Abgelehnt</span>
+                        <span>{t("status.rejected")}</span>
                       </div>
                     )}
                     {selectedClaim.resolvedAt && (
                       <div className="flex items-center gap-2">
                         <div className="size-2 rounded-full bg-purple-500" />
-                        <span>Erledigt am {formatDateTime(selectedClaim.resolvedAt)}</span>
+                        <span>{t("resolvedAtDate", { date: formatDateTime(selectedClaim.resolvedAt) })}</span>
                       </div>
                     )}
                   </div>
@@ -691,25 +695,25 @@ function WarrantyClaimsPageContent() {
                 {/* Resolution section (for approved claims) */}
                 {selectedClaim.status === "approved" && (
                   <div className="space-y-3 rounded-md border p-3">
-                    <h4 className="text-sm font-medium">Lösung</h4>
+                    <h4 className="text-sm font-medium">{t("resolutionTitle")}</h4>
                     <div className="space-y-2">
-                      <Label htmlFor="resolution-type">Art der Lösung</Label>
+                      <Label htmlFor="resolution-type">{t("resolutionType")}</Label>
                       <Select value={resolution} onValueChange={setResolution}>
                         <SelectTrigger id="resolution-type">
-                          <SelectValue placeholder="Lösung auswählen..." />
+                          <SelectValue placeholder={t("selectResolution")} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="replacement">Ersatz</SelectItem>
-                          <SelectItem value="repair">Reparatur</SelectItem>
-                          <SelectItem value="refund">Erstattung</SelectItem>
+                          <SelectItem value="replacement">{t("resolution.replacement")}</SelectItem>
+                          <SelectItem value="repair">{t("resolution.repair")}</SelectItem>
+                          <SelectItem value="refund">{t("resolution.refund")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="resolution-notes">Notizen zur Lösung</Label>
+                      <Label htmlFor="resolution-notes">{t("resolutionNotes")}</Label>
                       <Textarea
                         id="resolution-notes"
-                        placeholder="Details zur Lösung..."
+                        placeholder={t("resolutionNotesPlaceholder")}
                         value={resolutionNotes}
                         onChange={(e) => setResolutionNotes(e.target.value)}
                         rows={2}
@@ -722,9 +726,9 @@ function WarrantyClaimsPageContent() {
                 {selectedClaim.status === "resolved" && selectedClaim.resolution && (
                   <div className="rounded-md bg-muted px-3 py-2 text-sm space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">Lösung:</span>
+                      <span className="text-muted-foreground">{t("resolutionTitle")}:</span>
                       <span className="font-medium">
-                        {RESOLUTION_LABELS[selectedClaim.resolution] ?? selectedClaim.resolution}
+                        {RESOLUTION_LABEL_KEYS[selectedClaim.resolution] ? t(RESOLUTION_LABEL_KEYS[selectedClaim.resolution]) : selectedClaim.resolution}
                       </span>
                     </div>
                     {selectedClaim.resolutionNotes && (
@@ -740,7 +744,7 @@ function WarrantyClaimsPageContent() {
                       onClick={() => updateStatus("submitted")}
                       disabled={updating}
                     >
-                      {updating ? "Wird eingereicht..." : "Einreichen"}
+                      {updating ? t("submitting") : t("submit")}
                     </Button>
                   )}
 
@@ -750,7 +754,7 @@ function WarrantyClaimsPageContent() {
                       disabled={updating}
                     >
                       <IconClock className="size-4 mr-1" />
-                      {updating ? "Wird aktualisiert..." : "In Prüfung nehmen"}
+                      {updating ? t("updating") : t("takeInReview")}
                     </Button>
                   )}
 
@@ -761,7 +765,7 @@ function WarrantyClaimsPageContent() {
                         disabled={updating}
                       >
                         <IconCheck className="size-4 mr-1" />
-                        {updating ? "..." : "Genehmigen"}
+                        {updating ? "..." : t("approve")}
                       </Button>
                       <Button
                         variant="outline"
@@ -770,7 +774,7 @@ function WarrantyClaimsPageContent() {
                         disabled={updating}
                       >
                         <IconX className="size-4 mr-1" />
-                        {updating ? "..." : "Ablehnen"}
+                        {updating ? "..." : t("reject")}
                       </Button>
                     </>
                   )}
@@ -786,7 +790,7 @@ function WarrantyClaimsPageContent() {
                       disabled={updating || !resolution}
                     >
                       <IconCheck className="size-4 mr-1" />
-                      {updating ? "Wird gespeichert..." : "Als erledigt markieren"}
+                      {updating ? t("saving") : t("markResolved")}
                     </Button>
                   )}
                 </div>

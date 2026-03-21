@@ -86,7 +86,7 @@ export function DsgvoDeleteCard() {
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
             {t.rich("deleteGracePeriod", {
-              strong: (chunks) => <strong>{chunks}</strong>,
+              strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
             })}
           </p>
 

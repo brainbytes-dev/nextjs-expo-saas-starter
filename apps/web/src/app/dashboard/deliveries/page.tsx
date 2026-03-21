@@ -109,7 +109,7 @@ const CARRIERS = [
   { id: "dpd", name: "DPD", urlTemplate: "https://tracking.dpd.de/status/de_CH/parcel/{tracking}" },
   { id: "planzer", name: "Planzer", urlTemplate: "https://www.planzer.ch/tracking/?id={tracking}" },
   { id: "camion", name: "Camion Transport", urlTemplate: "https://www.camiontransport.ch/tracking?nr={tracking}" },
-  { id: "other", name: "other", urlTemplate: "" },
+  { id: "other", name: "Andere", urlTemplate: "" },
 ]
 
 function generateTrackingUrl(carrier: string | null, trackingNumber: string | null): string | null {
