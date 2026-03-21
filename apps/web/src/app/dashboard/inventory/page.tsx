@@ -165,10 +165,10 @@ export default function InventoryPage() {
         router.push(`/dashboard/inventory/${created.id}`)
       } else {
         const err = await res.json()
-        setCreateError(err.error ?? "Fehler beim Erstellen")
+        setCreateError(err.error ?? t("createError"))
       }
     } catch {
-      setCreateError("Netzwerkfehler")
+      setCreateError(t("networkError"))
     } finally {
       setCreating(false)
     }
@@ -214,14 +214,14 @@ export default function InventoryPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Inventur</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {counts.length} Inventuren
+            {t("countLabel", { count: counts.length })}
           </p>
         </div>
         <Button onClick={() => setCreateOpen(true)}>
           <IconPlus className="size-4" />
-          Neue Inventur
+          {t("newCount")}
         </Button>
       </div>
 
@@ -232,14 +232,14 @@ export default function InventoryPage() {
           onValueChange={setStatusFilter}
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder={t("allStatuses")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Alle Status</SelectItem>
-            <SelectItem value="draft">Entwurf</SelectItem>
-            <SelectItem value="in_progress">In Bearbeitung</SelectItem>
-            <SelectItem value="completed">Abgeschlossen</SelectItem>
-            <SelectItem value="cancelled">Storniert</SelectItem>
+            <SelectItem value="all">{t("allStatuses")}</SelectItem>
+            <SelectItem value="draft">{t("draft")}</SelectItem>
+            <SelectItem value="in_progress">{t("inProgress")}</SelectItem>
+            <SelectItem value="completed">{t("completed")}</SelectItem>
+            <SelectItem value="cancelled">{t("cancelled")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -257,13 +257,13 @@ export default function InventoryPage() {
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
               <IconClipboardCheck className="size-8 text-muted-foreground" />
             </div>
-            <h3 className="mt-4 text-lg font-medium">Keine Inventuren</h3>
+            <h3 className="mt-4 text-lg font-medium">{t("noInventories")}</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Erstellen Sie Ihre erste Inventur, um den Bestand zu zählen
+              {t("noInventoriesDesc")}
             </p>
             <Button className="mt-6" onClick={() => setCreateOpen(true)}>
               <IconPlus className="size-4" />
-              Neue Inventur
+              {t("newCount")}
             </Button>
           </CardContent>
         </Card>
@@ -280,7 +280,7 @@ export default function InventoryPage() {
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{count.name}</span>
                     <Badge variant={STATUS_VARIANTS[count.status] ?? "secondary"}>
-                      {STATUS_LABELS[count.status] ?? count.status}
+                      {t(count.status === "in_progress" ? "inProgress" : count.status as Parameters<typeof t>[0]) || count.status}
                     </Badge>
                   </div>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">

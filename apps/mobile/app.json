@@ -58,7 +58,7 @@
           "androidMode": "default",
           "androidCollapsedTitle": "#{unread_notifications} neue Mitteilungen"
         }
-      ],
+      ]
     ],
     "extra": {
       "eas": {
