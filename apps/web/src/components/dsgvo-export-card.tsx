@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -19,6 +20,7 @@ import {
 import { IconDownload, IconShieldCheck } from "@tabler/icons-react"
 
 export function DsgvoExportCard() {
+  const t = useTranslations("dsgvo")
   const [format, setFormat] = useState<"json" | "csv">("csv")
   const [isExporting, setIsExporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -33,7 +35,7 @@ export function DsgvoExportCard() {
       if (!res.ok) {
         const data = await res.json().catch(() => null)
         setError(
-          data?.error ?? "Export fehlgeschlagen. Bitte versuchen Sie es später erneut."
+          data?.error ?? t("exportFailed")
         )
         return
       }
@@ -55,7 +57,7 @@ export function DsgvoExportCard() {
       a.remove()
       URL.revokeObjectURL(url)
     } catch {
-      setError("Export fehlgeschlagen. Bitte versuchen Sie es später erneut.")
+      setError(t("exportFailed"))
     } finally {
       setIsExporting(false)
     }
@@ -66,19 +68,16 @@ export function DsgvoExportCard() {
       <CardHeader>
         <div className="flex items-center gap-2">
           <IconShieldCheck className="size-5 text-primary" aria-hidden />
-          <CardTitle>Ihre Daten</CardTitle>
+          <CardTitle>{t("exportTitle")}</CardTitle>
         </div>
         <CardDescription>
-          Gemäss DSGVO Art. 15 können Sie alle Ihre personenbezogenen Daten
-          exportieren.
+          {t("exportDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Der Export enthält Ihr Profil, Bestandsänderungen,
-            Werkzeug-Buchungen, Zeiteinträge, Kommentare und
-            Kommissions-Einträge.
+            {t("exportContents")}
           </p>
 
           <div className="flex items-center gap-3">
@@ -97,7 +96,7 @@ export function DsgvoExportCard() {
 
             <Button onClick={handleExport} disabled={isExporting}>
               <IconDownload className="mr-2 size-4" aria-hidden />
-              {isExporting ? "Exportiert..." : "Daten exportieren"}
+              {isExporting ? t("exporting") : t("exportData")}
             </Button>
           </div>
 

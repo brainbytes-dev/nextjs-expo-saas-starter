@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
+import { useTranslations } from "next-intl"
 import {
   IconClock,
   IconPlayerPlay,
@@ -159,6 +160,8 @@ export default function TimeTrackingPage() {
 }
 
 function TimeTrackingPageContent() {
+  const t = useTranslations("timeTracking")
+  const tc = useTranslations("common")
   // Data state
   const [entries, setEntries] = useState<TimeEntry[]>([])
   const [commissionsList, setCommissionsList] = useState<Commission[]>([])
@@ -281,10 +284,10 @@ function TimeTrackingPageContent() {
         await fetchEntries()
       } else {
         const err = await res.json()
-        alert(err.error || "Fehler beim Starten")
+        alert(err.error || t("startError"))
       }
     } catch {
-      alert("Netzwerkfehler")
+      alert(t("networkError"))
     } finally {
       setSaving(false)
     }
@@ -312,7 +315,7 @@ function TimeTrackingPageContent() {
         await fetchEntries()
       }
     } catch {
-      alert("Netzwerkfehler")
+      alert(t("networkError"))
     } finally {
       setSaving(false)
     }
@@ -354,7 +357,7 @@ function TimeTrackingPageContent() {
         await fetchEntries()
       }
     } catch {
-      alert("Netzwerkfehler")
+      alert(t("networkError"))
     } finally {
       setSaving(false)
     }
@@ -362,12 +365,12 @@ function TimeTrackingPageContent() {
 
   // ── Delete entry ───────────────────────────────────────────────────────────
   const handleDelete = async (id: string) => {
-    if (!confirm("Zeiteintrag wirklich löschen?")) return
+    if (!confirm(t("deleteConfirm"))) return
     try {
       const res = await fetch(`/api/time-entries/${id}`, { method: "DELETE" })
       if (res.ok) await fetchEntries()
     } catch {
-      alert("Netzwerkfehler")
+      alert(t("networkError"))
     }
   }
 
@@ -411,7 +414,7 @@ function TimeTrackingPageContent() {
 
   // ── Weekly chart ───────────────────────────────────────────────────────────
   const weeklyData = useMemo(() => {
-    const labels = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
+    const labels = [t("weekdays.mon"), t("weekdays.tue"), t("weekdays.wed"), t("weekdays.thu"), t("weekdays.fri"), t("weekdays.sat"), t("weekdays.sun")]
     const ws = startOfWeek(now)
     return labels.map((label, i) => {
       const dayStart = new Date(ws)
@@ -457,7 +460,7 @@ function TimeTrackingPageContent() {
   // ── CSV Export ─────────────────────────────────────────────────────────────
   const handleExportCSV = () => {
     const BOM = "\uFEFF"
-    const header = "Datum;Mitarbeiter;Kommission;Projekt;Beschreibung;Start;Ende;Dauer (h);Abrechenbar;Stundensatz CHF"
+    const header = `${t("csv.date")};${t("csv.employee")};${t("csv.commission")};${t("csv.project")};${t("csv.description")};${t("csv.start")};${t("csv.end")};${t("csv.durationH")};${t("csv.billable")};${t("csv.hourlyRateCHF")}`
     const rows = filteredEntries.map((e) => {
       const durationH = e.status === "running"
         ? (getElapsedSeconds(e.startTime) / 3600).toFixed(2)

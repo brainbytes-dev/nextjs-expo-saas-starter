@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { FeatureGate } from "@/components/upgrade-prompt"
 import {
   IconTruck,
@@ -93,12 +94,12 @@ interface Supplier { id: string; name: string }
 // ── Status config ──────────────────────────────────────────────────────
 const DELIVERY_STATUSES: DeliveryStatus[] = ["ordered", "confirmed", "shipped", "in_transit", "delivered"]
 
-const STATUS_CONFIG: Record<DeliveryStatus, { label: string; color: string; bgColor: string; icon: React.ComponentType<{ className?: string }> }> = {
-  ordered: { label: "Bestellt", color: "text-muted-foreground", bgColor: "bg-muted/50", icon: IconPackage },
-  confirmed: { label: "Bestätigt", color: "text-blue-600 dark:text-blue-400", bgColor: "bg-blue-50 dark:bg-blue-900/20", icon: IconCheck },
-  shipped: { label: "Versendet", color: "text-violet-600 dark:text-violet-400", bgColor: "bg-violet-50 dark:bg-violet-900/20", icon: IconArrowRight },
-  in_transit: { label: "Unterwegs", color: "text-orange-600 dark:text-orange-400", bgColor: "bg-orange-50 dark:bg-orange-900/20", icon: IconTruck },
-  delivered: { label: "Geliefert", color: "text-green-600 dark:text-green-400", bgColor: "bg-green-50 dark:bg-green-900/20", icon: IconCheck },
+const STATUS_CONFIG: Record<DeliveryStatus, { labelKey: string; color: string; bgColor: string; icon: React.ComponentType<{ className?: string }> }> = {
+  ordered: { labelKey: "status.ordered", color: "text-muted-foreground", bgColor: "bg-muted/50", icon: IconPackage },
+  confirmed: { labelKey: "status.confirmed", color: "text-blue-600 dark:text-blue-400", bgColor: "bg-blue-50 dark:bg-blue-900/20", icon: IconCheck },
+  shipped: { labelKey: "status.shipped", color: "text-violet-600 dark:text-violet-400", bgColor: "bg-violet-50 dark:bg-violet-900/20", icon: IconArrowRight },
+  in_transit: { labelKey: "status.inTransit", color: "text-orange-600 dark:text-orange-400", bgColor: "bg-orange-50 dark:bg-orange-900/20", icon: IconTruck },
+  delivered: { labelKey: "status.delivered", color: "text-green-600 dark:text-green-400", bgColor: "bg-green-50 dark:bg-green-900/20", icon: IconCheck },
 }
 
 // ── Swiss carriers ─────────────────────────────────────────────────────
@@ -108,7 +109,7 @@ const CARRIERS = [
   { id: "dpd", name: "DPD", urlTemplate: "https://tracking.dpd.de/status/de_CH/parcel/{tracking}" },
   { id: "planzer", name: "Planzer", urlTemplate: "https://www.planzer.ch/tracking/?id={tracking}" },
   { id: "camion", name: "Camion Transport", urlTemplate: "https://www.camiontransport.ch/tracking?nr={tracking}" },
-  { id: "other", name: "Andere", urlTemplate: "" },
+  { id: "other", name: "other", urlTemplate: "" },
 ]
 
 function generateTrackingUrl(carrier: string | null, trackingNumber: string | null): string | null {
@@ -146,6 +147,7 @@ function getStatusConfig(status: string) {
 
 // ── Kanban Card ────────────────────────────────────────────────────────
 function KanbanCard({ delivery, onDragStart, onClick }: { delivery: Delivery; onDragStart: (e: React.DragEvent, id: string) => void; onClick: (d: Delivery) => void }) {
+  const t = useTranslations("deliveries")
   const overdue = isOverdue(delivery)
   return (
     <div
@@ -162,9 +164,9 @@ function KanbanCard({ delivery, onDragStart, onClick }: { delivery: Delivery; on
       {overdue && <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg bg-destructive" />}
       <div className="flex items-start justify-between gap-2">
         <p className="text-sm font-semibold text-foreground leading-snug">{delivery.orderNumber || "–"}</p>
-        {overdue && <Badge variant="destructive" className="text-[10px] px-1.5 py-0 leading-5 shrink-0">Überfällig</Badge>}
+        {overdue && <Badge variant="destructive" className="text-[10px] px-1.5 py-0 leading-5 shrink-0">{t("overdue")}</Badge>}
       </div>
-      <p className="text-xs text-muted-foreground line-clamp-1">{delivery.supplierName || "Unbekannt"}</p>
+      <p className="text-xs text-muted-foreground line-clamp-1">{delivery.supplierName || t("unknown")}</p>
       {delivery.trackingNumber && (
         <div className="flex items-center gap-1">
           <IconTruck className="size-3 text-muted-foreground/60" />
@@ -193,13 +195,14 @@ function KanbanColumn({ status, deliveries, onDragStart, onDragOver, onDrop, onD
   status: DeliveryStatus; deliveries: Delivery[]; onDragStart: (e: React.DragEvent, id: string) => void
   onDragOver: (e: React.DragEvent) => void; onDrop: (e: React.DragEvent) => void; onDragLeave: () => void; isDragOver: boolean; onClick: (d: Delivery) => void
 }) {
+  const t = useTranslations("deliveries")
   const cfg = STATUS_CONFIG[status]
   const StatusIcon = cfg.icon
   return (
     <div className="flex flex-col gap-2 min-w-[220px] flex-1">
       <div className="flex items-center gap-2 px-1">
         <StatusIcon className={cn("size-4", cfg.color)} />
-        <span className={cn("text-sm font-semibold", cfg.color)}>{cfg.label}</span>
+        <span className={cn("text-sm font-semibold", cfg.color)}>{t(cfg.labelKey)}</span>
         <span className="flex items-center justify-center size-5 rounded-full bg-muted text-xs font-bold text-muted-foreground">{deliveries.length}</span>
       </div>
       <div
@@ -207,7 +210,7 @@ function KanbanColumn({ status, deliveries, onDragStart, onDragOver, onDrop, onD
         className={cn("flex flex-col gap-2 rounded-xl p-2 min-h-[300px] transition-colors duration-150", COLUMN_BG[status], isDragOver && "ring-2 ring-primary ring-inset bg-primary/10")}
       >
         {deliveries.map((d) => <KanbanCard key={d.id} delivery={d} onDragStart={onDragStart} onClick={onClick} />)}
-        {deliveries.length === 0 && <div className="flex-1 flex items-center justify-center min-h-[100px]"><p className="text-xs text-muted-foreground/50">Keine Lieferungen</p></div>}
+        {deliveries.length === 0 && <div className="flex-1 flex items-center justify-center min-h-[100px]"><p className="text-xs text-muted-foreground/50">{t("noDeliveries")}</p></div>}
       </div>
     </div>
   )
@@ -217,6 +220,7 @@ function KanbanColumn({ status, deliveries, onDragStart, onDragOver, onDrop, onD
 function DeliveryDetailSheet({ delivery, open, onClose, onStatusChange }: {
   delivery: Delivery | null; open: boolean; onClose: () => void; onStatusChange: (id: string, status: DeliveryStatus) => void
 }) {
+  const t = useTranslations("deliveries")
   if (!delivery) return null
   const overdue = isOverdue(delivery)
   const cfg = getStatusConfig(delivery.status)
@@ -228,33 +232,33 @@ function DeliveryDetailSheet({ delivery, open, onClose, onStatusChange }: {
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent className="sm:max-w-lg overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-2"><IconTruck className="size-5" />Lieferung {delivery.orderNumber || "–"}</SheetTitle>
+          <SheetTitle className="flex items-center gap-2"><IconTruck className="size-5" />{t("delivery")} {delivery.orderNumber || "–"}</SheetTitle>
         </SheetHeader>
         <div className="flex flex-col gap-6 mt-6">
           <div className="flex items-center gap-3">
             <span className={cn("inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-md", cfg.bgColor, cfg.color)}>
-              <StatusIcon className="size-4" />{cfg.label}
+              <StatusIcon className="size-4" />{t(cfg.labelKey)}
             </span>
-            {overdue && <Badge variant="destructive" className="gap-1"><IconAlertTriangle className="size-3" />Überfällig</Badge>}
+            {overdue && <Badge variant="destructive" className="gap-1"><IconAlertTriangle className="size-3" />{t("overdue")}</Badge>}
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div><p className="text-xs text-muted-foreground">Bestellnummer</p><p className="text-sm font-medium">{delivery.orderNumber || "–"}</p></div>
-            <div><p className="text-xs text-muted-foreground">Lieferant</p><p className="text-sm font-medium">{delivery.supplierName || "–"}</p></div>
-            <div><p className="text-xs text-muted-foreground">Spediteur</p><p className="text-sm font-medium">{CARRIERS.find((c) => c.id === delivery.carrier)?.name || delivery.carrier || "–"}</p></div>
+            <div><p className="text-xs text-muted-foreground">{t("orderNumber")}</p><p className="text-sm font-medium">{delivery.orderNumber || "–"}</p></div>
+            <div><p className="text-xs text-muted-foreground">{t("supplier")}</p><p className="text-sm font-medium">{delivery.supplierName || "–"}</p></div>
+            <div><p className="text-xs text-muted-foreground">{t("carrier")}</p><p className="text-sm font-medium">{CARRIERS.find((c) => c.id === delivery.carrier)?.name || delivery.carrier || "–"}</p></div>
             <div>
-              <p className="text-xs text-muted-foreground">Sendungsnummer</p>
+              <p className="text-xs text-muted-foreground">{t("trackingNumber")}</p>
               <div className="flex items-center gap-1.5">
                 <p className="text-sm font-mono font-medium">{delivery.trackingNumber || "–"}</p>
                 {trackingLink && <a href={trackingLink} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80"><IconExternalLink className="size-3.5" /></a>}
               </div>
             </div>
-            <div><p className="text-xs text-muted-foreground">Erwartete Lieferung</p><p className={cn("text-sm font-medium", overdue && "text-destructive")}>{formatDate(delivery.expectedDeliveryDate)}</p></div>
-            <div><p className="text-xs text-muted-foreground">Tatsächliche Lieferung</p><p className="text-sm font-medium">{formatDate(delivery.actualDeliveryDate)}</p></div>
+            <div><p className="text-xs text-muted-foreground">{t("expectedDelivery")}</p><p className={cn("text-sm font-medium", overdue && "text-destructive")}>{formatDate(delivery.expectedDeliveryDate)}</p></div>
+            <div><p className="text-xs text-muted-foreground">{t("actualDelivery")}</p><p className="text-sm font-medium">{formatDate(delivery.actualDeliveryDate)}</p></div>
           </div>
-          {delivery.notes && <div><p className="text-xs text-muted-foreground mb-1">Notizen</p><p className="text-sm text-foreground bg-muted/50 rounded-md p-3">{delivery.notes}</p></div>}
+          {delivery.notes && <div><p className="text-xs text-muted-foreground mb-1">{t("notes")}</p><p className="text-sm text-foreground bg-muted/50 rounded-md p-3">{delivery.notes}</p></div>}
           {/* Status Timeline */}
           <div>
-            <p className="text-xs text-muted-foreground mb-3">Status-Verlauf</p>
+            <p className="text-xs text-muted-foreground mb-3">{t("statusHistory")}</p>
             <div className="flex flex-col gap-0">
               {DELIVERY_STATUSES.map((s, idx) => {
                 const sCfg = STATUS_CONFIG[s]; const SIcon = sCfg.icon; const isActive = idx <= currentIdx; const isCurrent = s === delivery.status
@@ -266,7 +270,7 @@ function DeliveryDetailSheet({ delivery, open, onClose, onStatusChange }: {
                       </div>
                       {idx < DELIVERY_STATUSES.length - 1 && <div className={cn("w-0.5 h-6", idx < currentIdx ? "bg-primary" : "bg-border")} />}
                     </div>
-                    <div className="pb-4"><p className={cn("text-sm font-medium leading-6", isCurrent ? "text-foreground" : isActive ? "text-muted-foreground" : "text-muted-foreground/50")}>{sCfg.label}</p></div>
+                    <div className="pb-4"><p className={cn("text-sm font-medium leading-6", isCurrent ? "text-foreground" : isActive ? "text-muted-foreground" : "text-muted-foreground/50")}>{t(sCfg.labelKey)}</p></div>
                   </div>
                 )
               })}
@@ -274,19 +278,19 @@ function DeliveryDetailSheet({ delivery, open, onClose, onStatusChange }: {
           </div>
           {delivery.status !== "delivered" && (
             <div>
-              <p className="text-xs text-muted-foreground mb-2">Status ändern</p>
+              <p className="text-xs text-muted-foreground mb-2">{t("changeStatus")}</p>
               <div className="flex gap-2 flex-wrap">
                 {DELIVERY_STATUSES.filter((s) => DELIVERY_STATUSES.indexOf(s) > currentIdx).map((s) => {
                   const sCfg = STATUS_CONFIG[s]
-                  return <Button key={s} variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => onStatusChange(delivery.id, s)}><sCfg.icon className="size-3" />{sCfg.label}</Button>
+                  return <Button key={s} variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => onStatusChange(delivery.id, s)}><sCfg.icon className="size-3" />{t(sCfg.labelKey)}</Button>
                 })}
               </div>
             </div>
           )}
           <div className="border-t pt-4">
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Erstellt: {formatDate(delivery.createdAt)}</span>
-              <span>Letztes Update: {delivery.lastStatusUpdate ? formatDate(delivery.lastStatusUpdate) : "–"}</span>
+              <span>{t("created")}: {formatDate(delivery.createdAt)}</span>
+              <span>{t("lastUpdate")}: {delivery.lastStatusUpdate ? formatDate(delivery.lastStatusUpdate) : "–"}</span>
             </div>
           </div>
         </div>
@@ -306,11 +310,12 @@ function CreateDeliveryDialog({ open, onClose, onCreated, orders }: {
   const [notes, setNotes] = useState("")
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const t = useTranslations("deliveries")
 
   function reset() { setOrderId(""); setCarrier(""); setTrackingNumber(""); setExpectedDate(""); setNotes(""); setError(null) }
 
   async function handleSubmit() {
-    if (!orderId) { setError("Bitte eine Bestellung auswählen"); return }
+    if (!orderId) { setError(t("selectOrderError")); return }
     setSaving(true); setError(null)
     try {
       const selectedOrder = orders.find((o) => o.id === orderId)
@@ -320,38 +325,38 @@ function CreateDeliveryDialog({ open, onClose, onCreated, orders }: {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orderId, supplierId: selectedOrder?.supplierId || null, carrier: carrier || null, trackingNumber: trackingNumber || null, expectedDeliveryDate: expectedDate || null, notes: notes || null, trackingUrl }),
       })
-      if (!res.ok) { const data = await res.json(); throw new Error(data.error || "Fehler beim Erstellen") }
+      if (!res.ok) { const data = await res.json(); throw new Error(data.error || t("createError")) }
       reset(); onCreated(); onClose()
-    } catch (err: unknown) { setError(err instanceof Error ? err.message : "Unbekannter Fehler") } finally { setSaving(false) }
+    } catch (err: unknown) { setError(err instanceof Error ? err.message : t("unknownError")) } finally { setSaving(false) }
   }
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) { reset(); onClose() } }}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle>Lieferverfolgung erstellen</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{t("createTitle")}</DialogTitle></DialogHeader>
         <div className="flex flex-col gap-4 py-2">
           {error && <div className="text-sm text-destructive bg-destructive/10 rounded-md p-2">{error}</div>}
           <div className="space-y-1.5">
-            <Label>Bestellung *</Label>
+            <Label>{t("order")} *</Label>
             <Select value={orderId} onValueChange={setOrderId}>
-              <SelectTrigger><SelectValue placeholder="Bestellung auswählen..." /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("selectOrder")} /></SelectTrigger>
               <SelectContent>{orders.map((o) => <SelectItem key={o.id} value={o.id}>{o.orderNumber || o.id.slice(0, 8)}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label className="inline-flex items-center gap-1.5">Spediteur <InfoTooltip text={TOOLTIPS.deliveryCarrier} /></Label>
+            <Label className="inline-flex items-center gap-1.5">{t("carrier")} <InfoTooltip text={TOOLTIPS.deliveryCarrier} /></Label>
             <Select value={carrier} onValueChange={setCarrier}>
-              <SelectTrigger><SelectValue placeholder="Spediteur wählen..." /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("selectCarrier")} /></SelectTrigger>
               <SelectContent>{CARRIERS.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5"><Label>Sendungsnummer</Label><Input placeholder="z.B. 99.12.345678.90123456" value={trackingNumber} onChange={(e) => setTrackingNumber(e.target.value)} /></div>
-          <div className="space-y-1.5"><Label>Erwartete Lieferung</Label><Input type="date" value={expectedDate} onChange={(e) => setExpectedDate(e.target.value)} /></div>
-          <div className="space-y-1.5"><Label>Notizen</Label><Textarea placeholder="Optionale Bemerkungen..." value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} /></div>
+          <div className="space-y-1.5"><Label>{t("trackingNumber")}</Label><Input placeholder={t("trackingNumberPlaceholder")} value={trackingNumber} onChange={(e) => setTrackingNumber(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t("expectedDelivery")}</Label><Input type="date" value={expectedDate} onChange={(e) => setExpectedDate(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t("notes")}</Label><Textarea placeholder={t("notesPlaceholder")} value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} /></div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => { reset(); onClose() }}>Abbrechen</Button>
-          <Button onClick={handleSubmit} disabled={saving}>{saving ? "Erstellen..." : "Erstellen"}</Button>
+          <Button variant="outline" onClick={() => { reset(); onClose() }}>{t("cancel")}</Button>
+          <Button onClick={handleSubmit} disabled={saving}>{saving ? t("creating") : t("create")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -368,6 +373,8 @@ export default function DeliveriesPage() {
 }
 
 function DeliveriesPageContent() {
+  const t = useTranslations("deliveries")
+  const tc = useTranslations("common")
   const [deliveries, setDeliveries] = useState<Delivery[]>([])
   const [availableOrders, setAvailableOrders] = useState<Order[]>([])
   const [availableSuppliers, setAvailableSuppliers] = useState<Supplier[]>([])
@@ -454,8 +461,8 @@ function DeliveriesPageContent() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground flex items-center gap-2">Lieferverfolgung <InfoTooltip text={TOOLTIPS.deliveryOverdue} side="right" /></h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{stats.total} Lieferungen verfolgen</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground flex items-center gap-2">{t("title")} <InfoTooltip text={TOOLTIPS.deliveryOverdue} side="right" /></h1>
+          <p className="text-sm text-muted-foreground mt-0.5">{t("trackingCount", { count: stats.total })}</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center rounded-lg border border-border p-0.5">
@@ -466,16 +473,16 @@ function DeliveriesPageContent() {
               <IconTable className="size-3.5" />Tabelle
             </button>
           </div>
-          <Button className="gap-1.5" onClick={() => setCreateOpen(true)}><IconPlus className="size-4" />Neue Lieferung</Button>
+          <Button className="gap-1.5" onClick={() => setCreateOpen(true)}><IconPlus className="size-4" />{t("newDelivery")}</Button>
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center gap-3"><div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center"><IconTruck className="size-5 text-primary" /></div><div><p className="text-2xl font-bold text-foreground">{stats.inTransit}</p><p className="text-xs text-muted-foreground">Unterwegs</p></div></div></CardContent></Card>
-        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center gap-3"><div className={cn("size-10 rounded-lg flex items-center justify-center", stats.overdue > 0 ? "bg-destructive/10" : "bg-muted")}><IconAlertTriangle className={cn("size-5", stats.overdue > 0 ? "text-destructive" : "text-muted-foreground")} /></div><div><p className={cn("text-2xl font-bold", stats.overdue > 0 ? "text-destructive" : "text-foreground")}>{stats.overdue}</p><p className="text-xs text-muted-foreground">Überfällig</p></div></div></CardContent></Card>
-        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center gap-3"><div className="size-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center"><IconClock className="size-5 text-blue-600 dark:text-blue-400" /></div><div><p className="text-2xl font-bold text-foreground">{stats.avgDays > 0 ? `${stats.avgDays} Tage` : "–"}</p><p className="text-xs text-muted-foreground">Ø Lieferzeit</p></div></div></CardContent></Card>
-        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center gap-3"><div className="size-10 rounded-lg bg-muted flex items-center justify-center"><IconPackage className="size-5 text-muted-foreground" /></div><div><p className="text-2xl font-bold text-foreground">{stats.total}</p><p className="text-xs text-muted-foreground">Total Lieferungen</p></div></div></CardContent></Card>
+        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center gap-3"><div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center"><IconTruck className="size-5 text-primary" /></div><div><p className="text-2xl font-bold text-foreground">{stats.inTransit}</p><p className="text-xs text-muted-foreground">{t("stats.inTransit")}</p></div></div></CardContent></Card>
+        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center gap-3"><div className={cn("size-10 rounded-lg flex items-center justify-center", stats.overdue > 0 ? "bg-destructive/10" : "bg-muted")}><IconAlertTriangle className={cn("size-5", stats.overdue > 0 ? "text-destructive" : "text-muted-foreground")} /></div><div><p className={cn("text-2xl font-bold", stats.overdue > 0 ? "text-destructive" : "text-foreground")}>{stats.overdue}</p><p className="text-xs text-muted-foreground">{t("overdue")}</p></div></div></CardContent></Card>
+        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center gap-3"><div className="size-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center"><IconClock className="size-5 text-blue-600 dark:text-blue-400" /></div><div><p className="text-2xl font-bold text-foreground">{stats.avgDays > 0 ? t("stats.days", { count: stats.avgDays }) : "–"}</p><p className="text-xs text-muted-foreground">{t("stats.avgDeliveryTime")}</p></div></div></CardContent></Card>
+        <Card className="border-0 shadow-sm"><CardContent className="p-4"><div className="flex items-center gap-3"><div className="size-10 rounded-lg bg-muted flex items-center justify-center"><IconPackage className="size-5 text-muted-foreground" /></div><div><p className="text-2xl font-bold text-foreground">{stats.total}</p><p className="text-xs text-muted-foreground">{t("stats.totalDeliveries")}</p></div></div></CardContent></Card>
       </div>
 
       {/* Filters */}
@@ -484,7 +491,7 @@ function DeliveriesPageContent() {
           {(["all", ...DELIVERY_STATUSES] as const).map((s) => {
             const isAll = s === "all"
             const count = isAll ? deliveries.length : deliveries.filter((d) => d.status === s).length
-            const label = isAll ? "Alle" : STATUS_CONFIG[s as DeliveryStatus].label
+            const label = isAll ? tc("all") : t(STATUS_CONFIG[s as DeliveryStatus].labelKey)
             return (
               <button key={s} onClick={() => setStatusFilter(s)} className={cn("inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border transition-all cursor-pointer", statusFilter === s ? "bg-primary text-primary-foreground border-primary" : "bg-background text-muted-foreground border-border hover:border-border/80")}>
                 {label}<span className={cn("inline-flex items-center justify-center size-4 rounded-full text-[10px]", statusFilter === s ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-muted-foreground")}>{count}</span>
@@ -495,13 +502,13 @@ function DeliveriesPageContent() {
         <div className="flex-1" />
         {uniqueSuppliers.length > 0 && (
           <Select value={supplierFilter} onValueChange={setSupplierFilter}>
-            <SelectTrigger className="w-[180px] h-8 text-xs"><SelectValue placeholder="Lieferant..." /></SelectTrigger>
-            <SelectContent><SelectItem value="all">Alle Lieferanten</SelectItem>{uniqueSuppliers.map(([id, name]) => <SelectItem key={id} value={id}>{name}</SelectItem>)}</SelectContent>
+            <SelectTrigger className="w-[180px] h-8 text-xs"><SelectValue placeholder={t("supplier")} /></SelectTrigger>
+            <SelectContent><SelectItem value="all">{t("allSuppliers")}</SelectItem>{uniqueSuppliers.map(([id, name]) => <SelectItem key={id} value={id}>{name}</SelectItem>)}</SelectContent>
           </Select>
         )}
         <div className="relative w-[220px]">
           <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-          <Input placeholder="Suchen..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-8 text-xs" />
+          <Input placeholder={tc("search")} value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-8 text-xs" />
         </div>
       </div>
 
@@ -511,9 +518,9 @@ function DeliveriesPageContent() {
       ) : filtered.length === 0 && deliveries.length === 0 ? (
         <Card className="border-0 shadow-sm"><CardContent className="py-16 text-center">
           <IconTruck className="size-12 text-muted-foreground/40 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-foreground mb-1">Keine Lieferungen vorhanden</h3>
-          <p className="text-sm text-muted-foreground mb-4">Erstellen Sie eine Lieferverfolgung für Ihre Bestellungen.</p>
-          <Button className="gap-1.5" onClick={() => setCreateOpen(true)}><IconPlus className="size-4" />Erste Lieferung erstellen</Button>
+          <h3 className="text-lg font-semibold text-foreground mb-1">{t("emptyTitle")}</h3>
+          <p className="text-sm text-muted-foreground mb-4">{t("emptyDescription")}</p>
+          <Button className="gap-1.5" onClick={() => setCreateOpen(true)}><IconPlus className="size-4" />{t("createFirst")}</Button>
         </CardContent></Card>
       ) : viewMode === "kanban" ? (
         <div className="flex gap-4 overflow-x-auto pb-4">
@@ -527,19 +534,19 @@ function DeliveriesPageContent() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent bg-muted/50">
-                <TableHead className="text-xs font-medium text-muted-foreground">Bestellung</TableHead>
-                <TableHead className="text-xs font-medium text-muted-foreground">Lieferant</TableHead>
-                <TableHead className="text-xs font-medium text-muted-foreground">Spediteur</TableHead>
-                <TableHead className="text-xs font-medium text-muted-foreground">Sendungsnr.</TableHead>
-                <TableHead className="text-xs font-medium text-muted-foreground">Status</TableHead>
-                <TableHead className="text-xs font-medium text-muted-foreground">Erwartet</TableHead>
-                <TableHead className="text-xs font-medium text-muted-foreground">Geliefert</TableHead>
+                <TableHead className="text-xs font-medium text-muted-foreground">{t("order")}</TableHead>
+                <TableHead className="text-xs font-medium text-muted-foreground">{t("supplier")}</TableHead>
+                <TableHead className="text-xs font-medium text-muted-foreground">{t("carrier")}</TableHead>
+                <TableHead className="text-xs font-medium text-muted-foreground">{t("trackingNumberShort")}</TableHead>
+                <TableHead className="text-xs font-medium text-muted-foreground">{tc("status")}</TableHead>
+                <TableHead className="text-xs font-medium text-muted-foreground">{t("expected")}</TableHead>
+                <TableHead className="text-xs font-medium text-muted-foreground">{t("delivered")}</TableHead>
                 <TableHead className="w-10" />
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={8} className="text-center py-8 text-sm text-muted-foreground">Keine Lieferungen gefunden</TableCell></TableRow>
+                <TableRow><TableCell colSpan={8} className="text-center py-8 text-sm text-muted-foreground">{t("noDeliveriesFound")}</TableCell></TableRow>
               ) : filtered.map((d) => {
                 const cfg = getStatusConfig(d.status); const StatusIcon = cfg.icon; const overdue = isOverdue(d)
                 const trackingLink = d.trackingUrl || generateTrackingUrl(d.carrier, d.trackingNumber)
@@ -557,8 +564,8 @@ function DeliveriesPageContent() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1.5">
-                        <span className={cn("inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md", cfg.bgColor, cfg.color)}><StatusIcon className="size-3" />{cfg.label}</span>
-                        {overdue && <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Überfällig</Badge>}
+                        <span className={cn("inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md", cfg.bgColor, cfg.color)}><StatusIcon className="size-3" />{t(cfg.labelKey)}</span>
+                        {overdue && <Badge variant="destructive" className="text-[10px] px-1.5 py-0">{t("overdue")}</Badge>}
                       </div>
                     </TableCell>
                     <TableCell className={cn("text-sm", overdue ? "text-destructive font-medium" : "text-foreground")}>{formatDate(d.expectedDeliveryDate)}</TableCell>
@@ -568,10 +575,10 @@ function DeliveriesPageContent() {
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="size-8"><IconDotsVertical className="size-4" /></Button></DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem className="gap-2" onClick={() => handleCardClick(d)}><IconEye className="size-4" />Details</DropdownMenuItem>
-                            {d.status !== "delivered" && (<><DropdownMenuSeparator />{DELIVERY_STATUSES.filter((s) => DELIVERY_STATUSES.indexOf(s) > DELIVERY_STATUSES.indexOf(d.status as DeliveryStatus)).map((s) => { const SIcon = STATUS_CONFIG[s].icon; return <DropdownMenuItem key={s} className="gap-2" onClick={() => updateStatus(d.id, s)}><SIcon className="size-4" />{STATUS_CONFIG[s].label}</DropdownMenuItem> })}</>)}
+                            <DropdownMenuItem className="gap-2" onClick={() => handleCardClick(d)}><IconEye className="size-4" />{tc("details")}</DropdownMenuItem>
+                            {d.status !== "delivered" && (<><DropdownMenuSeparator />{DELIVERY_STATUSES.filter((s) => DELIVERY_STATUSES.indexOf(s) > DELIVERY_STATUSES.indexOf(d.status as DeliveryStatus)).map((s) => { const SIcon = STATUS_CONFIG[s].icon; return <DropdownMenuItem key={s} className="gap-2" onClick={() => updateStatus(d.id, s)}><SIcon className="size-4" />{t(STATUS_CONFIG[s].labelKey)}</DropdownMenuItem> })}</>)}
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="gap-2 text-destructive focus:text-destructive" onClick={() => deleteDelivery(d.id)}><IconTrash className="size-4" />Löschen</DropdownMenuItem>
+                            <DropdownMenuItem className="gap-2 text-destructive focus:text-destructive" onClick={() => deleteDelivery(d.id)}><IconTrash className="size-4" />{tc("delete")}</DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>

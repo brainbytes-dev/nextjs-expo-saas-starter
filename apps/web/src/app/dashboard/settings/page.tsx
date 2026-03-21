@@ -37,7 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-// import { LanguageSwitcher } from "@/components/language-switcher" // deactivated until FR/IT fully translated
+import { LanguageSwitcher } from "@/components/language-switcher"
 import { useTranslations } from "next-intl"
 import { IconCamera, IconAlertTriangle, IconCheck, IconShieldLock } from "@tabler/icons-react"
 import { DsgvoExportCard } from "@/components/dsgvo-export-card"
@@ -128,6 +128,9 @@ function TwoFactorBadge() {
 export default function SettingsPage() {
   const { data: session } = useSession()
   const t = useTranslations("settings")
+  const tp = useTranslations("profile")
+  const ts = useTranslations("security")
+  const tc = useTranslations("common")
 
   // ── Avatar state ──
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -305,16 +308,16 @@ export default function SettingsPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
         <p className="mt-2 text-muted-foreground">
-          Kontoeinstellungen und Präferenzen verwalten.
+          {t("subtitle")}
         </p>
       </div>
 
       {/* ── Profil ── */}
       <Card>
         <CardHeader>
-          <CardTitle>Profil</CardTitle>
+          <CardTitle>{tp("title")}</CardTitle>
           <CardDescription>
-            Profilinformationen und Profilfoto aktualisieren.
+            {t("profileDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -335,7 +338,7 @@ export default function SettingsPage() {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploadingAvatar}
-                    aria-label="Profilfoto ändern"
+                    aria-label={t("changePhoto")}
                     className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none disabled:cursor-not-allowed"
                   >
                     <IconCamera className="size-6 text-white" aria-hidden />
@@ -359,7 +362,7 @@ export default function SettingsPage() {
                     disabled={isUploadingAvatar}
                     className="text-xs text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {isUploadingAvatar ? "Wird gespeichert…" : "Foto ändern"}
+                    {isUploadingAvatar ? t("saving") : t("changePhoto")}
                   </button>
                   {(currentAvatar) && (
                     <button
@@ -368,7 +371,7 @@ export default function SettingsPage() {
                       disabled={isUploadingAvatar}
                       className="text-xs text-muted-foreground hover:text-destructive hover:underline disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      Foto entfernen
+                      {t("removePhoto")}
                     </button>
                   )}
                 </div>
@@ -383,7 +386,7 @@ export default function SettingsPage() {
               {/* Name + Email + Member since */}
               <div className="flex-1 space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
+                  <Label htmlFor="name">{tp("name")}</Label>
                   <Input
                     id="name"
                     placeholder="Max Muster"
@@ -394,7 +397,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">E-Mail</Label>
+                  <Label htmlFor="email">{tp("email")}</Label>
                   <Input
                     id="email"
                     type="email"
@@ -403,13 +406,13 @@ export default function SettingsPage() {
                     className="cursor-not-allowed opacity-60"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Die E-Mail-Adresse kann nicht geändert werden.
+                    {t("emailReadonly")}
                   </p>
                 </div>
 
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-muted-foreground">
-                    Mitglied seit
+                    {t("memberSince")}
                   </p>
                   <p className="text-sm">{memberSince}</p>
                 </div>
@@ -418,7 +421,7 @@ export default function SettingsPage() {
 
             {/* Timezone */}
             <div className="space-y-2">
-              <Label htmlFor="timezone">Zeitzone</Label>
+              <Label htmlFor="timezone">{t("timezone")}</Label>
               <Select defaultValue="europe_zurich">
                 <SelectTrigger id="timezone" disabled={isProfileLoading}>
                   <SelectValue />
@@ -436,7 +439,7 @@ export default function SettingsPage() {
             <StatusMessage error={profileError} success={profileSuccess} />
 
             <Button type="submit" disabled={isProfileLoading}>
-              {isProfileLoading ? "Speichert…" : "Änderungen speichern"}
+              {isProfileLoading ? t("saving") : t("saveChanges")}
             </Button>
           </form>
         </CardContent>
@@ -451,10 +454,7 @@ export default function SettingsPage() {
           <CardDescription>{t("languageDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-foreground font-medium">🇨🇭 Deutsch</span>
-            <span className="text-xs text-muted-foreground">(Français, Italiano — demnächst verfügbar)</span>
-          </div>
+          <LanguageSwitcher />
         </CardContent>
       </Card>
 
@@ -463,19 +463,19 @@ export default function SettingsPage() {
       {/* ── Passwort ändern ── */}
       <Card>
         <CardHeader>
-          <CardTitle>Passwort ändern</CardTitle>
+          <CardTitle>{tp("changePassword")}</CardTitle>
           <CardDescription>
-            Passwort regelmässig ändern, um das Konto zu schützen.
+            {t("passwordDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleChangePassword} className="space-y-6">
             <div className="grid gap-4">
               <div className="space-y-2">
-                <Label htmlFor="current-password">Aktuelles Passwort</Label>
+                <Label htmlFor="current-password">{tp("currentPassword")}</Label>
                 <PasswordInput
                   id="current-password"
-                  placeholder="Aktuelles Passwort eingeben"
+                  placeholder={t("enterCurrentPassword")}
                   value={passwordForm.currentPassword}
                   onChange={(e) =>
                     setPasswordForm({ ...passwordForm, currentPassword: e.target.value })
@@ -486,10 +486,10 @@ export default function SettingsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="new-password">Neues Passwort</Label>
+                <Label htmlFor="new-password">{tp("newPassword")}</Label>
                 <PasswordInput
                   id="new-password"
-                  placeholder="Mindestens 8 Zeichen"
+                  placeholder={t("minChars")}
                   value={passwordForm.newPassword}
                   onChange={(e) =>
                     setPasswordForm({ ...passwordForm, newPassword: e.target.value })
@@ -500,16 +500,16 @@ export default function SettingsPage() {
                 {passwordForm.newPassword.length > 0 &&
                   passwordForm.newPassword.length < 8 && (
                     <p className="text-xs text-destructive">
-                      Mindestens 8 Zeichen erforderlich.
+                      {t("minCharsRequired")}
                     </p>
                   )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirm-password">Neues Passwort bestätigen</Label>
+                <Label htmlFor="confirm-password">{tp("confirmPassword")}</Label>
                 <PasswordInput
                   id="confirm-password"
-                  placeholder="Neues Passwort wiederholen"
+                  placeholder={t("repeatNewPassword")}
                   value={passwordForm.confirmPassword}
                   onChange={(e) =>
                     setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })
@@ -520,7 +520,7 @@ export default function SettingsPage() {
                 {passwordForm.confirmPassword.length > 0 &&
                   passwordForm.newPassword !== passwordForm.confirmPassword && (
                     <p className="text-xs text-destructive">
-                      Die Passwörter stimmen nicht überein.
+                      {t("passwordsMismatch")}
                     </p>
                   )}
               </div>
@@ -529,7 +529,7 @@ export default function SettingsPage() {
             <StatusMessage error={passwordError} success={passwordSuccess} />
 
             <Button type="submit" disabled={isPasswordLoading}>
-              {isPasswordLoading ? "Aktualisiert…" : "Passwort aktualisieren"}
+              {isPasswordLoading ? t("updating") : t("updatePassword")}
             </Button>
           </form>
         </CardContent>
@@ -540,18 +540,18 @@ export default function SettingsPage() {
       {/* ── Benachrichtigungen & Datenschutz ── */}
       <Card>
         <CardHeader>
-          <CardTitle>Präferenzen</CardTitle>
+          <CardTitle>{t("preferences")}</CardTitle>
           <CardDescription>
-            Benachrichtigungs- und Datenschutzeinstellungen verwalten.
+            {t("preferencesDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">E-Mail-Benachrichtigungen</p>
+                <p className="font-medium">{t("emailNotifications")}</p>
                 <p className="text-sm text-muted-foreground">
-                  E-Mail-Updates zum Konto erhalten.
+                  {t("emailNotificationsDesc")}
                 </p>
               </div>
               <input type="checkbox" defaultChecked className="h-4 w-4" />
@@ -561,9 +561,9 @@ export default function SettingsPage() {
 
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">Marketing-E-Mails</p>
+                <p className="font-medium">{t("marketingEmails")}</p>
                 <p className="text-sm text-muted-foreground">
-                  E-Mails über neue Funktionen und Updates erhalten.
+                  {t("marketingEmailsDesc")}
                 </p>
               </div>
               <input type="checkbox" className="h-4 w-4" />
@@ -574,9 +574,9 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div>
-                  <p className="font-medium">Zwei-Faktor-Authentifizierung</p>
+                  <p className="font-medium">{ts("twoFactor")}</p>
                   <p className="text-sm text-muted-foreground">
-                    Zusätzliche Sicherheitsebene für das Konto hinzufügen.
+                    {t("twoFactorDesc")}
                   </p>
                 </div>
               </div>
@@ -585,7 +585,7 @@ export default function SettingsPage() {
                 <Button variant="outline" size="sm" asChild>
                   <Link href="/dashboard/settings/two-factor">
                     <IconShieldLock className="mr-1.5 size-4" />
-                    Konfigurieren
+                    {t("configure")}
                   </Link>
                 </Button>
               </div>
@@ -599,40 +599,36 @@ export default function SettingsPage() {
       {/* ── Gefahrenzone ── */}
       <Card className="border-destructive/30 bg-destructive/5">
         <CardHeader>
-          <CardTitle className="text-destructive">Gefahrenzone</CardTitle>
+          <CardTitle className="text-destructive">{ts("dangerZone")}</CardTitle>
           <CardDescription>
-            Aktionen, die nicht rückgängig gemacht werden können.
+            {t("dangerZoneDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="rounded-md border border-destructive/20 bg-destructive/5 p-4">
-            <p className="mb-1 text-sm font-medium">Konto löschen</p>
+            <p className="mb-1 text-sm font-medium">{ts("deleteAccount")}</p>
             <p className="mb-4 text-sm text-muted-foreground">
-              Das Löschen des Kontos entfernt alle Daten dauerhaft, einschliesslich
-              Inventar, Werkzeuge und Fahrzeugbestände. Diese Aktion kann{" "}
-              <strong>nicht</strong> rückgängig gemacht werden.
+              {t("deleteAccountDesc")}
             </p>
 
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="destructive" size="sm">
-                  Konto löschen
+                  {ts("deleteAccount")}
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2 text-destructive">
                     <IconAlertTriangle className="size-5 shrink-0" aria-hidden />
-                    Konto wirklich löschen?
+                    {t("deleteAccountConfirmTitle")}
                   </DialogTitle>
                   <DialogDescription>
-                    Diese Aktion ist <strong>unwiderruflich</strong>. Alle Daten
-                    werden dauerhaft gelöscht — Inventar, Werkzeuge,
-                    Fahrzeugbestände, Lieferscheine und Ihr Abonnement.
+                    {t("deleteAccountConfirmDesc")}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive">
-                  Wenden Sie sich an den Support, um Ihr Konto zu löschen:
+                  {t("deleteAccountSupport")}
                   <br />
                   <a
                     href="mailto:support@logistikapp.ch"
@@ -643,7 +639,7 @@ export default function SettingsPage() {
                 </div>
                 <DialogFooter>
                   <DialogClose asChild>
-                    <Button variant="outline">Abbrechen</Button>
+                    <Button variant="outline">{tc("cancel")}</Button>
                   </DialogClose>
                 </DialogFooter>
               </DialogContent>
@@ -665,8 +661,8 @@ export default function SettingsPage() {
       {/* Tour restart */}
       <Card>
         <CardHeader>
-          <CardTitle>Hilfe</CardTitle>
-          <CardDescription>Onboarding-Tour und Hilfe-Ressourcen</CardDescription>
+          <CardTitle>{t("help")}</CardTitle>
+          <CardDescription>{t("helpDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Button
@@ -675,7 +671,7 @@ export default function SettingsPage() {
               window.dispatchEvent(new Event("restart-welcome-tour"))
             }}
           >
-            Willkommenstour neu starten
+            {t("restartTour")}
           </Button>
         </CardContent>
       </Card>

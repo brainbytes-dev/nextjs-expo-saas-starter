@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react"
 import { usePathname } from "next/navigation"
+import { useTranslations } from "next-intl"
 import {
   IconRobot,
   IconSend,
@@ -51,12 +52,12 @@ interface FunctionResult {
 const STORAGE_KEY_PREFIX = "logistikapp-ai-chat-"
 const MAX_STORED_MESSAGES = 50
 
-const SUGGESTED_PROMPTS = [
-  "Wie viel Zement haben wir?",
-  "Welche Werkzeuge sind überfällig?",
-  "Bestell 50 Schrauben M8 bei Hilti nach",
-  "Zeig mir Materialien unter Meldebestand",
-]
+const SUGGESTED_PROMPT_KEYS = [
+  "suggestedPrompt1",
+  "suggestedPrompt2",
+  "suggestedPrompt3",
+  "suggestedPrompt4",
+] as const
 
 // ---------------------------------------------------------------------------
 // Markdown-Light Renderer
@@ -97,21 +98,22 @@ function renderMarkdown(text: string): string {
 // Action Card
 // ---------------------------------------------------------------------------
 
-function ActionCard({ result }: { result: FunctionResult }) {
+function ActionCard({ result, t }: { result: FunctionResult; t: ReturnType<typeof useTranslations> }) {
   const data = result.result
   if (data.error) return null
 
-  const actionLabels: Record<string, string> = {
-    create_order: "Bestellung erstellt",
-    book_stock_change: "Bestandsänderung gebucht",
-    search_materials: "Materialien gefunden",
-    search_tools: "Werkzeuge gefunden",
-    get_stock_level: "Bestand abgefragt",
-    get_low_stock_items: "Meldebestand geprüft",
-    get_overdue_tools: "Wartung geprüft",
+  const actionLabelKeys: Record<string, string> = {
+    create_order: "action.createOrder",
+    book_stock_change: "action.bookStockChange",
+    search_materials: "action.searchMaterials",
+    search_tools: "action.searchTools",
+    get_stock_level: "action.getStockLevel",
+    get_low_stock_items: "action.getLowStockItems",
+    get_overdue_tools: "action.getOverdueTools",
   }
 
-  const label = actionLabels[result.name] ?? result.name
+  const labelKey = actionLabelKeys[result.name]
+  const label = labelKey ? t(labelKey) : result.name
 
   return (
     <div className="my-2 rounded-lg border border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/50 p-3">
@@ -124,7 +126,7 @@ function ActionCard({ result }: { result: FunctionResult }) {
           href={data.link as string}
           className="mt-1.5 inline-flex items-center gap-1 text-xs text-green-700 dark:text-green-400 hover:underline"
         >
-          Details anzeigen <IconExternalLink className="size-3" />
+          {t("showDetails")} <IconExternalLink className="size-3" />
         </a>
       )}
     </div>
@@ -136,6 +138,7 @@ function ActionCard({ result }: { result: FunctionResult }) {
 // ---------------------------------------------------------------------------
 
 function MessageBubble({ message }: { message: ChatMessage }) {
+  const t = useTranslations("aiChat")
   const isUser = message.role === "user"
 
   return (
@@ -150,7 +153,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
         {!isUser && message.functionResults && message.functionResults.length > 0 && (
           <div className="mb-2">
             {message.functionResults.map((fr, i) => (
-              <ActionCard key={i} result={fr} />
+              <ActionCard key={i} result={fr} t={t} />
             ))}
           </div>
         )}
@@ -192,6 +195,7 @@ export function AiChatPanel({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
+  const t = useTranslations("aiChat")
   const pathname = usePathname()
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState("")
@@ -289,7 +293,7 @@ export function AiChatPanel({
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}))
           throw new Error(
-            errData.error ?? `Fehler ${res.status}`
+            errData.error ?? t("errorStatus", { status: res.status })
           )
         }
 
@@ -298,7 +302,7 @@ export function AiChatPanel({
         // Handle SSE streaming response
         if (contentType.includes("text/event-stream")) {
           const reader = res.body?.getReader()
-          if (!reader) throw new Error("Kein Stream verfügbar")
+          if (!reader) throw new Error(t("noStream"))
 
           const decoder = new TextDecoder()
           let assistantContent = ""
@@ -364,7 +368,7 @@ export function AiChatPanel({
               m.id === assistantId
                 ? {
                     ...m,
-                    content: assistantContent || "Ich konnte leider keine Antwort generieren.",
+                    content: assistantContent || t("noResponseGenerated"),
                     functionResults,
                   }
                 : m
@@ -378,7 +382,7 @@ export function AiChatPanel({
             {
               id: crypto.randomUUID(),
               role: "assistant",
-              content: data.content ?? "Keine Antwort erhalten.",
+              content: data.content ?? t("noResponseReceived"),
               timestamp: Date.now(),
               functionResults: data.functionResults ?? [],
             },
@@ -386,7 +390,7 @@ export function AiChatPanel({
         }
       } catch (err) {
         const msg =
-          err instanceof Error ? err.message : "Ein Fehler ist aufgetreten."
+          err instanceof Error ? err.message : t("genericError")
         setError(msg)
       } finally {
         setIsLoading(false)
@@ -419,10 +423,10 @@ export function AiChatPanel({
               </div>
               <div>
                 <SheetTitle className="text-sm font-semibold">
-                  KI-Assistent
+                  {t("title")}
                 </SheetTitle>
                 <p className="text-xs text-muted-foreground">
-                  Powered by OpenAI
+                  {t("poweredBy")}
                 </p>
               </div>
             </div>
@@ -433,7 +437,7 @@ export function AiChatPanel({
                 size="icon"
                 className="size-8"
                 onClick={clearChat}
-                title="Neuer Chat"
+                title={t("newChat")}
               >
                 <IconTrash className="size-4" />
               </Button>
@@ -463,23 +467,25 @@ export function AiChatPanel({
                 <IconRobot className="size-8 text-primary" />
               </div>
               <h3 className="text-sm font-semibold mb-1">
-                Hallo! Wie kann ich helfen?
+                {t("greeting")}
               </h3>
               <p className="text-xs text-muted-foreground mb-6 max-w-[260px]">
-                Fragen Sie mich nach Beständen, Werkzeugen, Bestellungen oder
-                lassen Sie mich Buchungen durchführen.
+                {t("greetingDescription")}
               </p>
 
               <div className="grid gap-2 w-full max-w-[300px]">
-                {SUGGESTED_PROMPTS.map((prompt) => (
+                {SUGGESTED_PROMPT_KEYS.map((key) => {
+                  const prompt = t(key)
+                  return (
                   <button
-                    key={prompt}
+                    key={key}
                     onClick={() => sendMessage(prompt)}
                     className="rounded-lg border bg-card px-3 py-2 text-left text-xs hover:bg-accent transition-colors"
                   >
                     {prompt}
                   </button>
-                ))}
+                  )
+                })}
               </div>
             </div>
           ) : (
@@ -494,7 +500,7 @@ export function AiChatPanel({
                     <div className="rounded-2xl rounded-bl-md bg-muted px-4 py-3">
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <IconLoader2 className="size-3.5 animate-spin" />
-                        Denke nach...
+                        {t("thinking")}
                       </div>
                     </div>
                   </div>
@@ -513,7 +519,7 @@ export function AiChatPanel({
                 onClick={() => setError(null)}
                 className="mt-1 underline hover:no-underline"
               >
-                Schliessen
+                {t("close")}
               </button>
             </div>
           </div>
@@ -532,7 +538,7 @@ export function AiChatPanel({
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Nachricht eingeben..."
+              placeholder={t("inputPlaceholder")}
               disabled={isLoading}
               className="flex-1 text-sm"
             />
@@ -546,7 +552,7 @@ export function AiChatPanel({
             </Button>
           </form>
           <p className="mt-2 text-center text-[10px] text-muted-foreground">
-            KI kann Fehler machen. Überprüfen Sie wichtige Informationen.
+            {t("disclaimer")}
           </p>
         </div>
       </SheetContent>

@@ -1,6 +1,7 @@
 "use client"
 
 import { usePresence } from "@/hooks/use-presence"
+import { useTranslations } from "next-intl"
 import {
   Avatar,
   AvatarFallback,
@@ -17,28 +18,25 @@ import { IconUsers, IconCircleFilled } from "@tabler/icons-react"
 
 const MAX_VISIBLE = 3
 
-/** Human-friendly page label from pathname */
-function pageLabel(page: string): string {
-  const map: Record<string, string> = {
-    "/dashboard": "Übersicht",
-    "/dashboard/materials": "Materialien",
-    "/dashboard/tools": "Werkzeuge",
-    "/dashboard/keys": "Schlüssel",
-    "/dashboard/tasks": "Aufgaben",
-    "/dashboard/calendar": "Kalender",
-    "/dashboard/reports": "Berichte",
-    "/dashboard/settings": "Einstellungen",
-    "/dashboard/locations": "Standorte",
-    "/dashboard/suppliers": "Lieferanten",
-    "/dashboard/orders": "Bestellungen",
-    "/dashboard/commissions": "Aufträge",
-    "/dashboard/inventory": "Inventur",
-    "/dashboard/kanban": "Kanban",
-    "/dashboard/time-tracking": "Zeiterfassung",
-    "/dashboard/transfers": "Umbuchungen",
-    "/dashboard/requests": "Anfragen",
-  }
-  return map[page] ?? page.replace("/dashboard/", "").replace(/-/g, " ")
+/** Map of pathname to translation key for page label */
+const PAGE_KEY_MAP: Record<string, string> = {
+  "/dashboard": "overview",
+  "/dashboard/materials": "materials",
+  "/dashboard/tools": "tools",
+  "/dashboard/keys": "keys",
+  "/dashboard/tasks": "tasks",
+  "/dashboard/calendar": "calendar",
+  "/dashboard/reports": "reports",
+  "/dashboard/settings": "settings",
+  "/dashboard/locations": "locations",
+  "/dashboard/suppliers": "suppliers",
+  "/dashboard/orders": "orders",
+  "/dashboard/commissions": "commissions",
+  "/dashboard/inventory": "inventory",
+  "/dashboard/kanban": "kanban",
+  "/dashboard/time-tracking": "timeTracking",
+  "/dashboard/transfers": "transfers",
+  "/dashboard/requests": "requests",
 }
 
 /** Get initials from a name */
@@ -52,6 +50,7 @@ function initials(name: string): string {
 }
 
 export function OnlineUsers() {
+  const t = useTranslations("onlineUsers")
   const { onlineUsers, count } = usePresence()
 
   if (count === 0) return null
@@ -69,7 +68,7 @@ export function OnlineUsers() {
           <div className="flex items-center gap-1.5">
             <IconUsers className="size-3.5 shrink-0" />
             <span>
-              {count} {count === 1 ? "Benutzer" : "Benutzer"} online
+              {t("usersOnline", { count })}
             </span>
           </div>
 
@@ -97,7 +96,7 @@ export function OnlineUsers() {
 
       <PopoverContent side="top" align="start" className="w-64 p-2">
         <p className="mb-2 px-2 text-xs font-medium text-muted-foreground">
-          Online-Benutzer
+          {t("title")}
         </p>
         <ul className="space-y-1">
           {onlineUsers.map((user) => (
@@ -121,7 +120,7 @@ export function OnlineUsers() {
                   {user.name}
                 </p>
                 <p className="truncate text-xs text-muted-foreground leading-tight">
-                  {pageLabel(user.page)}
+                  {PAGE_KEY_MAP[user.page] ? t(`pages.${PAGE_KEY_MAP[user.page]}`) : user.page.replace("/dashboard/", "").replace(/-/g, " ")}
                 </p>
               </div>
             </li>

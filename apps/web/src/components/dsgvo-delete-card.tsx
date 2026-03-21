@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -24,6 +25,7 @@ import { Label } from "@/components/ui/label"
 import { IconTrash, IconAlertTriangle } from "@tabler/icons-react"
 
 export function DsgvoDeleteCard() {
+  const t = useTranslations("dsgvo")
   const [password, setPassword] = useState("")
   const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -34,7 +36,7 @@ export function DsgvoDeleteCard() {
     setError(null)
 
     if (!password.trim()) {
-      setError("Bitte geben Sie Ihr Passwort zur Bestätigung ein.")
+      setError(t("deletePasswordRequired"))
       return
     }
 
@@ -52,17 +54,17 @@ export function DsgvoDeleteCard() {
       if (!res.ok) {
         setError(
           data?.error ??
-            "Löschanfrage fehlgeschlagen. Bitte versuchen Sie es später erneut."
+            t("deleteFailed")
         )
         return
       }
 
-      setSuccess(data?.message ?? "Löschanfrage erfolgreich eingereicht.")
+      setSuccess(data?.message ?? t("deleteSuccess"))
       setOpen(false)
       setPassword("")
     } catch {
       setError(
-        "Löschanfrage fehlgeschlagen. Bitte versuchen Sie es später erneut."
+        t("deleteFailed")
       )
     } finally {
       setIsDeleting(false)
@@ -74,28 +76,27 @@ export function DsgvoDeleteCard() {
       <CardHeader>
         <div className="flex items-center gap-2">
           <IconTrash className="size-5 text-destructive" aria-hidden />
-          <CardTitle className="text-destructive">Konto löschen</CardTitle>
+          <CardTitle className="text-destructive">{t("deleteTitle")}</CardTitle>
         </div>
         <CardDescription>
-          Beantragen Sie die dauerhafte Löschung Ihres Kontos gemäss DSGVO Art.
-          17 (Recht auf Löschung).
+          {t("deleteDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Nach Ihrer Anfrage haben Sie{" "}
-            <strong>30 Tage</strong> um die Löschung zu widerrufen. Danach
-            werden folgende Daten unwiderruflich gelöscht:
+            {t.rich("deleteGracePeriod", {
+              strong: (chunks) => <strong>{chunks}</strong>,
+            })}
           </p>
 
           <ul className="ml-4 list-disc space-y-1 text-sm text-muted-foreground">
-            <li>Ihr Benutzerprofil und Kontodaten</li>
-            <li>Bestandsänderungen und Lagerbewegungen</li>
-            <li>Werkzeug-Buchungen</li>
-            <li>Zeiteinträge</li>
-            <li>Kommentare</li>
-            <li>Kommissions-Einträge</li>
+            <li>{t("deleteDataProfile")}</li>
+            <li>{t("deleteDataStock")}</li>
+            <li>{t("deleteDataToolBookings")}</li>
+            <li>{t("deleteDataTimeEntries")}</li>
+            <li>{t("deleteDataComments")}</li>
+            <li>{t("deleteDataCommissions")}</li>
           </ul>
 
           {success && (
@@ -114,30 +115,28 @@ export function DsgvoDeleteCard() {
             <DialogTrigger asChild>
               <Button variant="destructive" disabled={!!success}>
                 <IconTrash className="mr-2 size-4" aria-hidden />
-                Löschung beantragen
+                {t("deleteRequest")}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2 text-destructive">
                   <IconAlertTriangle className="size-5 shrink-0" aria-hidden />
-                  Konto wirklich löschen?
+                  {t("deleteConfirmTitle")}
                 </DialogTitle>
                 <DialogDescription>
-                  Ihre Daten werden nach einer 30-tägigen Karenzzeit dauerhaft
-                  gelöscht. Diese Aktion kann danach{" "}
-                  <strong>nicht rückgängig</strong> gemacht werden.
+                  {t("deleteConfirmDescription")}
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4 py-2">
                 <div className="space-y-2">
                   <Label htmlFor="delete-password">
-                    Passwort zur Bestätigung
+                    {t("deletePasswordLabel")}
                   </Label>
                   <PasswordInput
                     id="delete-password"
-                    placeholder="Ihr aktuelles Passwort"
+                    placeholder={t("deletePasswordPlaceholder")}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isDeleting}
@@ -155,7 +154,7 @@ export function DsgvoDeleteCard() {
               <DialogFooter className="gap-2 sm:gap-0">
                 <DialogClose asChild>
                   <Button variant="outline" disabled={isDeleting}>
-                    Abbrechen
+                    {t("cancel")}
                   </Button>
                 </DialogClose>
                 <Button
@@ -164,8 +163,8 @@ export function DsgvoDeleteCard() {
                   disabled={isDeleting}
                 >
                   {isDeleting
-                    ? "Wird verarbeitet..."
-                    : "Löschung unwiderruflich beantragen"}
+                    ? t("deleteProcessing")
+                    : t("deleteConfirmButton")}
                 </Button>
               </DialogFooter>
             </DialogContent>

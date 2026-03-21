@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -19,10 +20,12 @@ interface ExportButtonProps {
 
 export function ExportButton({
   entity,
-  label = "Exportieren",
+  label,
   variant = "outline",
   size = "sm",
 }: ExportButtonProps) {
+  const t = useTranslations("common")
+  const resolvedLabel = label ?? t("export")
   const [loading, setLoading] = useState(false)
 
   const handleExport = async (format: "csv" | "json") => {
@@ -60,17 +63,17 @@ export function ExportButton({
           ) : (
             <IconDownload className="size-4 mr-2" />
           )}
-          {label}
+          {resolvedLabel}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => handleExport("csv")}>
           <IconFileTypeCsv className="size-4 mr-2" />
-          CSV (Excel)
+          {t("exportCsv")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleExport("json")}>
           <IconJson className="size-4 mr-2" />
-          JSON
+          {t("exportJson")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

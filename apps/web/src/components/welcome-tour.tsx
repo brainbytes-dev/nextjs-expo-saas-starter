@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import { createPortal } from "react-dom"
+import { useTranslations } from "next-intl"
 import { useTourCompleted } from "@/hooks/use-welcome-tour"
 import { Button } from "@/components/ui/button"
 import { LogoMark } from "@/components/logo"
@@ -11,8 +12,8 @@ import { IconArrowLeft, IconArrowRight, IconX } from "@tabler/icons-react"
 
 interface TourStep {
   target: string | null
-  title: string
-  description: string
+  titleKey: string
+  descriptionKey: string
   needsSidebar?: boolean
   scrollSidebar?: boolean
 }
@@ -20,70 +21,61 @@ interface TourStep {
 const STEPS: TourStep[] = [
   {
     target: null,
-    title: "Willkommen bei LogistikApp!",
-    description:
-      "Wir zeigen Ihnen in wenigen Schritten die wichtigsten Funktionen. Sie können die Tour jederzeit beenden.",
+    titleKey: "welcome.title",
+    descriptionKey: "welcome.description",
   },
   {
     target: "[data-slot='sidebar']",
-    title: "Navigation",
-    description:
-      "Hier finden Sie alle Bereiche: Material, Werkzeuge, Kommissionen und mehr.",
+    titleKey: "navigation.title",
+    descriptionKey: "navigation.description",
     needsSidebar: true,
   },
   {
     target: "a[href='/dashboard/materials']",
-    title: "Material-Verwaltung",
-    description:
-      "Verwalten Sie Ihr gesamtes Inventar. Scannen Sie Barcodes zum schnellen Einbuchen — mit Kamera oder Handscanner.",
+    titleKey: "materials.title",
+    descriptionKey: "materials.description",
     needsSidebar: true,
     scrollSidebar: true,
   },
   {
     target: "a[href='/dashboard/tools']",
-    title: "Werkzeug-Tracking",
-    description:
-      "Aus- und Einchecken, Wartungskalender, Kalibrierung und lückenlose Buchungshistorie.",
+    titleKey: "tools.title",
+    descriptionKey: "tools.description",
     needsSidebar: true,
     scrollSidebar: true,
   },
   {
     target: "a[href='/dashboard/time-tracking']",
-    title: "Zeiterfassung",
-    description:
-      "Live-Timer, Stundensätze in CHF, Wochenauswertung und CSV-Export.",
+    titleKey: "timeTracking.title",
+    descriptionKey: "timeTracking.description",
     needsSidebar: true,
     scrollSidebar: true,
   },
   {
     target: "a[href='/dashboard/deliveries']",
-    title: "Lieferverfolgung",
-    description:
-      "Kanban-Board mit Drag & Drop. Schweizer Spediteure: Post, DHL, DPD, Planzer.",
+    titleKey: "deliveries.title",
+    descriptionKey: "deliveries.description",
     needsSidebar: true,
     scrollSidebar: true,
   },
   {
     target: "a[href='/dashboard/reports']",
-    title: "Berichte & Analysen",
-    description:
-      "Behalten Sie den Überblick mit Echtzeit-Berichten, PDF-Exporten und dem TV-Dashboard-Modus.",
+    titleKey: "reports.title",
+    descriptionKey: "reports.description",
     needsSidebar: true,
     scrollSidebar: true,
   },
   {
     target: "a[href='/dashboard/settings']",
-    title: "Einstellungen",
-    description:
-      "Team, Benachrichtigungen, Integrationen, Handscanner, Etikettendrucker und mehr.",
+    titleKey: "settings.title",
+    descriptionKey: "settings.description",
     needsSidebar: true,
     scrollSidebar: true,
   },
   {
     target: null,
-    title: "Los geht's!",
-    description:
-      "Sie sind bereit! Starten Sie die Tour erneut unter Einstellungen → Hilfe.",
+    titleKey: "finish.title",
+    descriptionKey: "finish.description",
   },
 ]
 
@@ -169,6 +161,7 @@ function findAndScrollToTarget(selector: string, scrollSidebar?: boolean): Eleme
 // ── Tour component ────────────────────────────────────────────────────
 
 export function WelcomeTour() {
+  const t = useTranslations("tour")
   const { completed, markCompleted } = useTourCompleted()
   const [active, setActive] = useState(false)
   const [step, setStep] = useState(0)
@@ -358,7 +351,7 @@ export function WelcomeTour() {
         <button
           onClick={handleClose}
           className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors z-10"
-          aria-label="Tour beenden"
+          aria-label={t("closeTour")}
         >
           <IconX className="size-4" />
         </button>
@@ -372,26 +365,26 @@ export function WelcomeTour() {
             </div>
           )}
 
-          <h3 className="text-base font-semibold text-foreground pr-6">{currentStep?.title}</h3>
-          <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{currentStep?.description}</p>
+          <h3 className="text-base font-semibold text-foreground pr-6">{currentStep ? t(currentStep.titleKey) : ""}</h3>
+          <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{currentStep ? t(currentStep.descriptionKey) : ""}</p>
 
           <div className="mt-5 flex items-center justify-between">
             <span className="text-xs text-muted-foreground tabular-nums">
-              Schritt {step + 1} von {STEPS.length}
+              {t("stepOf", { current: step + 1, total: STEPS.length })}
             </span>
             <div className="flex items-center gap-2">
               {!isFirstStep && (
                 <Button variant="ghost" size="sm" onClick={handlePrev} className="gap-1 h-8 text-xs">
-                  <IconArrowLeft className="size-3" />Zurück
+                  <IconArrowLeft className="size-3" />{t("back")}
                 </Button>
               )}
               {isFirstStep && (
                 <Button variant="ghost" size="sm" onClick={handleClose} className="h-8 text-xs">
-                  Tour beenden
+                  {t("closeTour")}
                 </Button>
               )}
               <Button size="sm" onClick={handleNext} className="gap-1 h-8 text-xs">
-                {isLastStep ? "Loslegen" : "Weiter"}
+                {isLastStep ? t("getStarted") : t("next")}
                 {!isLastStep && <IconArrowRight className="size-3" />}
               </Button>
             </div>

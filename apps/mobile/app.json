@@ -65,7 +65,8 @@
           "androidCollapsedTitle": "#{unread_notifications} neue Mitteilungen"
         }
       ],
-      "react-native-nfc-manager"
+      "react-native-nfc-manager",
+      "react-native-ble-plx"
     ],
     "extra": {
       "eas": {

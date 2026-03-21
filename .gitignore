@@ -33,3 +33,7 @@ Thumbs.db
 templates-mobile/
 apps/docs/.next/
 apps/docs/node_modules/
+
+# Playwright
+apps/web/playwright-report/
+apps/web/test-results/
