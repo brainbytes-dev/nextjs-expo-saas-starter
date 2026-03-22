@@ -38,6 +38,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { LanguageSwitcher } from "@/components/language-switcher"
+import { TimezoneSelect } from "@/components/timezone-select"
 import { useTranslations } from "next-intl"
 import {
   IconCamera,
@@ -523,18 +524,7 @@ export default function SettingsPage() {
             {/* Timezone */}
             <div className="space-y-2">
               <Label htmlFor="timezone">{t("timezone")}</Label>
-              <Select defaultValue="europe_zurich">
-                <SelectTrigger id="timezone" disabled={isProfileLoading}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="europe_zurich">{t("tzEuropeZurich")}</SelectItem>
-                  <SelectItem value="europe_berlin">{t("tzEuropeBerlin")}</SelectItem>
-                  <SelectItem value="europe_london">{t("tzEuropeLondon")}</SelectItem>
-                  <SelectItem value="utc">{t("tzUtc")}</SelectItem>
-                  <SelectItem value="america_new_york">{t("tzAmericaNewYork")}</SelectItem>
-                </SelectContent>
-              </Select>
+              <TimezoneSelect disabled={isProfileLoading} />
             </div>
 
             <StatusMessage error={profileError} success={profileSuccess} />
