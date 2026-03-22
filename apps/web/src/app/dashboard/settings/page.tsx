@@ -700,8 +700,42 @@ export default function SettingsPage() {
 
       <Separator />
 
-      {/* ── Gefahrenzone ── */}
-      <Card className="border-destructive/30 bg-destructive/5">
+      {/* ── Hilfe ── */}
+      <Card id="help">
+        <CardHeader>
+          <CardTitle>{t("help")}</CardTitle>
+          <CardDescription>{t("helpDescription")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            variant="outline"
+            onClick={() => {
+              window.dispatchEvent(new Event("restart-welcome-tour"))
+            }}
+          >
+            {t("restartTour")}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      {/* ── DSGVO Datenexport ── */}
+      <div id="dsgvo-export">
+        <DsgvoExportCard />
+      </div>
+
+      <Separator />
+
+      {/* ── DSGVO Kontolöschung ── */}
+      <div id="dsgvo-delete">
+        <DsgvoDeleteCard />
+      </div>
+
+      <Separator />
+
+      {/* ── Gefahrenzone (immer ganz unten) ── */}
+      <Card className="border-destructive/30 bg-destructive/5" id="danger">
         <CardHeader>
           <CardTitle className="text-destructive">{ts("dangerZone")}</CardTitle>
           <CardDescription>
@@ -749,38 +783,6 @@ export default function SettingsPage() {
               </DialogContent>
             </Dialog>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* ── DSGVO Datenexport ── */}
-      <div id="dsgvo-export">
-        <DsgvoExportCard />
-      </div>
-
-      <Separator />
-
-      {/* ── DSGVO Kontolöschung ── */}
-      <div id="dsgvo-delete">
-        <DsgvoDeleteCard />
-      </div>
-
-      <Separator />
-
-      {/* Tour restart */}
-      <Card id="help">
-        <CardHeader>
-          <CardTitle>{t("help")}</CardTitle>
-          <CardDescription>{t("helpDescription")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button
-            variant="outline"
-            onClick={() => {
-              window.dispatchEvent(new Event("restart-welcome-tour"))
-            }}
-          >
-            {t("restartTour")}
-          </Button>
         </CardContent>
       </Card>
     </div>
