@@ -32,7 +32,7 @@ export const statusCleanupCronFn = inngest.createFunction(
   { cron: "0 3 * * *" }, // 3 AM daily
   async () => {
     const db = getDb();
-    const cutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+    const cutoff = new Date(Date.now() - 400 * 24 * 60 * 60 * 1000); // keep 400 days for 1-year view
     const result = await db
       .delete(statusChecks)
       .where(lt(statusChecks.checkedAt, cutoff));
