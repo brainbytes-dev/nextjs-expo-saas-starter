@@ -1,12 +1,14 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { IconShieldLock, IconChevronDown, IconChevronUp, IconX } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 
 const DISMISSED_KEY = "logistikapp-ai-privacy-dismissed"
 
 export function AiPrivacyNotice() {
+  const t = useTranslations("aiPrivacy")
   const [dismissed, setDismissed] = useState(() => {
     if (typeof window === "undefined") return true
     return localStorage.getItem(DISMISSED_KEY) === "true"
@@ -26,28 +28,23 @@ export function AiPrivacyNotice() {
         <IconShieldLock className="mt-0.5 size-4 shrink-0" />
         <div className="flex-1">
           <p>
-            Ihre Daten werden direkt an OpenAI gesendet. LogistikApp speichert
-            keine Chat-Verläufe. Sie nutzen Ihren eigenen API-Schlüssel.
+            {t("notice")}
           </p>
 
           {expanded && (
             <div className="mt-2 space-y-1 text-blue-700 dark:text-blue-400">
               <p>
-                Die KI-Anfragen werden über Ihren persönlichen OpenAI
-                API-Schlüssel abgewickelt. Wir fungieren lediglich als
-                Vermittler und speichern weder Ihre Nachrichten noch die
-                Antworten auf unseren Servern.
+                {t("detailP1")}
               </p>
               <p>
-                Die Datenschutzrichtlinien von OpenAI gelten für die
-                Verarbeitung Ihrer Daten.{" "}
+                {t("detailP2")}{" "}
                 <a
                   href="https://openai.com/policies/privacy-policy"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline hover:text-blue-900 dark:hover:text-blue-200"
                 >
-                  Mehr erfahren
+                  {t("learnMore")}
                 </a>
               </p>
             </div>
@@ -59,11 +56,11 @@ export function AiPrivacyNotice() {
           >
             {expanded ? (
               <>
-                Weniger anzeigen <IconChevronUp className="size-3" />
+                {t("showLess")} <IconChevronUp className="size-3" />
               </>
             ) : (
               <>
-                Mehr erfahren <IconChevronDown className="size-3" />
+                {t("learnMore")} <IconChevronDown className="size-3" />
               </>
             )}
           </button>

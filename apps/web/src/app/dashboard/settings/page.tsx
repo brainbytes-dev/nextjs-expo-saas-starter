@@ -113,6 +113,7 @@ function StatusMessage({
 // ── 2FA Status Badge ─────────────────────────────────────────────────────────
 
 function TwoFactorBadge() {
+  const t = useTranslations("settings")
   const [enabled, setEnabled] = useState<boolean | null>(null)
 
   useEffect(() => {
@@ -128,65 +129,68 @@ function TwoFactorBadge() {
   return (
     <Badge variant="default" className="bg-green-600 hover:bg-green-700">
       <IconCheck className="mr-1 size-3" />
-      Aktiv
+      {t("twoFactorActive")}
     </Badge>
   )
 }
 
 // ── Settings Categories ───────────────────────────────────────────────────────
 
-const SETTINGS_CATEGORIES = [
-  {
-    title: "Hardware & Geräte",
-    icon: IconDeviceDesktop,
-    links: [
-      { label: "Handscanner", href: "/dashboard/settings/scanner" },
-      { label: "Etikettendrucker", href: "/dashboard/settings/printer" },
-      { label: "RFID Reader", href: "/dashboard/settings/rfid" },
-      { label: "Schnelltasten", href: "/dashboard/settings/keypad" },
-    ],
-  },
-  {
-    title: "Sicherheit & Zugriff",
-    icon: IconShield,
-    links: [
-      { label: "Team", href: "/dashboard/settings/team" },
-      { label: "Rollen", href: "/dashboard/settings/roles" },
-      { label: "Sitzungen", href: "/dashboard/settings/sessions" },
-      { label: "IP-Zugriff", href: "/dashboard/settings/ip-allowlist" },
-      { label: "Zwei-Faktor-Auth", href: "/dashboard/settings/two-factor" },
-    ],
-  },
-  {
-    title: "Integrationen",
-    icon: IconPlugConnected,
-    links: [
-      { label: "Integrationen", href: "/dashboard/settings/integrations" },
-      { label: "Plugins", href: "/dashboard/settings/plugins" },
-      { label: "KI-Funktionen", href: "/dashboard/settings/ai" },
-      { label: "E-Mail Posteingang", href: "/dashboard/settings/email-inbox" },
-    ],
-  },
-  {
-    title: "Konfiguration",
-    icon: IconAdjustments,
-    links: [
-      { label: "Benachrichtigungen", href: "/dashboard/settings/alerts" },
-      { label: "Automatisierungen", href: "/dashboard/settings/automations" },
-      { label: "Benutzerdefinierte Felder", href: "/dashboard/settings/custom-fields" },
-      { label: "Wartungs-Checklisten", href: "/dashboard/settings/checklists" },
-      { label: "Geplante Berichte", href: "/dashboard/settings/scheduled-reports" },
-    ],
-  },
-  {
-    title: "Organisation",
-    icon: IconBuilding,
-    links: [
-      { label: "Branding", href: "/dashboard/settings/branding" },
-      { label: "Datenhaltung", href: "/dashboard/settings/data-retention" },
-    ],
-  },
-]
+function useSettingsCategories() {
+  const t = useTranslations("settings")
+  return [
+    {
+      title: t("catHardware"),
+      icon: IconDeviceDesktop,
+      links: [
+        { label: t("linkScanner"), href: "/dashboard/settings/scanner" },
+        { label: t("linkPrinter"), href: "/dashboard/settings/printer" },
+        { label: t("linkRfid"), href: "/dashboard/settings/rfid" },
+        { label: t("linkKeypad"), href: "/dashboard/settings/keypad" },
+      ],
+    },
+    {
+      title: t("catSecurity"),
+      icon: IconShield,
+      links: [
+        { label: t("linkTeam"), href: "/dashboard/settings/team" },
+        { label: t("linkRoles"), href: "/dashboard/settings/roles" },
+        { label: t("linkSessions"), href: "/dashboard/settings/sessions" },
+        { label: t("linkIpAccess"), href: "/dashboard/settings/ip-allowlist" },
+        { label: t("linkTwoFactor"), href: "/dashboard/settings/two-factor" },
+      ],
+    },
+    {
+      title: t("catIntegrations"),
+      icon: IconPlugConnected,
+      links: [
+        { label: t("linkIntegrations"), href: "/dashboard/settings/integrations" },
+        { label: t("linkPlugins"), href: "/dashboard/settings/plugins" },
+        { label: t("linkAi"), href: "/dashboard/settings/ai" },
+        { label: t("linkEmailInbox"), href: "/dashboard/settings/email-inbox" },
+      ],
+    },
+    {
+      title: t("catConfiguration"),
+      icon: IconAdjustments,
+      links: [
+        { label: t("linkAlerts"), href: "/dashboard/settings/alerts" },
+        { label: t("linkAutomations"), href: "/dashboard/settings/automations" },
+        { label: t("linkCustomFields"), href: "/dashboard/settings/custom-fields" },
+        { label: t("linkChecklists"), href: "/dashboard/settings/checklists" },
+        { label: t("linkScheduledReports"), href: "/dashboard/settings/scheduled-reports" },
+      ],
+    },
+    {
+      title: t("catOrganization"),
+      icon: IconBuilding,
+      links: [
+        { label: t("linkBranding"), href: "/dashboard/settings/branding" },
+        { label: t("linkDataRetention"), href: "/dashboard/settings/data-retention" },
+      ],
+    },
+  ]
+}
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
@@ -196,6 +200,8 @@ export default function SettingsPage() {
   const tp = useTranslations("profile")
   const ts = useTranslations("security")
   const tc = useTranslations("common")
+
+  const SETTINGS_CATEGORIES = useSettingsCategories()
 
   // ── Avatar state ──
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -238,12 +244,12 @@ export default function SettingsPage() {
 
       const allowed = ["image/jpeg", "image/png", "image/webp"]
       if (!allowed.includes(file.type)) {
-        setAvatarError("Nur JPEG, PNG und WebP sind erlaubt.")
+        setAvatarError(t("avatarOnlyFormats"))
         return
       }
 
       if (file.size > 2 * 1024 * 1024) {
-        setAvatarError("Das Bild darf maximal 2 MB gross sein.")
+        setAvatarError(t("avatarMaxSize"))
         return
       }
 
@@ -259,7 +265,7 @@ export default function SettingsPage() {
             setAvatarPreview(null)
           }
         } catch {
-          setAvatarError("Foto konnte nicht gespeichert werden.")
+          setAvatarError(t("avatarSaveFailed"))
           setAvatarPreview(null)
         } finally {
           setIsUploadingAvatar(false)
@@ -269,7 +275,7 @@ export default function SettingsPage() {
       }
       reader.readAsDataURL(file)
     },
-    []
+    [t]
   )
 
   const handleRemoveAvatar = useCallback(async () => {
@@ -283,11 +289,11 @@ export default function SettingsPage() {
         setAvatarPreview(null)
       }
     } catch {
-      setAvatarError("Foto konnte nicht entfernt werden.")
+      setAvatarError(t("avatarRemoveFailed"))
     } finally {
       setIsUploadingAvatar(false)
     }
-  }, [])
+  }, [t])
 
   // ── Profile save ──
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -296,7 +302,7 @@ export default function SettingsPage() {
     setProfileSuccess(null)
 
     if (!profileName.trim()) {
-      setProfileError("Der Name darf nicht leer sein.")
+      setProfileError(t("nameRequired"))
       return
     }
 
@@ -306,12 +312,12 @@ export default function SettingsPage() {
       if (result?.error) {
         setProfileError(result.error)
       } else {
-        setProfileSuccess("Profil erfolgreich aktualisiert.")
+        setProfileSuccess(t("profileUpdated"))
         setTimeout(() => setProfileSuccess(null), 3000)
       }
     } catch (err) {
       setProfileError(
-        err instanceof Error ? err.message : "Profil konnte nicht aktualisiert werden."
+        err instanceof Error ? err.message : t("profileUpdateFailed")
       )
     } finally {
       setIsProfileLoading(false)
@@ -327,19 +333,19 @@ export default function SettingsPage() {
     const { currentPassword, newPassword, confirmPassword } = passwordForm
 
     if (!currentPassword) {
-      setPasswordError("Bitte aktuelles Passwort eingeben.")
+      setPasswordError(t("enterCurrentPw"))
       return
     }
     if (!newPassword) {
-      setPasswordError("Bitte neues Passwort eingeben.")
+      setPasswordError(t("enterNewPw"))
       return
     }
     if (newPassword.length < 8) {
-      setPasswordError("Das neue Passwort muss mindestens 8 Zeichen lang sein.")
+      setPasswordError(t("newPwMinLength"))
       return
     }
     if (newPassword !== confirmPassword) {
-      setPasswordError("Die neuen Passwörter stimmen nicht überein.")
+      setPasswordError(t("pwMismatch"))
       return
     }
 
@@ -349,17 +355,17 @@ export default function SettingsPage() {
       if (result?.error) {
         setPasswordError(
           result.error === "Invalid password"
-            ? "Das aktuelle Passwort ist falsch."
+            ? t("wrongPassword")
             : result.error
         )
       } else {
         setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" })
-        setPasswordSuccess("Passwort erfolgreich geändert.")
+        setPasswordSuccess(t("passwordChanged"))
         setTimeout(() => setPasswordSuccess(null), 3000)
       }
     } catch (err) {
       setPasswordError(
-        err instanceof Error ? err.message : "Passwort konnte nicht geändert werden."
+        err instanceof Error ? err.message : t("passwordChangeFailed")
       )
     } finally {
       setIsPasswordLoading(false)
@@ -484,7 +490,7 @@ export default function SettingsPage() {
                   <Label htmlFor="name">{tp("name")}</Label>
                   <Input
                     id="name"
-                    placeholder="Max Muster"
+                    placeholder={t("namePlaceholder")}
                     value={profileName}
                     onChange={(e) => setProfileName(e.target.value)}
                     disabled={isProfileLoading}
@@ -522,11 +528,11 @@ export default function SettingsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="europe_zurich">Europa/Zürich</SelectItem>
-                  <SelectItem value="europe_berlin">Europa/Berlin</SelectItem>
-                  <SelectItem value="europe_london">Europa/London</SelectItem>
-                  <SelectItem value="utc">UTC</SelectItem>
-                  <SelectItem value="america_new_york">Amerika/New York</SelectItem>
+                  <SelectItem value="europe_zurich">{t("tzEuropeZurich")}</SelectItem>
+                  <SelectItem value="europe_berlin">{t("tzEuropeBerlin")}</SelectItem>
+                  <SelectItem value="europe_london">{t("tzEuropeLondon")}</SelectItem>
+                  <SelectItem value="utc">{t("tzUtc")}</SelectItem>
+                  <SelectItem value="america_new_york">{t("tzAmericaNewYork")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

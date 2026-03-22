@@ -12,6 +12,7 @@ import {
   IconUser,
   IconBuildingStore,
 } from "@tabler/icons-react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -164,12 +165,12 @@ function AddRatingDialog({
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Lieferantenbewertung</DialogTitle>
+            <DialogTitle>{t("supplierRating")}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-5 py-4">
             {/* Quality */}
             <div className="flex items-center justify-between gap-4">
-              <Label className="w-36 shrink-0 text-sm">Qualitat</Label>
+              <Label className="w-36 shrink-0 text-sm">{t("quality")}</Label>
               <StarRating
                 value={form.quality || null}
                 onChange={(v) => setForm((p) => ({ ...p, quality: v }))}
@@ -178,7 +179,7 @@ function AddRatingDialog({
             </div>
             {/* Price Accuracy */}
             <div className="flex items-center justify-between gap-4">
-              <Label className="w-36 shrink-0 text-sm">Preisgenauigkeit</Label>
+              <Label className="w-36 shrink-0 text-sm">{t("priceAccuracy")}</Label>
               <StarRating
                 value={form.priceAccuracy || null}
                 onChange={(v) => setForm((p) => ({ ...p, priceAccuracy: v }))}
@@ -187,7 +188,7 @@ function AddRatingDialog({
             </div>
             {/* Communication */}
             <div className="flex items-center justify-between gap-4">
-              <Label className="w-36 shrink-0 text-sm">Kommunikation</Label>
+              <Label className="w-36 shrink-0 text-sm">{t("communication")}</Label>
               <StarRating
                 value={form.communication || null}
                 onChange={(v) => setForm((p) => ({ ...p, communication: v }))}
@@ -196,7 +197,7 @@ function AddRatingDialog({
             </div>
             {/* Delivery time */}
             <div className="grid gap-2">
-              <Label htmlFor="delivery-time">Lieferzeit (Tage, optional)</Label>
+              <Label htmlFor="delivery-time">{t("deliveryTimeDays")}</Label>
               <Input
                 id="delivery-time"
                 type="number"
@@ -208,10 +209,10 @@ function AddRatingDialog({
             </div>
             {/* Notes */}
             <div className="grid gap-2">
-              <Label htmlFor="rating-notes">Kommentar (optional)</Label>
+              <Label htmlFor="rating-notes">{t("commentOptional")}</Label>
               <Textarea
                 id="rating-notes"
-                placeholder="Ihre Erfahrungen mit diesem Lieferanten…"
+                placeholder={t("commentPlaceholder")}
                 rows={3}
                 value={form.notes}
                 onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
@@ -225,7 +226,7 @@ function AddRatingDialog({
               onClick={() => setOpen(false)}
               disabled={loading}
             >
-              Abbrechen
+              {t("cancel")}
             </Button>
             <Button
               type="submit"
@@ -297,12 +298,12 @@ function BewertungTab({ supplierId }: { supplierId: string }) {
       {avgs && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Durchschnittliche Bewertung</CardTitle>
+            <CardTitle className="text-base">{t("avgRating")}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             {/* Overall */}
             <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
-              <span className="text-sm font-medium">Gesamt</span>
+              <span className="text-sm font-medium">{t("overall")}</span>
               <div className="flex items-center gap-2">
                 <StarDisplay value={avgs.overall} size="md" />
                 <span className="text-lg font-bold tabular-nums">
@@ -312,13 +313,13 @@ function BewertungTab({ supplierId }: { supplierId: string }) {
             </div>
 
             <div className="space-y-3 pt-1">
-              <ScoreBar label="Qualitat" value={avgs.quality} />
-              <ScoreBar label="Preisgenauigkeit" value={avgs.priceAccuracy} />
-              <ScoreBar label="Kommunikation" value={avgs.communication} />
+              <ScoreBar label={t("quality")} value={avgs.quality} />
+              <ScoreBar label={t("priceAccuracy")} value={avgs.priceAccuracy} />
+              <ScoreBar label={t("communication")} value={avgs.communication} />
               {avgs.deliveryTime != null && (
                 <div className="flex items-center gap-3">
                   <span className="w-32 shrink-0 text-sm text-muted-foreground">
-                    Lieferzeit
+                    {t("deliveryTime")}
                   </span>
                   <span className="text-sm font-medium">
                     Ø {avgs.deliveryTime.toFixed(1)} Tage
@@ -334,14 +335,14 @@ function BewertungTab({ supplierId }: { supplierId: string }) {
       {ratings.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed py-12 text-center">
           <IconStar className="size-10 text-muted-foreground/40" />
-          <p className="text-sm font-medium">Noch keine Bewertungen</p>
+          <p className="text-sm font-medium">{t("noRatings")}</p>
           <p className="text-xs text-muted-foreground">
-            Erfassen Sie Ihre erste Bewertung für diesen Lieferanten.
+            {t("noRatingsDesc")}
           </p>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          <h3 className="text-sm font-medium text-muted-foreground">Bewertungshistorie</h3>
+          <h3 className="text-sm font-medium text-muted-foreground">{t("ratingHistory")}</h3>
           {ratings.map((r) => (
             <Card key={r.id} className="border border-border/60">
               <CardContent className="p-4">
@@ -351,19 +352,19 @@ function BewertungTab({ supplierId }: { supplierId: string }) {
                     <div className="flex flex-wrap gap-4">
                       {r.quality != null && (
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-muted-foreground w-24">Qualitat</span>
+                          <span className="text-xs text-muted-foreground w-24">{t("quality")}</span>
                           <StarDisplay value={r.quality} size="sm" />
                         </div>
                       )}
                       {r.priceAccuracy != null && (
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-muted-foreground w-24">Preis</span>
+                          <span className="text-xs text-muted-foreground w-24">{t("price")}</span>
                           <StarDisplay value={r.priceAccuracy} size="sm" />
                         </div>
                       )}
                       {r.communication != null && (
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-muted-foreground w-24">Kommunikation</span>
+                          <span className="text-xs text-muted-foreground w-24">{t("communication")}</span>
                           <StarDisplay value={r.communication} size="sm" />
                         </div>
                       )}
@@ -413,6 +414,7 @@ export default function SupplierDetailPage({
 }) {
   const { id } = use(params)
   const router = useRouter()
+  const t = useTranslations("supplierDetail")
   const [supplier, setSupplier] = useState<SupplierDetail | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -479,8 +481,8 @@ export default function SupplierDetailPage({
 
       <Tabs defaultValue="bewertung">
         <TabsList>
-          <TabsTrigger value="details">Details</TabsTrigger>
-          <TabsTrigger value="bewertung">Bewertung</TabsTrigger>
+          <TabsTrigger value="details">{t("details")}</TabsTrigger>
+          <TabsTrigger value="bewertung">{t("rating")}</TabsTrigger>
         </TabsList>
 
         {/* ── Details Tab ─────────────────────────────────────────── */}
@@ -488,12 +490,12 @@ export default function SupplierDetailPage({
           <Card>
             <CardContent className="grid gap-4 p-6 sm:grid-cols-2">
               {[
-                { label: "Kontaktperson", value: supplier.contactPerson },
-                { label: "E-Mail", value: supplier.email },
-                { label: "Telefon", value: supplier.phone },
-                { label: "Adresse", value: supplier.address },
-                { label: "Stadt", value: supplier.city },
-                { label: "Land", value: supplier.country },
+                { label: t("contactPerson"), value: supplier.contactPerson },
+                { label: t("email"), value: supplier.email },
+                { label: t("phone"), value: supplier.phone },
+                { label: t("address"), value: supplier.address },
+                { label: t("city"), value: supplier.city },
+                { label: t("country"), value: supplier.country },
               ].map(({ label, value }) => (
                 <div key={label}>
                   <p className="text-xs text-muted-foreground">{label}</p>
@@ -502,7 +504,7 @@ export default function SupplierDetailPage({
               ))}
               {supplier.notes && (
                 <div className="sm:col-span-2">
-                  <p className="text-xs text-muted-foreground">Notizen</p>
+                  <p className="text-xs text-muted-foreground">{t("notes")}</p>
                   <p className="mt-0.5 text-sm">{supplier.notes}</p>
                 </div>
               )}

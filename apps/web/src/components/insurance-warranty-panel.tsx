@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { useOrganization } from "@/hooks/use-organization"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -96,15 +97,15 @@ function ExpiryBadge({ endDate }: { endDate: string | null }) {
     { label: string; className: string }
   > = {
     active: {
-      label: "Aktiv",
+      label: t("active"),
       className: "bg-green-50 text-green-700 border-green-200",
     },
     "expiring-soon": {
-      label: "Läuft bald ab",
+      label: t("expiringSoon"),
       className: "bg-yellow-50 text-yellow-700 border-yellow-200",
     },
     expired: {
-      label: "Abgelaufen",
+      label: t("expired"),
       className: "bg-red-50 text-red-600 border-red-200",
     },
   }
@@ -183,7 +184,7 @@ function InsuranceDialog({
 
   const handleSave = async () => {
     if (!form.provider.trim()) {
-      setError("Versicherungsträger ist erforderlich.")
+      setError(t("providerRequired"))
       return
     }
     setSaving(true)
@@ -192,7 +193,7 @@ function InsuranceDialog({
       await onSave(form)
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Fehler beim Speichern")
+      setError(err instanceof Error ? err.message : t("saveError"))
     } finally {
       setSaving(false)
     }
@@ -203,14 +204,14 @@ function InsuranceDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {initial ? "Versicherung bearbeiten" : "Versicherung hinzufügen"}
+            {initial ? t("editInsurance") : t("addInsurance")}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           <div className="space-y-2">
             <Label>
-              Versicherungsträger <span className="text-destructive">*</span>
+              {t("provider")} <span className="text-destructive">*</span>
             </Label>
             <Input
               value={form.provider}
@@ -220,7 +221,7 @@ function InsuranceDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Policennummer</Label>
+            <Label>{t("policyNumber")}</Label>
             <Input
               value={form.policyNumber}
               onChange={(e) =>
@@ -232,7 +233,7 @@ function InsuranceDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label>Versicherungssumme (CHF)</Label>
+              <Label>{t("coverageAmount")}</Label>
               <Input
                 type="number"
                 min={0}
@@ -245,7 +246,7 @@ function InsuranceDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label>Prämie (CHF)</Label>
+              <Label>{t("premium")}</Label>
               <Input
                 type="number"
                 min={0}
@@ -261,7 +262,7 @@ function InsuranceDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label>Beginn</Label>
+              <Label>{t("startDate")}</Label>
               <Input
                 type="date"
                 value={form.startDate}
@@ -271,7 +272,7 @@ function InsuranceDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label>Ablaufdatum</Label>
+              <Label>{t("endDate")}</Label>
               <Input
                 type="date"
                 value={form.endDate}
@@ -283,7 +284,7 @@ function InsuranceDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Notizen</Label>
+            <Label>{t("notes")}</Label>
             <textarea
               className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none"
               value={form.notes}
@@ -303,10 +304,10 @@ function InsuranceDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Abbrechen
+            {t("cancel")}
           </Button>
           <Button onClick={handleSave} disabled={saving}>
-            {saving ? "Wird gespeichert…" : "Speichern"}
+            {saving ? t("saving") : t("save")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -380,13 +381,13 @@ function WarrantyDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {initial ? "Garantie bearbeiten" : "Garantie hinzufügen"}
+            {initial ? t("editWarranty") : t("addWarranty")}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label>Anbieter / Hersteller</Label>
+            <Label>{t("warrantyProvider")}</Label>
             <Input
               value={form.provider}
               onChange={(e) =>
@@ -398,7 +399,7 @@ function WarrantyDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label>Garantiebeginn</Label>
+              <Label>{t("warrantyStart")}</Label>
               <Input
                 type="date"
                 value={form.warrantyStart}
@@ -408,7 +409,7 @@ function WarrantyDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label>Garantieende</Label>
+              <Label>{t("warrantyEnd")}</Label>
               <Input
                 type="date"
                 value={form.warrantyEnd}
@@ -458,6 +459,7 @@ export function InsuranceWarrantyPanel({
   entityType,
   entityId,
 }: InsuranceWarrantyPanelProps) {
+  const t = useTranslations("insuranceWarranty")
   const { orgId } = useOrganization()
   const [insurance, setInsurance] = useState<InsuranceRecord[]>([])
   const [warranty, setWarranty] = useState<WarrantyRecord[]>([])
@@ -519,7 +521,7 @@ export function InsuranceWarrantyPanel({
         headers: { "Content-Type": "application/json", ...headers },
         body: JSON.stringify(payload),
       })
-      if (!res.ok) throw new Error("Fehler beim Aktualisieren")
+      if (!res.ok) throw new Error(t("updateError"))
       const updated = await res.json()
       setInsurance((prev) =>
         prev.map((i) => (i.id === editingIns.id ? updated : i))
@@ -530,7 +532,7 @@ export function InsuranceWarrantyPanel({
         headers: { "Content-Type": "application/json", ...headers },
         body: JSON.stringify(payload),
       })
-      if (!res.ok) throw new Error("Fehler beim Erstellen")
+      if (!res.ok) throw new Error(t("createError"))
       const created = await res.json()
       setInsurance((prev) => [...prev, created])
     }
@@ -599,7 +601,7 @@ export function InsuranceWarrantyPanel({
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <IconShield className="size-4 text-muted-foreground" />
-              Versicherung
+              {t("insurance")}
             </CardTitle>
             <Button
               size="sm"
@@ -611,7 +613,7 @@ export function InsuranceWarrantyPanel({
               }}
             >
               <IconPlus className="size-3.5" />
-              Hinzufügen
+              {t("add")}
             </Button>
           </div>
         </CardHeader>
@@ -619,7 +621,7 @@ export function InsuranceWarrantyPanel({
         {insurance.length === 0 ? (
           <CardContent className="pb-4">
             <p className="text-sm text-muted-foreground">
-              Keine Versicherungseinträge vorhanden.
+              {t("noInsurance")}
             </p>
           </CardContent>
         ) : (
@@ -692,7 +694,7 @@ export function InsuranceWarrantyPanel({
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <IconCertificate className="size-4 text-muted-foreground" />
-              Garantie
+              {t("warranty")}
             </CardTitle>
             <Button
               size="sm"
@@ -712,7 +714,7 @@ export function InsuranceWarrantyPanel({
         {warranty.length === 0 ? (
           <CardContent className="pb-4">
             <p className="text-sm text-muted-foreground">
-              Keine Garantieeinträge vorhanden.
+              {t("noWarranty")}
             </p>
           </CardContent>
         ) : (
@@ -724,7 +726,7 @@ export function InsuranceWarrantyPanel({
                   <div className="flex-1 space-y-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-medium text-sm">
-                        {war.provider ?? "Garantie"}
+                        {war.provider ?? t("warranty")}
                       </span>
                       <ExpiryBadge endDate={war.warrantyEnd} />
                     </div>

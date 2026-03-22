@@ -59,63 +59,63 @@ interface SessionEntry {
 
 // ── User-Agent Parser ──────────────────────────────────────────────────────
 
-function parseUserAgent(ua: string | null): { device: string; browser: string; icon: React.ReactNode } {
-  if (!ua) return { device: "Unbekannt", browser: "Unbekannt", icon: <IconWorld className="size-4" /> }
+function useParseUserAgent() {
+  const t = useTranslations("settings")
 
-  let browser = "Unbekannter Browser"
-  let browserIcon: React.ReactNode = <IconWorld className="size-4" />
+  return (ua: string | null): { device: string; browser: string; icon: React.ReactNode } => {
+    if (!ua) return { device: t("sessDeviceUnknown"), browser: t("sessBrowserUnknown"), icon: <IconWorld className="size-4" /> }
 
-  if (ua.includes("Edg/") || ua.includes("Edge/")) {
-    browser = "Microsoft Edge"
-    browserIcon = <IconBrandEdge className="size-4" />
-  } else if (ua.includes("Chrome/") && !ua.includes("Edg/")) {
-    browser = "Google Chrome"
-    browserIcon = <IconBrandChrome className="size-4" />
-  } else if (ua.includes("Firefox/")) {
-    browser = "Mozilla Firefox"
-    browserIcon = <IconBrandFirefox className="size-4" />
-  } else if (ua.includes("Safari/") && !ua.includes("Chrome/")) {
-    browser = "Safari"
-    browserIcon = <IconBrandSafari className="size-4" />
-  }
+    let browser = t("sessBrowserUnknown")
+    let browserIcon: React.ReactNode = <IconWorld className="size-4" />
 
-  let device = "Desktop"
-  let deviceIcon: React.ReactNode = <IconDeviceDesktop className="size-4 text-muted-foreground" />
+    if (ua.includes("Edg/") || ua.includes("Edge/")) {
+      browser = "Microsoft Edge"
+      browserIcon = <IconBrandEdge className="size-4" />
+    } else if (ua.includes("Chrome/") && !ua.includes("Edg/")) {
+      browser = "Google Chrome"
+      browserIcon = <IconBrandChrome className="size-4" />
+    } else if (ua.includes("Firefox/")) {
+      browser = "Mozilla Firefox"
+      browserIcon = <IconBrandFirefox className="size-4" />
+    } else if (ua.includes("Safari/") && !ua.includes("Chrome/")) {
+      browser = "Safari"
+      browserIcon = <IconBrandSafari className="size-4" />
+    }
 
-  if (ua.includes("iPhone") || ua.includes("Android") || ua.includes("Mobile")) {
-    device = "Mobilgerät"
-    deviceIcon = <IconDeviceMobile className="size-4 text-muted-foreground" />
-  }
+    let device = t("sessDeviceDesktop")
+    let deviceIcon: React.ReactNode = <IconDeviceDesktop className="size-4 text-muted-foreground" />
 
-  let os = ""
-  if (ua.includes("Windows")) os = "Windows"
-  else if (ua.includes("Mac OS") || ua.includes("Macintosh")) os = "macOS"
-  else if (ua.includes("Linux")) os = "Linux"
-  else if (ua.includes("Android")) os = "Android"
-  else if (ua.includes("iPhone") || ua.includes("iPad")) os = "iOS"
+    if (ua.includes("iPhone") || ua.includes("Android") || ua.includes("Mobile")) {
+      device = t("sessDeviceMobile")
+      deviceIcon = <IconDeviceMobile className="size-4 text-muted-foreground" />
+    }
 
-  const displayDevice = os ? `${device} (${os})` : device
+    let os = ""
+    if (ua.includes("Windows")) os = "Windows"
+    else if (ua.includes("Mac OS") || ua.includes("Macintosh")) os = "macOS"
+    else if (ua.includes("Linux")) os = "Linux"
+    else if (ua.includes("Android")) os = "Android"
+    else if (ua.includes("iPhone") || ua.includes("iPad")) os = "iOS"
 
-  return {
-    device: displayDevice,
-    browser,
-    icon: (
-      <div className="flex items-center gap-1.5">
-        {deviceIcon}
-        {browserIcon}
-      </div>
-    ),
+    const displayDevice = os ? `${device} (${os})` : device
+
+    return {
+      device: displayDevice,
+      browser,
+      icon: (
+        <div className="flex items-center gap-1.5">
+          {deviceIcon}
+          {browserIcon}
+        </div>
+      ),
+    }
   }
 }
 
 function formatDate(dateStr: string): string {
   try {
     return new Intl.DateTimeFormat("de-CH", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+      day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
     }).format(new Date(dateStr))
   } catch {
     return "—"
@@ -126,6 +126,7 @@ function formatDate(dateStr: string): string {
 
 export default function SessionsPage() {
   const ts = useTranslations("settings")
+  const parseUserAgent = useParseUserAgent()
   const [sessions, setSessions] = useState<SessionEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [revoking, setRevoking] = useState<string | null>(null)
@@ -136,19 +137,17 @@ export default function SessionsPage() {
   const loadSessions = useCallback(async () => {
     try {
       const res = await fetch("/api/sessions")
-      if (!res.ok) throw new Error("Fehler beim Laden")
+      if (!res.ok) throw new Error(ts("loadError"))
       const data = await res.json()
       setSessions(data)
     } catch {
-      setError("Sitzungen konnten nicht geladen werden.")
+      setError(ts("sessLoadError"))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [ts])
 
-  useEffect(() => {
-    loadSessions()
-  }, [loadSessions])
+  useEffect(() => { loadSessions() }, [loadSessions])
 
   const revokeSession = async (id: string) => {
     setRevoking(id)
@@ -156,15 +155,12 @@ export default function SessionsPage() {
     setSuccess(null)
     try {
       const res = await fetch(`/api/sessions/${id}`, { method: "DELETE" })
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || "Fehler")
-      }
-      setSuccess("Sitzung wurde beendet.")
+      if (!res.ok) { const data = await res.json(); throw new Error(data.error || ts("loadError")) }
+      setSuccess(ts("sessEnded"))
       setSessions((prev) => prev.filter((s) => s.id !== id))
       setTimeout(() => setSuccess(null), 3000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sitzung konnte nicht beendet werden.")
+      setError(err instanceof Error ? err.message : ts("sessEndFailed"))
     } finally {
       setRevoking(null)
     }
@@ -176,13 +172,13 @@ export default function SessionsPage() {
     setSuccess(null)
     try {
       const res = await fetch("/api/sessions", { method: "DELETE" })
-      if (!res.ok) throw new Error("Fehler")
+      if (!res.ok) throw new Error()
       const data = await res.json()
-      setSuccess(`${data.revoked} Sitzung(en) wurden beendet.`)
+      setSuccess(ts("sessEndedCount", { count: data.revoked }))
       setSessions((prev) => prev.filter((s) => s.isCurrent))
       setTimeout(() => setSuccess(null), 3000)
     } catch {
-      setError("Sitzungen konnten nicht beendet werden.")
+      setError(ts("sessEndAllFailed"))
     } finally {
       setRevokingAll(false)
     }
@@ -192,25 +188,19 @@ export default function SessionsPage() {
 
   return (
     <div className="space-y-6 px-4 py-4 md:px-6 md:py-6 lg:px-8 lg:py-8">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">{ts("sessionsTitle")}</h1>
-        <p className="mt-2 text-muted-foreground">
-          {ts("sessionsDesc")}
-        </p>
+        <p className="mt-2 text-muted-foreground">{ts("sessionsDesc")}</p>
       </div>
 
-      {/* Status messages */}
       {error && (
         <div className="flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          <IconAlertTriangle className="size-4 shrink-0" />
-          {error}
+          <IconAlertTriangle className="size-4 shrink-0" />{error}
         </div>
       )}
       {success && (
         <div className="flex items-center gap-2 rounded-md bg-green-500/10 px-3 py-2 text-sm text-green-700 dark:text-green-400">
-          <IconCheck className="size-4 shrink-0" />
-          {success}
+          <IconCheck className="size-4 shrink-0" />{success}
         </div>
       )}
 
@@ -218,13 +208,10 @@ export default function SessionsPage() {
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <IconDevices className="size-5" />
-              Angemeldete Geräte
+              <IconDevices className="size-5" />{ts("sessDevices")}
             </CardTitle>
             <CardDescription className="mt-1.5">
-              {loading
-                ? "Wird geladen…"
-                : `${sessions.length} aktive Sitzung(en)`}
+              {loading ? ts("sessLoading") : ts("sessActiveCount", { count: sessions.length })}
             </CardDescription>
           </div>
           {otherCount > 0 && (
@@ -232,26 +219,17 @@ export default function SessionsPage() {
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" size="sm" disabled={revokingAll}>
                   <IconLogout className="mr-1.5 size-4" />
-                  {revokingAll
-                    ? "Wird beendet…"
-                    : "Alle anderen Sitzungen beenden"}
+                  {revokingAll ? ts("sessEndingAll") : ts("sessEndAll")}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>
-                    Alle anderen Sitzungen beenden?
-                  </AlertDialogTitle>
-                  <AlertDialogDescription>
-                    {otherCount} andere Sitzung(en) werden sofort abgemeldet.
-                    Nur Ihre aktuelle Sitzung bleibt aktiv.
-                  </AlertDialogDescription>
+                  <AlertDialogTitle>{ts("sessEndAllTitle")}</AlertDialogTitle>
+                  <AlertDialogDescription>{ts("sessEndAllDesc", { count: otherCount })}</AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-                  <AlertDialogAction onClick={revokeAllOthers}>
-                    Alle beenden
-                  </AlertDialogAction>
+                  <AlertDialogCancel>{ts("sessEndAllCancel")}</AlertDialogCancel>
+                  <AlertDialogAction onClick={revokeAllOthers}>{ts("sessEndAllConfirm")}</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -259,24 +237,18 @@ export default function SessionsPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
+            <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
           ) : sessions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Keine aktiven Sitzungen gefunden.
-            </p>
+            <p className="text-sm text-muted-foreground">{ts("sessNone")}</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Gerät / Browser</TableHead>
-                  <TableHead>IP-Adresse</TableHead>
-                  <TableHead>Angemeldet seit</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Aktion</TableHead>
+                  <TableHead>{ts("sessDeviceBrowser")}</TableHead>
+                  <TableHead>{ts("sessIpAddress")}</TableHead>
+                  <TableHead>{ts("sessSignedInSince")}</TableHead>
+                  <TableHead>{ts("sessStatus")}</TableHead>
+                  <TableHead className="text-right">{ts("sessAction")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -290,47 +262,27 @@ export default function SessionsPage() {
                           <div className="flex items-center gap-2">
                             {parsed.icon}
                             <div>
-                              <p className="text-sm font-medium">
-                                {parsed.browser}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {parsed.device}
-                              </p>
+                              <p className="text-sm font-medium">{parsed.browser}</p>
+                              <p className="text-xs text-muted-foreground">{parsed.device}</p>
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          {s.ipAddress || "—"}
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {formatDate(s.createdAt)}
-                        </TableCell>
+                        <TableCell className="font-mono text-sm">{s.ipAddress || "—"}</TableCell>
+                        <TableCell className="text-sm">{formatDate(s.createdAt)}</TableCell>
                         <TableCell>
                           {s.isCurrent ? (
-                            <Badge
-                              variant="default"
-                              className="bg-green-600 hover:bg-green-700"
-                            >
-                              Aktuelle Sitzung
-                            </Badge>
+                            <Badge variant="default" className="bg-green-600 hover:bg-green-700">{ts("sessCurrent")}</Badge>
                           ) : (
-                            <Badge variant="secondary">Aktiv</Badge>
+                            <Badge variant="secondary">{ts("sessActiveLabel")}</Badge>
                           )}
                         </TableCell>
                         <TableCell className="text-right">
                           {s.isCurrent ? (
-                            <span className="text-xs text-muted-foreground">
-                              —
-                            </span>
+                            <span className="text-xs text-muted-foreground">—</span>
                           ) : (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => revokeSession(s.id)}
-                              disabled={revoking === s.id}
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => revokeSession(s.id)} disabled={revoking === s.id}>
                               <IconLogout className="mr-1 size-4" />
-                              {revoking === s.id ? "…" : "Abmelden"}
+                              {revoking === s.id ? "…" : ts("sessSignOut")}
                             </Button>
                           )}
                         </TableCell>

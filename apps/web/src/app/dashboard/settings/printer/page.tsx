@@ -82,7 +82,7 @@ export default function PrinterSettingsPage() {
       setTimeout(() => setTestStatus("idle"), 3000)
     } catch (err: unknown) {
       setTestStatus("error")
-      setTestError(err instanceof Error ? err.message : "Unbekannter Fehler")
+      setTestError(err instanceof Error ? err.message : ts("unknownError"))
     }
   }, [settings])
 
@@ -90,10 +90,10 @@ export default function PrinterSettingsPage() {
   const previewZPL = generateZPL(
     {
       type: "material",
-      name: "Beispiel-Material",
+      name: "Sample Material",
       number: "MAT-12345",
       barcode: "1234567890128",
-      orgName: "Meine Firma AG",
+      orgName: "My Company AG",
     },
     settings.labelSize
   )
@@ -106,8 +106,7 @@ export default function PrinterSettingsPage() {
           {ts("printerTitle")}
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Konfigurieren Sie Ihren Etikettendrucker für Material-, Werkzeug- und
-          Standort-Etiketten.
+          {ts("printerSubtitle")}
         </p>
       </div>
 
@@ -119,7 +118,7 @@ export default function PrinterSettingsPage() {
             Druckertyp
           </CardTitle>
           <CardDescription>
-            Wählen Sie den Hersteller Ihres Etikettendruckers.
+            {ts("printerTypeDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -146,9 +145,9 @@ export default function PrinterSettingsPage() {
       {/* ── Verbindung ── */}
       <Card>
         <CardHeader>
-          <CardTitle>Verbindung</CardTitle>
+          <CardTitle>{ts("connection")}</CardTitle>
           <CardDescription>
-            Wie ist Ihr Drucker mit dem Computer verbunden?
+            {ts("connectionDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -179,7 +178,7 @@ export default function PrinterSettingsPage() {
               <Separator />
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="network-ip">IP-Adresse</Label>
+                  <Label htmlFor="network-ip">{ts("ipAddress")}</Label>
                   <Input
                     id="network-ip"
                     placeholder="192.168.1.100"
@@ -188,7 +187,7 @@ export default function PrinterSettingsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="network-port">Port</Label>
+                  <Label htmlFor="network-port">{ts("port")}</Label>
                   <Input
                     id="network-port"
                     type="number"
@@ -210,12 +209,12 @@ export default function PrinterSettingsPage() {
                 <IconAlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600" />
                 <div>
                   <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
-                    Browser-Kompatibilität
+                    {ts("browserCompat")}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {settings.connection === "usb"
-                      ? "WebUSB wird nur in Google Chrome und Chromium-basierten Browsern unterstützt."
-                      : "Web Bluetooth wird nur in Google Chrome und Chromium-basierten Browsern unterstützt."}
+                      ? ts("webUsbNotice")
+                      : ts("webBluetoothNotice")}
                   </p>
                 </div>
               </div>
@@ -227,9 +226,9 @@ export default function PrinterSettingsPage() {
       {/* ── Etikettengrösse ── */}
       <Card>
         <CardHeader>
-          <CardTitle>Etikettengrösse</CardTitle>
+          <CardTitle>{ts("labelSize")}</CardTitle>
           <CardDescription>
-            Wählen Sie die Grösse der verwendeten Etiketten.
+            {ts("labelSizeDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -254,15 +253,15 @@ export default function PrinterSettingsPage() {
       {/* ── Testdruck ── */}
       <Card>
         <CardHeader>
-          <CardTitle>Testdruck</CardTitle>
+          <CardTitle>{ts("testPrint")}</CardTitle>
           <CardDescription>
-            Drucken Sie ein Testetikett, um die Konfiguration zu prüfen.
+            {ts("testPrintDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* ZPL Preview */}
           <div>
-            <Label className="text-sm font-medium">Vorschau (ZPL-Code)</Label>
+            <Label className="text-sm font-medium">{ts("zplPreview")}</Label>
             <pre className="mt-2 max-h-40 overflow-auto rounded-lg bg-muted/50 p-4 font-mono text-xs">
               {previewZPL}
             </pre>
@@ -278,12 +277,12 @@ export default function PrinterSettingsPage() {
               {testStatus === "printing" ? (
                 <>
                   <IconLoader2 className="mr-2 size-4 animate-spin" />
-                  Wird gedruckt...
+                  {ts("printing")}
                 </>
               ) : (
                 <>
                   <IconPrinter className="mr-2 size-4" />
-                  Testetikett drucken
+                  {ts("printTestLabel")}
                 </>
               )}
             </Button>
@@ -291,7 +290,7 @@ export default function PrinterSettingsPage() {
             {testStatus === "success" && (
               <span className="flex items-center gap-1 text-sm text-green-600">
                 <IconCheck className="size-4" />
-                Erfolgreich gedruckt
+                {ts("printSuccess")}
               </span>
             )}
 
@@ -308,7 +307,7 @@ export default function PrinterSettingsPage() {
       {/* ── Druckerstatus ── */}
       <Card>
         <CardHeader>
-          <CardTitle>Status</CardTitle>
+          <CardTitle>{ts("printerStatus")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-3">
@@ -316,8 +315,7 @@ export default function PrinterSettingsPage() {
               <span className="size-2.5 rounded-full bg-muted-foreground/40" />
             </div>
             <span className="text-sm text-muted-foreground">
-              Kein Drucker verbunden. Drücken Sie &ldquo;Testetikett drucken&rdquo;, um
-              eine Verbindung herzustellen.
+              {ts("noPrinterConnected")}
             </span>
           </div>
         </CardContent>
@@ -331,9 +329,9 @@ export default function PrinterSettingsPage() {
 // ---------------------------------------------------------------------------
 
 const PRINTER_TYPES: { value: PrinterType; label: string; desc: string }[] = [
-  { value: "zebra", label: "Zebra (ZPL)", desc: "ZD420, ZD621, GK420 und weitere" },
-  { value: "brother", label: "Brother QL", desc: "QL-820NWB, QL-1110NWB und weitere" },
-  { value: "generic", label: "Generisch (ZPL)", desc: "Andere ZPL-kompatible Drucker" },
+  { value: "zebra", label: "Zebra (ZPL)", desc: "ZD420, ZD621, GK420+" },
+  { value: "brother", label: "Brother QL", desc: "QL-820NWB, QL-1110NWB+" },
+  { value: "generic", label: "Generic (ZPL)", desc: "ZPL-compatible" },
 ]
 
 const CONNECTION_TYPES: {
@@ -342,13 +340,13 @@ const CONNECTION_TYPES: {
   desc: string
   icon: typeof IconUsb
 }[] = [
-  { value: "usb", label: "USB", desc: "Direkte USB-Verbindung", icon: IconUsb },
-  { value: "network", label: "Netzwerk", desc: "IP-Adresse und Port", icon: IconWifi },
-  { value: "bluetooth", label: "Bluetooth", desc: "BLE-Verbindung", icon: IconBluetooth },
+  { value: "usb", label: "USB", desc: "USB", icon: IconUsb },
+  { value: "network", label: "Network", desc: "IP", icon: IconWifi },
+  { value: "bluetooth", label: "Bluetooth", desc: "BLE", icon: IconBluetooth },
 ]
 
 const LABEL_SIZES: { value: LabelSize; label: string }[] = [
-  { value: "50x25", label: "50 x 25 mm (Klein)" },
-  { value: "100x50", label: "100 x 50 mm (Standard)" },
-  { value: "100x150", label: "100 x 150 mm (Versandetikett)" },
+  { value: "50x25", label: "50 x 25 mm" },
+  { value: "100x50", label: "100 x 50 mm" },
+  { value: "100x150", label: "100 x 150 mm" },
 ]

@@ -131,13 +131,13 @@ const TYPE_I18N_MAP: Record<string, string> = {
   user: "user",
 }
 
-const TEMPLATES = [
-  { value: "none", label: "Kein Template" },
-  { value: "rettungswagen", label: "Rettungswagen (Standard)" },
-  { value: "baustelle", label: "Baustelle (Standard)" },
-  { value: "praxis", label: "Arztpraxis (Standard)" },
-  { value: "op", label: "OP-Saal (Standard)" },
-  { value: "lager", label: "Lager (Standard)" },
+const TEMPLATES: { value: string; labelKey: string }[] = [
+  { value: "none", labelKey: "templateNone" },
+  { value: "rettungswagen", labelKey: "templateAmbulance" },
+  { value: "baustelle", labelKey: "templateSite" },
+  { value: "praxis", labelKey: "templatePractice" },
+  { value: "op", labelKey: "templateOR" },
+  { value: "lager", labelKey: "templateWarehouse" },
 ]
 
 // ---------------------------------------------------------------------------
@@ -216,19 +216,19 @@ function formatDate(dateStr: string | null): string {
 function conditionBadge(condition: string | null) {
   const map: Record<string, { label: string; className: string }> = {
     good: {
-      label: "Gut",
+      label: "good",
       className: "bg-secondary/10 text-secondary border-secondary/30",
     },
     damaged: {
-      label: "Beschädigt",
+      label: "damaged",
       className: "bg-primary/10 text-primary border-border",
     },
     repair: {
-      label: "In Reparatur",
+      label: "repair",
       className: "bg-primary/10 text-primary border-border",
     },
     decommissioned: {
-      label: "Ausgemustert",
+      label: "decommissioned",
       className:
         "bg-destructive/10 text-destructive border-destructive/30",
     },
@@ -455,12 +455,12 @@ export default function LocationDetailPage() {
         </Button>
         <div className="flex min-h-[300px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed p-8 text-center">
           <IconAlertTriangle className="size-10 text-muted-foreground" />
-          <h3 className="text-lg font-medium">Lagerort nicht gefunden</h3>
+          <h3 className="text-lg font-medium">{t("notFound")}</h3>
           <p className="text-sm text-muted-foreground">
-            Dieser Lagerort existiert nicht oder wurde gelöscht.
+            {t("notFoundDesc")}
           </p>
           <Button onClick={() => router.push("/dashboard/locations")}>
-            Zurück zur Übersicht
+            {t("backToOverview")}
           </Button>
         </div>
       </div>
@@ -497,7 +497,7 @@ export default function LocationDetailPage() {
         {editing ? (
           /* Edit form header */
           <div className="flex-1 space-y-4">
-            <h2 className="text-lg font-semibold">Lagerort bearbeiten</h2>
+            <h2 className="text-lg font-semibold">{t("editLocation")}</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="edit-name">
@@ -544,22 +544,22 @@ export default function LocationDetailPage() {
                   onChange={(e) =>
                     setEditForm((f) => ({ ...f, category: e.target.value }))
                   }
-                  placeholder="Kategorie"
+                  placeholder={t("category")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-address">Adresse</Label>
+                <Label htmlFor="edit-address">{t("address")}</Label>
                 <Input
                   id="edit-address"
                   value={editForm.address}
                   onChange={(e) =>
                     setEditForm((f) => ({ ...f, address: e.target.value }))
                   }
-                  placeholder="Adresse"
+                  placeholder={t("address")}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Template</Label>
+                <Label>{t("template")}</Label>
                 <Select
                   value={editForm.template}
                   onValueChange={(v) =>
@@ -572,14 +572,14 @@ export default function LocationDetailPage() {
                   <SelectContent>
                     {TEMPLATES.map((tpl) => (
                       <SelectItem key={tpl.value} value={tpl.value}>
-                        {tpl.label}
+                        {t(tpl.labelKey as Parameters<typeof t>[0])}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2 sm:col-span-2">
-                <Label className="text-sm font-medium">GPS-Koordinaten</Label>
+                <Label className="text-sm font-medium">{t("gpsCoordinates")}</Label>
                 <GpsPicker
                   value={{ latitude: editForm.latitude, longitude: editForm.longitude }}
                   onChange={(gps: GpsValue) =>
@@ -624,7 +624,7 @@ export default function LocationDetailPage() {
                       variant="outline"
                       className="bg-muted text-muted-foreground border-border"
                     >
-                      Inaktiv
+                      {t("inactive")}
                     </Badge>
                   )}
                 </div>
@@ -651,7 +651,7 @@ export default function LocationDetailPage() {
                 onClick={() => router.push(`/dashboard/locations/${id}/qr`)}
               >
                 <IconQrcode className="size-4" />
-                QR-Code
+                {t("qrCode")}
               </Button>
               <Button variant="outline" onClick={() => setEditing(true)}>
                 <IconEdit className="size-4" />
@@ -677,7 +677,7 @@ export default function LocationDetailPage() {
                 {summary.materials}
               </div>
               <p className="text-xs text-muted-foreground">
-                Verschiedene Materialien
+                {t("differentMaterials")}
               </p>
             </CardContent>
           </Card>
@@ -693,7 +693,7 @@ export default function LocationDetailPage() {
               <div className="text-3xl font-bold tabular-nums">
                 {summary.tools}
               </div>
-              <p className="text-xs text-muted-foreground">Zugewiesene Werkzeuge</p>
+              <p className="text-xs text-muted-foreground">{t("assignedTools")}</p>
             </CardContent>
           </Card>
 
@@ -708,7 +708,7 @@ export default function LocationDetailPage() {
               <div className="text-3xl font-bold tabular-nums">
                 {summary.keys}
               </div>
-              <p className="text-xs text-muted-foreground">Schlüssel</p>
+              <p className="text-xs text-muted-foreground">{t("keysLabel")}</p>
             </CardContent>
           </Card>
         </div>
@@ -724,11 +724,11 @@ export default function LocationDetailPage() {
             </TabsTrigger>
             <TabsTrigger value="tools">
               <IconTool className="size-4" />
-              Werkzeuge
+              {t("tools")}
             </TabsTrigger>
             <TabsTrigger value="keys">
               <IconKey className="size-4" />
-              Schlüssel
+              {t("keysLabel")}
             </TabsTrigger>
           </TabsList>
 
@@ -738,13 +738,13 @@ export default function LocationDetailPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nummer</TableHead>
-                    <TableHead>Material</TableHead>
-                    <TableHead className="text-right">Bestand</TableHead>
-                    <TableHead>Einheit</TableHead>
-                    <TableHead className="text-right">Min</TableHead>
-                    <TableHead className="text-right">Max</TableHead>
-                    <TableHead>Ablaufdatum</TableHead>
+                    <TableHead>{t("numberCol")}</TableHead>
+                    <TableHead>{t("material")}</TableHead>
+                    <TableHead className="text-right">{t("stockCol")}</TableHead>
+                    <TableHead>{t("unitCol")}</TableHead>
+                    <TableHead className="text-right">{t("min")}</TableHead>
+                    <TableHead className="text-right">{t("max")}</TableHead>
+                    <TableHead>{t("expiryDate")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -762,7 +762,7 @@ export default function LocationDetailPage() {
                         colSpan={7}
                         className="h-24 text-center text-muted-foreground"
                       >
-                        Keine Materialien an diesem Lagerort.
+                        {t("noMaterialsHere")}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -810,10 +810,10 @@ export default function LocationDetailPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nummer</TableHead>
-                    <TableHead>Werkzeug</TableHead>
-                    <TableHead>Zustand</TableHead>
-                    <TableHead>Zugewiesen</TableHead>
+                    <TableHead>{t("numberCol")}</TableHead>
+                    <TableHead>{t("tool")}</TableHead>
+                    <TableHead>{t("conditionCol")}</TableHead>
+                    <TableHead>{t("assignedCol")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -831,7 +831,7 @@ export default function LocationDetailPage() {
                         colSpan={4}
                         className="h-24 text-center text-muted-foreground"
                       >
-                        Keine Werkzeuge an diesem Lagerort.
+                        {t("noToolsHere")}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -859,10 +859,10 @@ export default function LocationDetailPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nummer</TableHead>
-                    <TableHead>Schlüssel</TableHead>
-                    <TableHead>Adresse / Zuordnung</TableHead>
-                    <TableHead className="text-right">Anzahl</TableHead>
+                    <TableHead>{t("numberCol")}</TableHead>
+                    <TableHead>{t("key")}</TableHead>
+                    <TableHead>{t("addressAssignment")}</TableHead>
+                    <TableHead className="text-right">{t("count")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -880,7 +880,7 @@ export default function LocationDetailPage() {
                         colSpan={4}
                         className="h-24 text-center text-muted-foreground"
                       >
-                        Keine Schlüssel an diesem Lagerort.
+                        {t("noKeysHere")}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -951,13 +951,13 @@ function QuickBookingSheet({
         <SheetHeader>
           <SheetTitle>{t("quickBooking")}</SheetTitle>
           <SheetDescription>
-            Material ein- oder ausbuchen an: {locationName}
+            {t("bookingDesc", { location: locationName })}
           </SheetDescription>
         </SheetHeader>
 
         <div className="flex flex-col gap-4 p-4">
           <div className="space-y-2">
-            <Label>Buchungsart</Label>
+            <Label>{t("bookingType")}</Label>
             <Select value={bookingType} onValueChange={setBookingType}>
               <SelectTrigger className="w-full">
                 <SelectValue />
@@ -965,18 +965,18 @@ function QuickBookingSheet({
               <SelectContent>
                 <SelectItem value="in">
                   <IconPlus className="size-4 text-secondary" />
-                  Einbuchen (Zugang)
+                  {t("bookIn")}
                 </SelectItem>
                 <SelectItem value="out">
                   <IconMinus className="size-4 text-destructive" />
-                  Ausbuchen (Abgang)
+                  {t("bookOut")}
                 </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label>Menge</Label>
+            <Label>{t("quantity")}</Label>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
@@ -1005,7 +1005,7 @@ function QuickBookingSheet({
           </div>
 
           <div className="space-y-2">
-            <Label>Notiz (optional)</Label>
+            <Label>{t("noteOptional")}</Label>
             <Input placeholder="z.B. Lieferung vom 17.03.2026" />
           </div>
         </div>
@@ -1022,12 +1022,12 @@ function QuickBookingSheet({
             {bookingType === "in" ? (
               <>
                 <IconPlus className="size-4" />
-                Einbuchen
+                {t("bookInAction")}
               </>
             ) : (
               <>
                 <IconMinus className="size-4" />
-                Ausbuchen
+                {t("bookOutAction")}
               </>
             )}
           </Button>

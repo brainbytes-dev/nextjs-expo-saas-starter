@@ -15,6 +15,7 @@
 // ---------------------------------------------------------------------------
 
 import { useRef, useState } from "react"
+import { useTranslations } from "next-intl"
 import {
   Dialog,
   DialogContent,
@@ -44,6 +45,7 @@ export function SignatureDialog({
   onOpenChange,
   onSigned,
 }: SignatureDialogProps) {
+  const t = useTranslations("signature")
   const canvasRef = useRef<SignatureCanvasHandle>(null)
   const [signedBy, setSignedBy] = useState("")
   const [saving, setSaving] = useState(false)
@@ -52,11 +54,11 @@ export function SignatureDialog({
   async function handleSave() {
     const dataUrl = canvasRef.current?.getDataUrl()
     if (!dataUrl) {
-      setError("Bitte zuerst unterschreiben.")
+      setError(t("pleaseSign"))
       return
     }
     if (!signedBy.trim()) {
-      setError("Bitte Namen des Empfängers eingeben.")
+      setError(t("enterName"))
       return
     }
 
@@ -103,18 +105,18 @@ export function SignatureDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
-          <DialogTitle>Empfang bestätigen</DialogTitle>
+          <DialogTitle>{t("confirmReceipt")}</DialogTitle>
           <DialogDescription>
             Kommission{" "}
             <span className="font-mono font-medium">{commissionNumber}</span>{" "}
-            — Bitte Empfang durch Unterschrift bestätigen.
+            - {t("confirmDesc")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-4 py-2">
           {/* Name of signer */}
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="signed-by">Name des Empfängers</Label>
+            <Label htmlFor="signed-by">{t("signerName")}</Label>
             <Input
               id="signed-by"
               placeholder="Vor- und Nachname"
@@ -129,7 +131,7 @@ export function SignatureDialog({
             ref={canvasRef}
             height={180}
             disabled={saving}
-            label="Unterschrift"
+            label={t("signature")}
           />
 
           {error && (
@@ -144,10 +146,10 @@ export function SignatureDialog({
             onClick={handleCancel}
             disabled={saving}
           >
-            Abbrechen
+            {t("cancel")}
           </Button>
           <Button type="button" onClick={handleSave} disabled={saving}>
-            {saving ? "Wird gespeichert …" : "Unterschrift speichern"}
+            {saving ? t("saving") : t("saveSignature")}
           </Button>
         </DialogFooter>
       </DialogContent>

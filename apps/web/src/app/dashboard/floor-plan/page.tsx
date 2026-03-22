@@ -96,7 +96,7 @@ function CreateFloorPlanDialog({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Fehler beim Erstellen");
+        setError(data.error ?? t("createError"));
         return;
       }
       setOpen(false);
@@ -105,7 +105,7 @@ function CreateFloorPlanDialog({
       setLocationId("__none__");
       onCreated(data as FloorPlan);
     } catch {
-      setError("Netzwerkfehler");
+      setError(t("networkError"));
     } finally {
       setSaving(false);
     }
@@ -120,13 +120,13 @@ function CreateFloorPlanDialog({
         <DialogHeader>
           <DialogTitle>{t("dialogTitle")}</DialogTitle>
           <DialogDescription>
-            Lade einen Grundriss hoch und verknüpfe ihn mit einem Lagerort.
+            {t("dialogDesc")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           <div className="space-y-1.5">
-            <Label htmlFor="fp-name">Name</Label>
+            <Label htmlFor="fp-name">{t("name")}</Label>
             <Input
               id="fp-name"
               placeholder="z. B. Lager EG, Fahrzeug 01"
@@ -137,7 +137,7 @@ function CreateFloorPlanDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="fp-image">Bild-URL</Label>
+            <Label htmlFor="fp-image">{t("imageUrlLabel")}</Label>
             <Input
               id="fp-image"
               placeholder="https://beispiel.ch/grundriss.png"
@@ -146,22 +146,22 @@ function CreateFloorPlanDialog({
               disabled={saving}
             />
             <p className="text-xs text-muted-foreground">
-              PNG, JPG oder SVG. Lade das Bild zuerst in deinen Speicher hoch.
+              {t("imageUrlHintText")}
             </p>
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="fp-location">Lagerort (optional)</Label>
+            <Label htmlFor="fp-location">{t("locationLabel")}</Label>
             <Select
               value={locationId}
               onValueChange={setLocationId}
               disabled={saving}
             >
               <SelectTrigger id="fp-location">
-                <SelectValue placeholder="Kein Lagerort" />
+                <SelectValue placeholder={t("noLocationOption")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="__none__">Kein Lagerort</SelectItem>
+                <SelectItem value="__none__">{t("noLocationOption")}</SelectItem>
                 {locations.map((loc) => (
                   <SelectItem key={loc.id} value={loc.id}>
                     {loc.name}
@@ -180,13 +180,13 @@ function CreateFloorPlanDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
-            Abbrechen
+            {t("cancel")}
           </Button>
           <Button
             onClick={handleCreate}
             disabled={saving || !name.trim() || !imageUrl.trim()}
           >
-            {saving ? "Erstelle..." : "Erstellen"}
+            {saving ? t("creatingAction") : t("createAction")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -216,20 +216,19 @@ function DeleteConfirmDialog({
           className="text-xs h-7 px-2 text-destructive hover:text-destructive"
           disabled={loading}
         >
-          {loading ? "..." : "Löschen"}
+          {loading ? "..." : t("deleteAction")}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>{t("deleteTitle")}</DialogTitle>
           <DialogDescription>
-            <strong>{fpName}</strong> und alle platzierten Marker werden
-            permanent gelöscht.
+            <strong>{fpName}</strong> {t("deleteDesc")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => setOpen(false)} disabled={loading}>
-            Abbrechen
+            {t("cancel")}
           </Button>
           <Button
             variant="destructive"
@@ -239,7 +238,7 @@ function DeleteConfirmDialog({
             }}
             disabled={loading}
           >
-            Löschen
+            {t("deleteAction")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -270,7 +269,7 @@ export default function FloorPlanPage() {
         fetch("/api/floor-plans", { headers: { "x-organization-id": orgId } }),
         fetch("/api/locations", { headers: { "x-organization-id": orgId } }),
       ]);
-      if (!fpRes.ok) throw new Error("Grundrisse konnten nicht geladen werden");
+      if (!fpRes.ok) throw new Error("t("loadError")");
       const fpJson = await fpRes.json();
       const locJson = locRes.ok ? await locRes.json() : { data: [] };
       setFloorPlans(fpJson.data ?? []);
@@ -281,7 +280,7 @@ export default function FloorPlanPage() {
         }))
       );
     } catch (err) {
-      setPageError(err instanceof Error ? err.message : "Fehler beim Laden");
+      setPageError(err instanceof Error ? err.message : t("loadingError"));
     } finally {
       setLoading(false);
     }
@@ -354,8 +353,7 @@ export default function FloorPlanPage() {
           </p>
           <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
           <p className="text-sm text-muted-foreground mt-1 max-w-xl">
-            Platziere Materialien, Werkzeuge und Schlüssel auf einem Grundrissplan.
-            Bestandsniveaus werden farbig hervorgehoben.
+            {t("pageDesc")}
           </p>
         </div>
         {orgId && (
@@ -383,8 +381,7 @@ export default function FloorPlanPage() {
         <div className="rounded-xl border border-dashed border-border p-10 text-center">
           <p className="text-sm font-medium mb-1">{t("emptyTitle")}</p>
           <p className="text-xs text-muted-foreground font-mono mb-4">
-            Erstelle einen Grundriss und markiere Positionen von Materialien und
-            Werkzeugen.
+            {t("emptyDesc")}
           </p>
           {orgId && (
             <CreateFloorPlanDialog
@@ -401,7 +398,7 @@ export default function FloorPlanPage() {
           {/* Sidebar: plan list */}
           <div className="space-y-2">
             <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest px-1 mb-3">
-              Grundrisse ({floorPlans.length})
+              {t("floorPlans")} ({floorPlans.length})
             </p>
             {floorPlans.map((fp) => (
               <button
@@ -422,7 +419,7 @@ export default function FloorPlanPage() {
                   </p>
                 )}
                 <p className="text-[10px] text-muted-foreground font-mono mt-1">
-                  {fp.items?.length ?? 0} Marker · {formatDate(fp.updatedAt)}
+                  {fp.items?.length ?? 0} {t("markers")} · {formatDate(fp.updatedAt)}
                 </p>
               </button>
             ))}

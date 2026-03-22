@@ -63,11 +63,11 @@ export default function IpAllowlistPage() {
   const loadAllowlist = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/ip-allowlist")
-      if (!res.ok) throw new Error("Fehler")
+      if (!res.ok) throw new Error("Error")
       const data = await res.json()
       setAllowlist(data.allowlist ?? [])
     } catch {
-      setError("IP-Liste konnte nicht geladen werden.")
+      setError(ts("ipLoadError"))
     } finally {
       setLoading(false)
     }
@@ -99,14 +99,14 @@ export default function IpAllowlistPage() {
         body: JSON.stringify({ ip: trimmed }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Fehler")
+      if (!res.ok) throw new Error(data.error || "Error")
       setAllowlist(data.allowlist)
       setNewIp("")
       setDialogOpen(false)
-      setSuccess("IP-Adresse wurde hinzugefügt.")
+      setSuccess(ts("ipAdded"))
       setTimeout(() => setSuccess(null), 3000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "IP konnte nicht hinzugefügt werden.")
+      setError(err instanceof Error ? err.message : ts("ipLoadError"))
     } finally {
       setSaving(false)
     }
@@ -123,12 +123,12 @@ export default function IpAllowlistPage() {
         body: JSON.stringify({ ip }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Fehler")
+      if (!res.ok) throw new Error(data.error || "Error")
       setAllowlist(data.allowlist)
-      setSuccess("IP-Adresse wurde entfernt.")
+      setSuccess(ts("ipRemoved"))
       setTimeout(() => setSuccess(null), 3000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "IP konnte nicht entfernt werden.")
+      setError(err instanceof Error ? err.message : ts("ipLoadError"))
     } finally {
       setDeleting(null)
     }
@@ -142,18 +142,16 @@ export default function IpAllowlistPage() {
           {ts("ipAllowlistTitle")}
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Zugriff auf die Organisation auf bestimmte IP-Adressen beschränken.
+          {ts("ipSubtitle")}
         </p>
       </div>
 
       {/* Warning */}
       <Alert variant="destructive">
         <IconAlertTriangle className="size-4" />
-        <AlertTitle>Achtung</AlertTitle>
+        <AlertTitle>{ts("ipWarningTitle")}</AlertTitle>
         <AlertDescription>
-          Falsche Konfiguration kann Sie und Ihr Team aussperren! Stellen Sie
-          sicher, dass Ihre aktuelle IP-Adresse in der Liste enthalten ist,
-          bevor Sie die Beschränkung aktivieren.
+          {ts("ipWarningDesc")}
         </AlertDescription>
       </Alert>
 
@@ -162,7 +160,7 @@ export default function IpAllowlistPage() {
         <div className="flex items-center gap-2 rounded-md border bg-muted/50 px-4 py-3">
           <IconNetwork className="size-4 text-muted-foreground" />
           <span className="text-sm text-muted-foreground">
-            Ihre aktuelle IP:
+            {ts("yourCurrentIp")}
           </span>
           <code className="rounded bg-background px-2 py-0.5 text-sm font-mono font-medium">
             {currentIp}
@@ -177,7 +175,7 @@ export default function IpAllowlistPage() {
             }}
           >
             <IconPlus className="mr-1 size-4" />
-            Diese IP hinzufügen
+            {ts("addThisIp")}
           </Button>
         </div>
       )}
@@ -205,10 +203,10 @@ export default function IpAllowlistPage() {
             </CardTitle>
             <CardDescription className="mt-1.5">
               {loading
-                ? "Wird geladen…"
+                ? ts("loadingIps")
                 : allowlist.length === 0
-                  ? "Keine Einschränkungen — alle IPs erlaubt"
-                  : `${allowlist.length} IP-Adresse(n) konfiguriert`}
+                  ? ts("noRestrictions")
+                  : ts("ipsConfigured", { count: allowlist.length })}
             </CardDescription>
           </div>
 
@@ -221,15 +219,14 @@ export default function IpAllowlistPage() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>IP-Adresse hinzufügen</DialogTitle>
+                <DialogTitle>{ts("addIpTitle")}</DialogTitle>
                 <DialogDescription>
-                  Geben Sie eine einzelne IPv4-Adresse oder einen CIDR-Bereich
-                  ein (z.B. 192.168.1.0/24).
+                  {ts("addIpDesc")}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="ip-input">IP-Adresse / CIDR</Label>
+                  <Label htmlFor="ip-input">{ts("ipCidrLabel")}</Label>
                   <Input
                     id="ip-input"
                     placeholder="z.B. 203.0.113.0/24"
@@ -245,7 +242,7 @@ export default function IpAllowlistPage() {
                 </div>
                 {currentIp && (
                   <p className="text-xs text-muted-foreground">
-                    Tipp: Ihre aktuelle IP ist{" "}
+                    {ts("tipYourIp")}{" "}
                     <button
                       type="button"
                       className="font-mono font-medium text-primary hover:underline"
@@ -258,7 +255,7 @@ export default function IpAllowlistPage() {
               </div>
               <DialogFooter>
                 <Button onClick={addIp} disabled={saving || !newIp.trim()}>
-                  {saving ? "Wird hinzugefügt…" : "Hinzufügen"}
+                  {saving ? ts("adding") : ts("addButton")}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -275,19 +272,19 @@ export default function IpAllowlistPage() {
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <IconShieldLock className="mb-3 size-10 text-muted-foreground/40" />
               <p className="text-sm text-muted-foreground">
-                Keine IP-Einschränkungen konfiguriert.
+                {ts("noIpRestrictions")}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Alle IP-Adressen haben Zugriff.
+                {ts("allIpsAllowed")}
               </p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>IP-Adresse / CIDR</TableHead>
+                  <TableHead>{ts("ipCidrLabel")}</TableHead>
                   <TableHead>Typ</TableHead>
-                  <TableHead className="text-right">Aktion</TableHead>
+                  <TableHead className="text-right">{ts("actionCol")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -300,12 +297,12 @@ export default function IpAllowlistPage() {
                           variant="secondary"
                           className="ml-2"
                         >
-                          Ihre IP
+                          {ts("yourIp")}
                         </Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {ip.includes("/") ? "CIDR-Bereich" : "Einzelne IP"}
+                      {ip.includes("/") ? ts("cidrRange") : ts("singleIp")}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
@@ -316,7 +313,7 @@ export default function IpAllowlistPage() {
                         disabled={deleting === ip}
                       >
                         <IconTrash className="mr-1 size-4" />
-                        {deleting === ip ? "…" : "Entfernen"}
+                        {deleting === ip ? "…" : ts("remove")}
                       </Button>
                     </TableCell>
                   </TableRow>

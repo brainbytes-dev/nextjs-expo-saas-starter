@@ -143,22 +143,22 @@ function CreateGeofenceDialog({
     setError(null)
 
     if (!locationId) {
-      setError("Bitte einen Standort auswaehlen.")
+      setError(t("selectLocationError"))
       return
     }
     if (!latitude || !longitude) {
-      setError("Bitte Koordinaten eingeben.")
+      setError(t("coordsError"))
       return
     }
     const lat = parseFloat(latitude)
     const lng = parseFloat(longitude)
     if (isNaN(lat) || isNaN(lng)) {
-      setError("Ungueltige Koordinaten.")
+      setError(t("invalidCoords"))
       return
     }
     const radius = parseInt(radiusMeters)
     if (isNaN(radius) || radius < 10) {
-      setError("Radius muss mindestens 10 Meter betragen.")
+      setError(t("minRadius"))
       return
     }
 
@@ -178,13 +178,13 @@ function CreateGeofenceDialog({
       })
       if (!res.ok) {
         const data = await res.json()
-        setError((data as { error?: string }).error ?? "Fehler beim Erstellen")
+        setError((data as { error?: string }).error ?? t("createError"))
         return
       }
       onCreated()
       handleClose()
     } catch {
-      setError("Netzwerkfehler. Bitte erneut versuchen.")
+      setError(t("networkError"))
     } finally {
       setSaving(false)
     }
@@ -210,10 +210,10 @@ function CreateGeofenceDialog({
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label>Standort</Label>
+            <Label>{t("location")}</Label>
             <Select value={locationId} onValueChange={setLocationId}>
               <SelectTrigger>
-                <SelectValue placeholder="Standort waehlen..." />
+                <SelectValue placeholder={t("selectLocation")} />
               </SelectTrigger>
               <SelectContent>
                 {locations.map((loc) => (
@@ -227,7 +227,7 @@ function CreateGeofenceDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-2">
-              <Label>Breitengrad (Lat)</Label>
+              <Label>{t("latLabel")}</Label>
               <Input
                 type="text"
                 placeholder="47.3769"
@@ -236,7 +236,7 @@ function CreateGeofenceDialog({
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label>Laengengrad (Lng)</Label>
+              <Label>{t("lngLabel")}</Label>
               <Input
                 type="text"
                 placeholder="8.5417"
@@ -247,7 +247,7 @@ function CreateGeofenceDialog({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label>Radius (Meter)</Label>
+            <Label>{t("radiusMeters")}</Label>
             <Input
               type="number"
               min={10}
@@ -281,10 +281,10 @@ function CreateGeofenceDialog({
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleClose}>
-              Abbrechen
+              {t("cancel")}
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? "Wird erstellt..." : "Erstellen"}
+              {saving ? t("creatingLabel") : t("create")}
             </Button>
           </DialogFooter>
         </form>
@@ -358,7 +358,7 @@ export default function GeofencesPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Geofence wirklich loeschen?")) return
+    if (!confirm(t("confirmDelete"))) return
     try {
       const res = await fetch(`/api/geofences/${id}`, { method: "DELETE" })
       if (res.ok) {
@@ -400,7 +400,7 @@ export default function GeofencesPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground text-sm">
-            Standortbasierte automatische Aktionen verwalten
+            {t("pageDesc")}
           </p>
         </div>
         <Button onClick={() => setCreateOpen(true)}>
@@ -421,7 +421,7 @@ export default function GeofencesPage() {
           <CardContent>
             <div className="text-2xl font-bold">{activeCount}</div>
             <p className="text-muted-foreground text-xs">
-              von {geofencesList.length} insgesamt
+              {t("totalOf", { total: geofencesList.length })}
             </p>
           </CardContent>
         </Card>
@@ -436,7 +436,7 @@ export default function GeofencesPage() {
           <CardContent>
             <div className="text-2xl font-bold">{todayEventsCount}</div>
             <p className="text-muted-foreground text-xs">
-              Geofence-Ereignisse
+              {t("eventsToday")}
             </p>
           </CardContent>
         </Card>
@@ -451,7 +451,7 @@ export default function GeofencesPage() {
           <CardContent>
             <div className="text-2xl font-bold">{autoActionsCount}</div>
             <p className="text-muted-foreground text-xs">
-              Auto-Checkins / Checkouts heute
+              {t("autoActionsToday")}
             </p>
           </CardContent>
         </Card>
@@ -467,7 +467,7 @@ export default function GeofencesPage() {
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <IconMapPin className="text-muted-foreground mb-3 h-10 w-10" />
               <p className="text-muted-foreground text-sm">
-                Noch keine Geofences vorhanden.
+                {t("noGeofences")}
               </p>
               <Button
                 variant="outline"
@@ -482,13 +482,13 @@ export default function GeofencesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Standort</TableHead>
-                  <TableHead>Koordinaten</TableHead>
+                  <TableHead>{t("location")}</TableHead>
+                  <TableHead>{t("coordinates")}</TableHead>
                   <TableHead className="text-center">Radius</TableHead>
                   <TableHead className="text-center">Auto-Checkin</TableHead>
                   <TableHead className="text-center">Auto-Checkout</TableHead>
-                  <TableHead className="text-center">Aktiv</TableHead>
-                  <TableHead className="text-right">Erstellt</TableHead>
+                  <TableHead className="text-center">{t("active")}</TableHead>
+                  <TableHead className="text-right">{t("created")}</TableHead>
                   <TableHead />
                 </TableRow>
               </TableHeader>
@@ -498,7 +498,7 @@ export default function GeofencesPage() {
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
                         <IconMapPin className="text-muted-foreground h-4 w-4" />
-                        {g.locationName ?? "Unbekannt"}
+                        {g.locationName ?? t("unknown")}
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm font-mono">
@@ -548,7 +548,7 @@ export default function GeofencesPage() {
                             onClick={() => handleDelete(g.id)}
                           >
                             <IconTrash className="mr-2 h-4 w-4" />
-                            Loeschen
+                            {t("deleteLabel")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -564,32 +564,32 @@ export default function GeofencesPage() {
       {/* Recent Events */}
       <Card>
         <CardHeader>
-          <CardTitle>Letzte Geofence-Events</CardTitle>
+          <CardTitle>{t("recentEvents")}</CardTitle>
         </CardHeader>
         <CardContent>
           {events.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <IconActivity className="text-muted-foreground mb-3 h-10 w-10" />
               <p className="text-muted-foreground text-sm">
-                Noch keine Events vorhanden.
+                {t("noEvents")}
               </p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Benutzer</TableHead>
-                  <TableHead>Standort</TableHead>
-                  <TableHead>Typ</TableHead>
-                  <TableHead>Aktion</TableHead>
-                  <TableHead className="text-right">Zeitpunkt</TableHead>
+                  <TableHead>{t("userCol")}</TableHead>
+                  <TableHead>{t("location")}</TableHead>
+                  <TableHead>{t("typeCol")}</TableHead>
+                  <TableHead>{t("actionCol")}</TableHead>
+                  <TableHead className="text-right">{t("timeCol")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {events.map((ev) => (
                   <TableRow key={ev.id}>
                     <TableCell className="font-medium">
-                      {ev.userName ?? "Unbekannt"}
+                      {ev.userName ?? t("unknown")}
                     </TableCell>
                     <TableCell>{ev.locationName ?? "—"}</TableCell>
                     <TableCell>
@@ -603,7 +603,7 @@ export default function GeofencesPage() {
                         ) : (
                           <IconLogout className="mr-1 h-3 w-3" />
                         )}
-                        {ev.eventType === "enter" ? "Eintritt" : "Austritt"}
+                        {ev.eventType === "enter" ? t("enter") : t("exit")}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -611,8 +611,8 @@ export default function GeofencesPage() {
                         <Badge variant="outline">
                           <IconBolt className="mr-1 h-3 w-3" />
                           {ev.autoAction === "checkin"
-                            ? "Auto-Checkin"
-                            : "Auto-Checkout"}
+                            ? t("autoCheckinLabel")
+                            : t("autoCheckoutLabel")}
                         </Badge>
                       ) : (
                         <span className="text-muted-foreground text-sm">—</span>

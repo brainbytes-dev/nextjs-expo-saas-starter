@@ -58,13 +58,13 @@ const TYPE_I18N_MAP: Record<LocationTypeValue, string> = {
   user: "user",
 }
 
-const TEMPLATES = [
-  { value: "none", label: "Kein Template" },
-  { value: "rettungswagen", label: "Rettungswagen (Standard)" },
-  { value: "baustelle", label: "Baustelle (Standard)" },
-  { value: "praxis", label: "Arztpraxis (Standard)" },
-  { value: "op", label: "OP-Saal (Standard)" },
-  { value: "lager", label: "Lager (Standard)" },
+const TEMPLATES: { value: string; labelKey: string }[] = [
+  { value: "none", labelKey: "templateNone" },
+  { value: "rettungswagen", labelKey: "templateAmbulance" },
+  { value: "baustelle", labelKey: "templateSite" },
+  { value: "praxis", labelKey: "templatePractice" },
+  { value: "op", labelKey: "templateOR" },
+  { value: "lager", labelKey: "templateWarehouse" },
 ]
 
 // ---------------------------------------------------------------------------
@@ -118,12 +118,12 @@ export default function NewLocationPage() {
 
   const validate = useCallback((): boolean => {
     const errs: Partial<Record<keyof FormState, string>> = {}
-    if (!form.name.trim()) errs.name = "Name ist erforderlich"
-    if (!form.type) errs.type = "Typ ist erforderlich"
+    if (!form.name.trim()) errs.name = t("nameRequired")
+    if (!form.type) errs.type = t("typeRequired")
     if (form.latitude && isNaN(parseFloat(form.latitude)))
-      errs.latitude = "Ungültiger Breitengrad"
+      errs.latitude = t("invalidLatitude")
     if (form.longitude && isNaN(parseFloat(form.longitude)))
-      errs.longitude = "Ungültiger Längengrad"
+      errs.longitude = t("invalidLongitude")
     setErrors(errs)
     return Object.keys(errs).length === 0
   }, [form])
@@ -201,7 +201,7 @@ export default function NewLocationPage() {
         <div className="space-y-6 lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Allgemeine Informationen</CardTitle>
+              <CardTitle className="text-base">{t("generalInfo")}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-5 sm:grid-cols-2">
               {/* Name */}
@@ -231,7 +231,7 @@ export default function NewLocationPage() {
                   onValueChange={(v) => updateField("type", v)}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Typ auswählen..." />
+                    <SelectValue placeholder={t("selectType")} />
                   </SelectTrigger>
                   <SelectContent>
                     {LOCATION_TYPES.map((lt) => {
@@ -276,7 +276,7 @@ export default function NewLocationPage() {
 
               {/* Address */}
               <div className="space-y-2">
-                <Label htmlFor="address">Adresse</Label>
+                <Label htmlFor="address">{t("address")}</Label>
                 <Input
                   id="address"
                   value={form.address}
@@ -290,7 +290,7 @@ export default function NewLocationPage() {
           {/* GPS Card */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">GPS-Koordinaten</CardTitle>
+              <CardTitle className="text-base">{t("gpsCoordinates")}</CardTitle>
             </CardHeader>
             <CardContent>
               <GpsPicker
@@ -306,7 +306,7 @@ export default function NewLocationPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <Label>Vorlage</Label>
+                <Label>{t("template")}</Label>
                 <Select
                   value={form.template}
                   onValueChange={(v) => updateField("template", v)}
@@ -317,14 +317,13 @@ export default function NewLocationPage() {
                   <SelectContent>
                     {TEMPLATES.map((tpl) => (
                       <SelectItem key={tpl.value} value={tpl.value}>
-                        {tpl.label}
+                        {t(tpl.labelKey as Parameters<typeof t>[0])}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  Ein Template füllt den Lagerort automatisch mit einem
-                  vordefinierten Materialset.
+{t("templateHint")}
                 </p>
               </div>
             </CardContent>
@@ -335,7 +334,7 @@ export default function NewLocationPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Übersicht</CardTitle>
+              <CardTitle className="text-base">{t("overview")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div className="flex justify-between">
@@ -373,7 +372,7 @@ export default function NewLocationPage() {
                   <Separator />
                   <div className="flex justify-between gap-2">
                     <span className="shrink-0 text-muted-foreground">
-                      Adresse
+                      {t("address")}
                     </span>
                     <span className="text-right text-xs">{form.address}</span>
                   </div>
@@ -394,10 +393,11 @@ export default function NewLocationPage() {
                 <>
                   <Separator />
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Vorlage</span>
+                    <span className="text-muted-foreground">{t("template")}</span>
                     <span className="max-w-[160px] truncate">
-                      {TEMPLATES.find((t) => t.value === form.template)
-                        ?.label ?? form.template}
+{TEMPLATES.find((tpl) => tpl.value === form.template)
+                        ? t(`${TEMPLATES.find((tpl) => tpl.value === form.template)!.labelKey}` as Parameters<typeof t>[0])
+                        : form.template}
                     </span>
                   </div>
                 </>

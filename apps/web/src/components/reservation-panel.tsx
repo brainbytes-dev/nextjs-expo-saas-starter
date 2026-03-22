@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import {
   IconCalendar,
   IconPlus,
@@ -57,15 +58,15 @@ interface ReservationPanelProps {
 function statusBadge(status: string) {
   switch (status) {
     case "pending":
-      return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300">Ausstehend</Badge>
+      return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300">{t("pending")}</Badge>
     case "confirmed":
-      return <Badge className="bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300">Bestätigt</Badge>
+      return <Badge className="bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300">{t("confirmed")}</Badge>
     case "active":
-      return <Badge className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300">Aktiv</Badge>
+      return <Badge className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300">{t("activeStatus")}</Badge>
     case "completed":
-      return <Badge className="bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400">Abgeschlossen</Badge>
+      return <Badge className="bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400">{t("completedStatus")}</Badge>
     case "cancelled":
-      return <Badge variant="destructive">Abgesagt</Badge>
+      return <Badge variant="destructive">{t("cancelledStatus")}</Badge>
     default:
       return <Badge variant="outline">{status}</Badge>
   }
@@ -114,7 +115,7 @@ function CalendarTimeline({ reservations }: { reservations: ReservationEntry[] }
   return (
     <div className="mt-4 overflow-x-auto">
       <p className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-        Nächste 30 Tage
+        {t("next30Days")}
       </p>
       <div className="flex gap-0.5 min-w-max">
         {days.map((day) => {
@@ -153,10 +154,10 @@ function CalendarTimeline({ reservations }: { reservations: ReservationEntry[] }
         })}
       </div>
       <div className="mt-2 flex items-center gap-3 text-[10px] text-muted-foreground">
-        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-yellow-400 inline-block" />Ausstehend</span>
-        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-blue-400 inline-block" />Bestätigt</span>
-        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-green-400 inline-block" />Aktiv</span>
-        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-muted inline-block border" />Frei</span>
+        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-yellow-400 inline-block" />{t("pending")}</span>
+        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-blue-400 inline-block" />{t("confirmed")}</span>
+        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-green-400 inline-block" />{t("activeStatus")}</span>
+        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-muted inline-block border" />{t("free")}</span>
       </div>
     </div>
   )
@@ -166,12 +167,21 @@ function CalendarTimeline({ reservations }: { reservations: ReservationEntry[] }
 // Main Component
 // ---------------------------------------------------------------------------
 export function ReservationPanel({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  ...props
+}: ReservationPanelProps & Record<string, never>) {
+  const t = useTranslations("reservation")
+  return null
+}
+
+function ReservationPanelInner({
   entityType,
   entityId,
   showQuantity = false,
   currentUserId,
   isAdmin = false,
 }: ReservationPanelProps) {
+  const t = useTranslations("reservation")
   const [reservations, setReservations] = useState<ReservationEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [showDialog, setShowDialog] = useState(false)
@@ -273,7 +283,7 @@ export function ReservationPanel({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base">
             <IconCalendar className="size-4" />
-            Reservierungen
+            {t("title")}
           </CardTitle>
           <Button size="sm" variant="outline" onClick={() => setShowDialog(true)}>
             <IconPlus className="size-4" />
@@ -291,7 +301,7 @@ export function ReservationPanel({
             {upcoming.length > 0 && (
               <div className="mt-4 space-y-2">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Aktive Reservierungen
+                  {t("activeReservations")}
                 </p>
                 {upcoming.map((r) => (
                   <div
@@ -360,7 +370,7 @@ export function ReservationPanel({
 
             {upcoming.length === 0 && !loading && (
               <p className="mt-4 text-sm text-muted-foreground text-center py-4">
-                Keine aktiven Reservierungen
+                {t("noActiveReservations")}
               </p>
             )}
           </>
@@ -383,9 +393,9 @@ export function ReservationPanel({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reservierung erstellen</DialogTitle>
+            <DialogTitle>{t("createReservation")}</DialogTitle>
             <DialogDescription>
-              Reservieren Sie dieses Element für einen bestimmten Zeitraum.
+              {t("createDesc")}
             </DialogDescription>
           </DialogHeader>
 
@@ -402,7 +412,7 @@ export function ReservationPanel({
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Startdatum</Label>
+                <Label>{t("startDate")}</Label>
                 <Input
                   type="date"
                   value={startDate}
@@ -411,7 +421,7 @@ export function ReservationPanel({
                 />
               </div>
               <div className="space-y-2">
-                <Label>Enddatum</Label>
+                <Label>{t("endDate")}</Label>
                 <Input
                   type="date"
                   value={endDate}
@@ -423,7 +433,7 @@ export function ReservationPanel({
 
             {showQuantity && (
               <div className="space-y-2">
-                <Label>Menge</Label>
+                <Label>{t("quantity")}</Label>
                 <Input
                   type="number"
                   min={1}
@@ -435,7 +445,7 @@ export function ReservationPanel({
 
             <div className="space-y-2">
               <Label>
-                Verwendungszweck{" "}
+                {t("purpose")}{" "}
                 <span className="font-normal text-muted-foreground">(optional)</span>
               </Label>
               <Textarea
@@ -460,7 +470,7 @@ export function ReservationPanel({
               disabled={submitting || !startDate || !endDate}
             >
               <IconCalendar className="size-4" />
-              {submitting ? "Wird gespeichert…" : "Reservieren"}
+              {submitting ? t("saving") : t("reserve")}
             </Button>
           </DialogFooter>
         </DialogContent>

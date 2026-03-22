@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import {
   IconBuilding,
@@ -91,28 +92,28 @@ type WizardStep = 1 | "template" | 2 | 3 | 4 | 5
 const TOTAL_PROGRESS_STEPS = 5
 
 const INDUSTRIES = [
-  { value: "handwerk", label: "Handwerk / Bau" },
-  { value: "rettungsdienst", label: "Rettungsdienst / Feuerwehr" },
-  { value: "arztpraxis", label: "Arztpraxis / Zahnarztpraxis" },
-  { value: "spital", label: "Spital / Klinik" },
-  { value: "gastronomie", label: "Gastronomie / Hotellerie" },
-  { value: "facility", label: "Facility Management" },
-  { value: "industrie", label: "Industrie" },
-  { value: "handel", label: "Handel" },
-  { value: "dienstleistung", label: "Dienstleistung" },
-  { value: "andere", label: "Andere" },
+  { value: "handwerk", labelKey: "indHandwerk" },
+  { value: "rettungsdienst", labelKey: "indRettung" },
+  { value: "arztpraxis", labelKey: "indArzt" },
+  { value: "spital", labelKey: "indSpital" },
+  { value: "gastronomie", labelKey: "indGastro" },
+  { value: "facility", labelKey: "indFacility" },
+  { value: "industrie", labelKey: "indIndustrie" },
+  { value: "handel", labelKey: "indHandel" },
+  { value: "dienstleistung", labelKey: "indDienstleistung" },
+  { value: "andere", labelKey: "indAndere" },
 ]
 
 const LOCATION_TYPES = [
-  { value: "warehouse", label: "Lager" },
-  { value: "vehicle", label: "Fahrzeug" },
-  { value: "site", label: "Baustelle" },
-  { value: "station", label: "Station" },
+  { value: "warehouse", labelKey: "locWarehouse" },
+  { value: "vehicle", labelKey: "locVehicle" },
+  { value: "site", labelKey: "locSite" },
+  { value: "station", labelKey: "locStation" },
 ]
 
 const ROLES = [
-  { value: "admin", label: "Admin" },
-  { value: "member", label: "Mitglied" },
+  { value: "admin", labelKey: "roleAdmin" },
+  { value: "member", labelKey: "roleMember" },
 ]
 
 const UNITS = ["Stk", "m", "m²", "kg", "L", "Pkg", "Rl"]
@@ -140,13 +141,14 @@ function stepToNumber(step: WizardStep): number {
 }
 
 function StepHeader({ step }: { step: WizardStep }) {
+  const t = useTranslations("onboarding")
   const n = stepToNumber(step)
   const progress = Math.round((n / TOTAL_PROGRESS_STEPS) * 100)
   return (
     <div className="mb-8 space-y-3">
       <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span className="font-medium text-foreground">Einrichtung</span>
-        <span>Schritt {n} von {TOTAL_PROGRESS_STEPS}</span>
+        <span className="font-medium text-foreground">{t("setup")}</span>
+        <span>{t("stepOf", { n, total: TOTAL_PROGRESS_STEPS })}</span>
       </div>
       <Progress value={progress} className="h-2" />
       <div className="flex justify-between">
@@ -184,6 +186,7 @@ function StepOrganisation({
   isLoading: boolean
   error: string | null
 }) {
+  const t = useTranslations("onboarding")
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     onNext()
@@ -195,19 +198,19 @@ function StepOrganisation({
         <div className="mb-2 flex size-10 items-center justify-center rounded-xl bg-primary/10">
           <IconBuilding className="size-5 text-primary" />
         </div>
-        <CardTitle>Organisation erstellen</CardTitle>
+        <CardTitle>{t("step1Title")}</CardTitle>
         <CardDescription>
-          Gib die Grunddaten deines Unternehmens ein. Du kannst diese später in den Einstellungen anpassen.
+          {t("step1Desc")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid gap-5 sm:grid-cols-2">
             <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="org-name">Firmenname *</Label>
+              <Label htmlFor="org-name">{t("companyName")}</Label>
               <Input
                 id="org-name"
-                placeholder="Mustermann AG"
+                placeholder={t("companyPlaceholder")}
                 value={data.name}
                 onChange={(e) => onChange({ name: e.target.value })}
                 required
@@ -216,18 +219,18 @@ function StepOrganisation({
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="org-industry">Branche</Label>
+              <Label htmlFor="org-industry">{t("industry")}</Label>
               <Select
                 value={data.industry}
                 onValueChange={(v) => onChange({ industry: v })}
               >
                 <SelectTrigger id="org-industry" className="w-full">
-                  <SelectValue placeholder="Branche wählen..." />
+                  <SelectValue placeholder={t("industryPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {INDUSTRIES.map((ind) => (
                     <SelectItem key={ind.value} value={ind.value}>
-                      {ind.label}
+                      {t(ind.labelKey)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -235,37 +238,37 @@ function StepOrganisation({
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="org-address">Adresse</Label>
+              <Label htmlFor="org-address">{t("address")}</Label>
               <Input
                 id="org-address"
-                placeholder="Musterstrasse 1"
+                placeholder={t("addressPlaceholder")}
                 value={data.address}
                 onChange={(e) => onChange({ address: e.target.value })}
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="org-zip">PLZ</Label>
+              <Label htmlFor="org-zip">{t("zip")}</Label>
               <Input
                 id="org-zip"
-                placeholder="8001"
+                placeholder={t("zipPlaceholder")}
                 value={data.zip}
                 onChange={(e) => onChange({ zip: e.target.value })}
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="org-city">Ort</Label>
+              <Label htmlFor="org-city">{t("city")}</Label>
               <Input
                 id="org-city"
-                placeholder="Zürich"
+                placeholder={t("cityPlaceholder")}
                 value={data.city}
                 onChange={(e) => onChange({ city: e.target.value })}
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="org-country">Land</Label>
+              <Label htmlFor="org-country">{t("country")}</Label>
               <Select
                 value={data.country}
                 onValueChange={(v) => onChange({ country: v })}
@@ -274,10 +277,10 @@ function StepOrganisation({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="CH">Schweiz</SelectItem>
-                  <SelectItem value="DE">Deutschland</SelectItem>
-                  <SelectItem value="AT">Österreich</SelectItem>
-                  <SelectItem value="LI">Liechtenstein</SelectItem>
+                  <SelectItem value="CH">{t("countryCH")}</SelectItem>
+                  <SelectItem value="DE">{t("countryDE")}</SelectItem>
+                  <SelectItem value="AT">{t("countryAT")}</SelectItem>
+                  <SelectItem value="LI">{t("countryLI")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -291,7 +294,7 @@ function StepOrganisation({
 
           <div className="flex justify-end pt-2">
             <Button type="submit" disabled={isLoading || !data.name.trim()} className="gap-2">
-              {isLoading ? "Wird erstellt..." : "Weiter"}
+              {isLoading ? t("creating") : t("next")}
               {!isLoading && <IconArrowRight className="size-4" />}
             </Button>
           </div>
@@ -304,14 +307,15 @@ function StepOrganisation({
 // ── Step 1.5: Branchenvorlage ──────────────────────────────────────────────────
 
 function TemplateSummaryBadges({ template }: { template: IndustryTemplate }) {
+  const t = useTranslations("onboarding")
   const summary = getTemplateSummary(template)
   const items = [
-    { count: summary.locations, label: summary.locations === 1 ? "Standort" : "Standorte" },
-    { count: summary.materialGroups, label: "Materialgruppen" },
-    { count: summary.toolGroups, label: "Werkzeuggruppen" },
-    { count: summary.materials, label: "Materialien" },
-    { count: summary.tools, label: "Werkzeuge" },
-    { count: summary.customFields, label: summary.customFields === 1 ? "Zusatzfeld" : "Zusatzfelder" },
+    { count: summary.locations, label: summary.locations === 1 ? t("templateStandort") : t("templateStandorte") },
+    { count: summary.materialGroups, label: t("templateMaterialgruppen") },
+    { count: summary.toolGroups, label: t("templateWerkzeuggruppen") },
+    { count: summary.materials, label: t("templateMaterialien") },
+    { count: summary.tools, label: t("templateWerkzeuge") },
+    { count: summary.customFields, label: summary.customFields === 1 ? t("templateZusatzfeld") : t("templateZusatzfelder") },
   ]
   return (
     <div className="flex flex-wrap gap-1.5">
@@ -341,6 +345,7 @@ function StepTemplate({
   error: string | null
   applyResult: ApplyResult | null
 }) {
+  const t = useTranslations("onboarding")
   const template = INDUSTRY_TEMPLATES[industry] ?? null
 
   // Industry has no template — skip automatically to next step
@@ -349,10 +354,10 @@ function StepTemplate({
       <Card>
         <CardContent className="py-10 text-center">
           <p className="text-muted-foreground">
-            Für diese Branche ist keine Vorlage verfügbar.
+            {t("noTemplateAvailable")}
           </p>
           <Button className="mt-4" onClick={onSkip}>
-            Weiter
+            {t("next")}
             <IconArrowRight className="ml-2 size-4" />
           </Button>
         </CardContent>
@@ -364,12 +369,12 @@ function StepTemplate({
   if (applyResult) {
     const { counts } = applyResult
     const summaryItems = [
-      { count: counts.locations, label: counts.locations === 1 ? "Standort" : "Standorte" },
-      { count: counts.materialGroups, label: "Materialgruppen" },
-      { count: counts.toolGroups, label: "Werkzeuggruppen" },
-      { count: counts.materials, label: "Materialien" },
-      { count: counts.tools, label: "Werkzeuge" },
-      { count: counts.customFields, label: counts.customFields === 1 ? "Zusatzfeld" : "Zusatzfelder" },
+      { count: counts.locations, label: counts.locations === 1 ? t("templateStandort") : t("templateStandorte") },
+      { count: counts.materialGroups, label: t("templateMaterialgruppen") },
+      { count: counts.toolGroups, label: t("templateWerkzeuggruppen") },
+      { count: counts.materials, label: t("templateMaterialien") },
+      { count: counts.tools, label: t("templateWerkzeuge") },
+      { count: counts.customFields, label: counts.customFields === 1 ? t("templateZusatzfeld") : t("templateZusatzfelder") },
     ]
     return (
       <Card>
@@ -377,14 +382,14 @@ function StepTemplate({
           <div className="mb-2 flex size-10 items-center justify-center rounded-xl bg-emerald-500/10">
             <IconCheck className="size-5 text-emerald-600" />
           </div>
-          <CardTitle>Vorlage angewendet!</CardTitle>
+          <CardTitle>{t("templateAppliedTitle")}</CardTitle>
           <CardDescription>
-            Die Branchenvorlage wurde erfolgreich eingerichtet. Du kannst alle Einträge jederzeit anpassen.
+            {t("templateAppliedDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="rounded-lg border bg-muted/30 p-4">
-            <p className="mb-3 text-sm font-medium">Folgendes wurde erstellt:</p>
+            <p className="mb-3 text-sm font-medium">{t("templateCreatedLabel")}</p>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {summaryItems.map(({ count, label }) => (
                 <div key={label} className="flex items-center gap-2 text-sm">
@@ -398,7 +403,7 @@ function StepTemplate({
           </div>
           <div className="flex justify-end">
             <Button onClick={onSkip} className="gap-2">
-              Weiter
+              {t("next")}
               <IconArrowRight className="size-4" />
             </Button>
           </div>
@@ -413,10 +418,9 @@ function StepTemplate({
         <div className="mb-2 flex size-10 items-center justify-center rounded-xl bg-violet-500/10">
           <IconSparkles className="size-5 text-violet-600" />
         </div>
-        <CardTitle>Branchenvorlage anwenden?</CardTitle>
+        <CardTitle>{t("templateApplyTitle")}</CardTitle>
         <CardDescription>
-          Wir haben eine passende Vorlage für <span className="font-medium text-foreground">{template.label}</span> gefunden.
-          Du kannst damit sofort starten.
+          {t("templateApplyDesc", { industry: template.label })}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -443,7 +447,7 @@ function StepTemplate({
           {/* Locations preview */}
           <div className="border-t px-4 py-3">
             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Standorte
+              {t("templateLocationsPreview")}
             </p>
             <div className="flex flex-wrap gap-1.5">
               {template.locations.map((loc) => (
@@ -461,7 +465,7 @@ function StepTemplate({
           {/* Groups preview */}
           <div className="border-t px-4 py-3">
             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Gruppen
+              {t("templateGroupsPreview")}
             </p>
             <div className="flex flex-wrap gap-1.5">
               {[...template.materialGroups, ...template.toolGroups].map((grp) => (
@@ -515,7 +519,7 @@ function StepTemplate({
             disabled={isLoading}
           >
             <IconX className="size-4" />
-            Überspringen
+            {t("templateSkip")}
           </Button>
           <Button
             type="button"
@@ -524,7 +528,7 @@ function StepTemplate({
             className="gap-2 bg-violet-600 hover:bg-violet-700"
           >
             <IconSparkles className="size-4" />
-            {isLoading ? "Wird eingerichtet..." : "Vorlage anwenden"}
+            {isLoading ? t("templateApplying") : t("templateApplyButton")}
           </Button>
         </div>
       </CardContent>
@@ -549,6 +553,7 @@ function StepLocation({
   isLoading: boolean
   error: string | null
 }) {
+  const t = useTranslations("onboarding")
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     onNext()
@@ -560,19 +565,19 @@ function StepLocation({
         <div className="mb-2 flex size-10 items-center justify-center rounded-xl bg-emerald-500/10">
           <IconMapPin className="size-5 text-emerald-600" />
         </div>
-        <CardTitle>Erster Standort</CardTitle>
+        <CardTitle>{t("step2Title")}</CardTitle>
         <CardDescription>
-          Erstelle deinen ersten Lagerort oder Standort. Weitere Standorte kannst du jederzeit hinzufügen.
+          {t("step2Desc")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid gap-5 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor="loc-name">Name *</Label>
+              <Label htmlFor="loc-name">{t("locationName")}</Label>
               <Input
                 id="loc-name"
-                placeholder="Hauptlager"
+                placeholder={t("locationNamePlaceholder")}
                 value={data.name}
                 onChange={(e) => onChange({ name: e.target.value })}
                 required
@@ -581,7 +586,7 @@ function StepLocation({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="loc-type">Typ</Label>
+              <Label htmlFor="loc-type">{t("locationType")}</Label>
               <Select
                 value={data.type}
                 onValueChange={(v) => onChange({ type: v })}
@@ -590,9 +595,9 @@ function StepLocation({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {LOCATION_TYPES.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
+                  {LOCATION_TYPES.map((lt) => (
+                    <SelectItem key={lt.value} value={lt.value}>
+                      {t(lt.labelKey)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -600,10 +605,10 @@ function StepLocation({
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="loc-address">Adresse (optional)</Label>
+              <Label htmlFor="loc-address">{t("locationAddress")}</Label>
               <Input
                 id="loc-address"
-                placeholder="Lagerstrasse 5, 8001 Zürich"
+                placeholder={t("locationAddressPlaceholder")}
                 value={data.address}
                 onChange={(e) => onChange({ address: e.target.value })}
               />
@@ -619,10 +624,10 @@ function StepLocation({
           <div className="flex justify-between pt-2">
             <Button type="button" variant="outline" onClick={onBack} className="gap-2">
               <IconArrowLeft className="size-4" />
-              Zurück
+              {t("back")}
             </Button>
             <Button type="submit" disabled={isLoading || !data.name.trim()} className="gap-2">
-              {isLoading ? "Wird erstellt..." : "Weiter"}
+              {isLoading ? t("locationCreating") : t("next")}
               {!isLoading && <IconArrowRight className="size-4" />}
             </Button>
           </div>
@@ -653,6 +658,7 @@ function StepMaterials({
   isLoading: boolean
   error: string | null
 }) {
+  const t = useTranslations("onboarding")
   const updateRow = (i: number, patch: Partial<MaterialRow>) => {
     onChange(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)))
   }
@@ -674,31 +680,31 @@ function StepMaterials({
         <div className="mb-2 flex size-10 items-center justify-center rounded-xl bg-blue-500/10">
           <IconPackage className="size-5 text-blue-500" />
         </div>
-        <CardTitle>Erste Materialien (optional)</CardTitle>
+        <CardTitle>{t("step3Title")}</CardTitle>
         <CardDescription>
-          Erfasse deine häufigsten Materialien. Du kannst diesen Schritt auch überspringen und Materialien später anlegen.
+          {t("step3Desc")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <div className="grid grid-cols-[1fr_120px_100px_32px] gap-2 px-1">
-              <span className="text-xs font-medium text-muted-foreground">Name</span>
-              <span className="text-xs font-medium text-muted-foreground">Nummer</span>
-              <span className="text-xs font-medium text-muted-foreground">Einheit</span>
+              <span className="text-xs font-medium text-muted-foreground">{t("materialName")}</span>
+              <span className="text-xs font-medium text-muted-foreground">{t("materialNumber")}</span>
+              <span className="text-xs font-medium text-muted-foreground">{t("materialUnit")}</span>
               <span />
             </div>
 
             {rows.map((row, i) => (
               <div key={i} className="grid grid-cols-[1fr_120px_100px_32px] items-center gap-2">
                 <Input
-                  placeholder="Materialname"
+                  placeholder={t("materialPlaceholder")}
                   value={row.name}
                   onChange={(e) => updateRow(i, { name: e.target.value })}
                   autoFocus={i === 0}
                 />
                 <Input
-                  placeholder="M-001"
+                  placeholder={t("materialNumberPlaceholder")}
                   value={row.number}
                   onChange={(e) => updateRow(i, { number: e.target.value })}
                 />
@@ -722,7 +728,7 @@ function StepMaterials({
                   className="size-8 text-muted-foreground hover:text-destructive"
                   onClick={() => removeRow(i)}
                   disabled={rows.length === 1}
-                  aria-label="Zeile entfernen"
+                  aria-label={t("removeRow")}
                 >
                   <IconTrash className="size-4" />
                 </Button>
@@ -738,7 +744,7 @@ function StepMaterials({
             onClick={addRow}
           >
             <IconPlus className="size-4" />
-            Zeile hinzufügen
+            {t("addRow")}
           </Button>
 
           {error && (
@@ -761,7 +767,7 @@ function StepMaterials({
                 disabled={isLoading || !hasAnyName}
                 className="gap-2"
               >
-                {isLoading ? "Wird gespeichert..." : "Weiter"}
+                {isLoading ? t("materialSaving") : t("next")}
                 {!isLoading && <IconArrowRight className="size-4" />}
               </Button>
             </div>
@@ -793,6 +799,7 @@ function StepInvite({
   isLoading: boolean
   error: string | null
 }) {
+  const t = useTranslations("onboarding")
   const updateRow = (i: number, patch: Partial<InviteRow>) => {
     onChange(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)))
   }
@@ -814,17 +821,17 @@ function StepInvite({
         <div className="mb-2 flex size-10 items-center justify-center rounded-xl bg-amber-500/10">
           <IconUsers className="size-5 text-amber-600" />
         </div>
-        <CardTitle>Team einladen (optional)</CardTitle>
+        <CardTitle>{t("step4Title")}</CardTitle>
         <CardDescription>
-          Lade Mitarbeiter in deine Organisation ein. Bestehende Nutzer werden direkt hinzugefügt, neue erhalten einen Einladungslink.
+          {t("step4Desc")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <div className="grid grid-cols-[1fr_140px_32px] gap-2 px-1">
-              <span className="text-xs font-medium text-muted-foreground">E-Mail-Adresse</span>
-              <span className="text-xs font-medium text-muted-foreground">Rolle</span>
+              <span className="text-xs font-medium text-muted-foreground">{t("emailAddress")}</span>
+              <span className="text-xs font-medium text-muted-foreground">{t("role")}</span>
               <span />
             </div>
 
@@ -832,7 +839,7 @@ function StepInvite({
               <div key={i} className="grid grid-cols-[1fr_140px_32px] items-center gap-2">
                 <Input
                   type="email"
-                  placeholder="mitarbeiter@firma.ch"
+                  placeholder={t("emailPlaceholder")}
                   value={row.email}
                   onChange={(e) => updateRow(i, { email: e.target.value })}
                   autoFocus={i === 0}
@@ -846,7 +853,7 @@ function StepInvite({
                   </SelectTrigger>
                   <SelectContent>
                     {ROLES.map((r) => (
-                      <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                      <SelectItem key={r.value} value={r.value}>{t(r.labelKey)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -857,7 +864,7 @@ function StepInvite({
                   className="size-8 text-muted-foreground hover:text-destructive"
                   onClick={() => removeRow(i)}
                   disabled={rows.length === 1}
-                  aria-label="Zeile entfernen"
+                  aria-label={t("removeRow")}
                 >
                   <IconTrash className="size-4" />
                 </Button>
@@ -873,7 +880,7 @@ function StepInvite({
             onClick={addRow}
           >
             <IconPlus className="size-4" />
-            Zeile hinzufügen
+            {t("addRow")}
           </Button>
 
           {error && (
@@ -896,7 +903,7 @@ function StepInvite({
                 disabled={isLoading || !hasAnyEmail}
                 className="gap-2"
               >
-                {isLoading ? "Wird gesendet..." : "Einladen"}
+                {isLoading ? t("inviteSending") : t("inviteButton")}
                 {!isLoading && <IconArrowRight className="size-4" />}
               </Button>
             </div>
@@ -910,6 +917,7 @@ function StepInvite({
 // ── Step 5: Fertig! ───────────────────────────────────────────────────────────
 
 function StepDone({ firstName }: { firstName: string }) {
+  const t = useTranslations("onboarding")
   return (
     <Card>
       <CardContent className="flex flex-col items-center py-12 text-center">
@@ -917,15 +925,15 @@ function StepDone({ firstName }: { firstName: string }) {
           <IconCheck className="size-10 text-emerald-600" strokeWidth={2.5} />
         </div>
         <h2 className="text-2xl font-bold tracking-tight">
-          Alles bereit{firstName ? `, ${firstName}` : ""}!
+          {t("doneTitle", { name: firstName ? `, ${firstName}` : "" })}
         </h2>
         <p className="mt-2 max-w-sm text-muted-foreground">
-          Deine Organisation ist eingerichtet. Du kannst jetzt mit der Erfassung deiner Bestände beginnen.
+          {t("doneDesc")}
         </p>
 
         <Button asChild size="lg" className="mt-8 gap-2 px-8">
           <Link href="/dashboard">
-            Los geht&apos;s — zum Dashboard
+            {t("doneCta")}
             <IconArrowRight className="size-4" />
           </Link>
         </Button>
@@ -936,21 +944,21 @@ function StepDone({ firstName }: { firstName: string }) {
             className="flex flex-col items-center gap-1.5 rounded-lg border bg-card p-3 text-muted-foreground transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-foreground"
           >
             <IconPackage className="size-5 text-primary" />
-            Materialien
+            {t("doneMaterials")}
           </Link>
           <Link
             href="/dashboard/tools"
             className="flex flex-col items-center gap-1.5 rounded-lg border bg-card p-3 text-muted-foreground transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-foreground"
           >
             <IconHammer className="size-5 text-primary" />
-            Werkzeuge
+            {t("doneTools")}
           </Link>
           <Link
             href="/dashboard/settings"
             className="flex flex-col items-center gap-1.5 rounded-lg border bg-card p-3 text-muted-foreground transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-foreground"
           >
             <IconBuilding className="size-5 text-primary" />
-            Einstellungen
+            {t("doneSettings")}
           </Link>
         </div>
       </CardContent>
@@ -975,6 +983,7 @@ function toSlug(name: string): string {
 // ── Main wizard ───────────────────────────────────────────────────────────────
 
 export default function OnboardingPage() {
+  const t = useTranslations("onboarding")
   const { data: session } = useSession()
 
   const [step, setStep] = useState<WizardStep>(1)
@@ -1040,7 +1049,7 @@ export default function OnboardingPage() {
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
-        throw new Error((body as { error?: string }).error ?? "Organisation konnte nicht erstellt werden")
+        throw new Error((body as { error?: string }).error ?? t("errorOrgCreate"))
       }
 
       const org = await res.json() as { id: string }
@@ -1054,7 +1063,7 @@ export default function OnboardingPage() {
         setStep(2)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unbekannter Fehler")
+      setError(err instanceof Error ? err.message : t("errorUnknown"))
     } finally {
       setIsLoading(false)
     }
@@ -1075,14 +1084,14 @@ export default function OnboardingPage() {
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
-        throw new Error((body as { error?: string }).error ?? "Vorlage konnte nicht angewendet werden")
+        throw new Error((body as { error?: string }).error ?? t("errorTemplateApply"))
       }
 
       const result = await res.json() as ApplyResult
       setApplyResult(result)
       // Stay on the template step to show the success summary; user clicks "Weiter"
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unbekannter Fehler")
+      setError(err instanceof Error ? err.message : t("errorUnknown"))
     } finally {
       setIsLoading(false)
     }
@@ -1110,12 +1119,12 @@ export default function OnboardingPage() {
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
-        throw new Error((body as { error?: string }).error ?? "Standort konnte nicht erstellt werden")
+        throw new Error((body as { error?: string }).error ?? t("errorLocationCreate"))
       }
 
       setStep(3)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unbekannter Fehler")
+      setError(err instanceof Error ? err.message : t("errorUnknown"))
     } finally {
       setIsLoading(false)
     }
@@ -1145,14 +1154,14 @@ export default function OnboardingPage() {
           }).then(async (res) => {
             if (!res.ok) {
               const body = await res.json().catch(() => ({}))
-              throw new Error((body as { error?: string }).error ?? `Material "${row.name}" konnte nicht erstellt werden`)
+              throw new Error((body as { error?: string }).error ?? t("errorMaterialCreate", { name: row.name }))
             }
           })
         )
       )
       setStep(4)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unbekannter Fehler")
+      setError(err instanceof Error ? err.message : t("errorUnknown"))
     } finally {
       setIsLoading(false)
     }
@@ -1175,18 +1184,18 @@ export default function OnboardingPage() {
           }).then(async (res) => {
             if (!res.ok) {
               const body = await res.json().catch(() => ({}))
-              throw new Error((body as { error?: string }).error ?? `Einladung an ${row.email} fehlgeschlagen`)
+              throw new Error((body as { error?: string }).error ?? t("errorInviteFailed", { email: row.email }))
             }
           })
         )
       )
       const firstFailure = results.find((r): r is PromiseRejectedResult => r.status === "rejected")
       if (firstFailure) {
-        setError(firstFailure.reason instanceof Error ? firstFailure.reason.message : "Eine Einladung ist fehlgeschlagen")
+        setError(firstFailure.reason instanceof Error ? firstFailure.reason.message : t("errorInviteGeneric"))
       }
       setStep(5)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unbekannter Fehler")
+      setError(err instanceof Error ? err.message : t("errorUnknown"))
     } finally {
       setIsLoading(false)
     }
@@ -1201,9 +1210,9 @@ export default function OnboardingPage() {
     <div className="flex min-h-[calc(100vh-theme(spacing.24))] items-start justify-center py-8 px-4">
       <div className="w-full max-w-xl">
         <div className="mb-8 text-center">
-          <h1 className="text-xl font-semibold tracking-tight">LogistikApp</h1>
+          <h1 className="text-xl font-semibold tracking-tight">{t("pageTitle")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Willkommen! Richte deine Organisation in wenigen Schritten ein.
+            {t("welcomeMessage")}
           </p>
         </div>
 

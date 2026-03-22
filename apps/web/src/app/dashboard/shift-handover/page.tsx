@@ -138,35 +138,6 @@ function fmtDate(d: string): string {
   })
 }
 
-const changeTypeLabels: Record<string, string> = {
-  in: "Eingang",
-  out: "Ausgang",
-  transfer: "Transfer",
-  correction: "Korrektur",
-  inventory: "Inventur",
-}
-
-const bookingTypeLabels: Record<string, string> = {
-  checkout: "Ausgabe",
-  checkin: "Rückgabe",
-  transfer: "Transfer",
-}
-
-const commissionStatusLabels: Record<string, string> = {
-  open: "Offen",
-  in_progress: "In Bearbeitung",
-  completed: "Abgeschlossen",
-  cancelled: "Storniert",
-}
-
-const SHIFT_CONFIG = {
-  early: { label: "Frühschicht (06–14)", icon: IconSun, hours: "06:00–14:00" },
-  late: { label: "Spätschicht (14–22)", icon: IconSunset2, hours: "14:00–22:00" },
-  night: { label: "Nachtschicht (22–06)", icon: IconMoon, hours: "22:00–06:00" },
-} as const
-
-type ShiftKey = keyof typeof SHIFT_CONFIG
-
 function changeTypeIcon(type: string) {
   switch (type) {
     case "in":
@@ -180,31 +151,46 @@ function changeTypeIcon(type: string) {
   }
 }
 
-function commissionStatusBadge(status: string | null) {
-  const variant =
-    status === "completed"
-      ? "default"
-      : status === "cancelled"
-        ? "destructive"
-        : "secondary"
-  return (
-    <Badge variant={variant} className="text-xs">
-      {commissionStatusLabels[status ?? ""] ?? status ?? "—"}
-    </Badge>
-  )
-}
+const SHIFT_CONFIG = {
+  early: { icon: IconSun, hours: "06:00–14:00" },
+  late: { icon: IconSunset2, hours: "14:00–22:00" },
+  night: { icon: IconMoon, hours: "22:00–06:00" },
+} as const
+
+type ShiftKey = keyof typeof SHIFT_CONFIG
 
 // ---------------------------------------------------------------------------
 // Print
 // ---------------------------------------------------------------------------
-function printHandover(data: HandoverData, notes: string) {
-  const shiftCfg = SHIFT_CONFIG[data.shift as ShiftKey] ?? SHIFT_CONFIG.early
+function printHandover(data: HandoverData, notes: string, t: ReturnType<typeof useTranslations>) {
+  const shiftLabel = t(data.shift as "early" | "late" | "night")
   const fmtDateStr = fmtDate(data.date)
+
+  const changeTypeLabels: Record<string, string> = {
+    in: t("changeTypes.in"),
+    out: t("changeTypes.out"),
+    transfer: t("changeTypes.transfer"),
+    correction: t("changeTypes.correction"),
+    inventory: t("changeTypes.inventory"),
+  }
+
+  const bookingTypeLabels: Record<string, string> = {
+    checkout: t("bookingTypes.checkout"),
+    checkin: t("bookingTypes.checkin"),
+    transfer: t("bookingTypes.transfer"),
+  }
+
+  const commissionStatusLabels: Record<string, string> = {
+    open: t("commissionStatuses.open"),
+    in_progress: t("commissionStatuses.inProgress"),
+    completed: t("commissionStatuses.completed"),
+    cancelled: t("commissionStatuses.cancelled"),
+  }
 
   const stockHtml =
     data.stockChanges.length > 0
       ? `<table>
-          <thead><tr><th>Zeit</th><th>Typ</th><th>Material</th><th>Lagerort</th><th>Menge</th><th>Benutzer</th><th>Notiz</th></tr></thead>
+          <thead><tr><th>${t("time")}</th><th>${t("type")}</th><th>${t("material")}</th><th>${t("location")}</th><th>${t("quantity")}</th><th>${t("user")}</th><th>${t("note")}</th></tr></thead>
           <tbody>${data.stockChanges
             .map(
               (c) =>
@@ -212,12 +198,12 @@ function printHandover(data: HandoverData, notes: string) {
             )
             .join("")}</tbody>
         </table>`
-      : "<p>Keine Bestandsänderungen in dieser Schicht.</p>"
+      : `<p>${t("noStockChanges")}</p>`
 
   const toolHtml =
     data.toolBookings.length > 0
       ? `<table>
-          <thead><tr><th>Zeit</th><th>Typ</th><th>Werkzeug</th><th>Benutzer</th><th>Notiz</th></tr></thead>
+          <thead><tr><th>${t("time")}</th><th>${t("type")}</th><th>${t("tool")}</th><th>${t("user")}</th><th>${t("note")}</th></tr></thead>
           <tbody>${data.toolBookings
             .map(
               (b) =>
@@ -225,12 +211,12 @@ function printHandover(data: HandoverData, notes: string) {
             )
             .join("")}</tbody>
         </table>`
-      : "<p>Keine Werkzeugbuchungen in dieser Schicht.</p>"
+      : `<p>${t("noToolBookings")}</p>`
 
   const commHtml =
     data.openCommissions.length > 0
       ? `<table>
-          <thead><tr><th>Kommission</th><th>Status</th><th>Aktualisiert</th></tr></thead>
+          <thead><tr><th>${t("commission")}</th><th>${t("status")}</th><th>${t("updated")}</th></tr></thead>
           <tbody>${data.openCommissions
             .map(
               (c) =>
@@ -238,12 +224,12 @@ function printHandover(data: HandoverData, notes: string) {
             )
             .join("")}</tbody>
         </table>`
-      : "<p>Keine offenen Kommissionen.</p>"
+      : `<p>${t("noOpenCommissions")}</p>`
 
   const orderHtml =
     data.openOrders.length > 0
       ? `<table>
-          <thead><tr><th>Bestellnr.</th><th>Lieferant</th><th>Bestelldatum</th><th>Betrag</th></tr></thead>
+          <thead><tr><th>${t("orderNumber")}</th><th>${t("supplier")}</th><th>${t("orderDate")}</th><th>${t("amount")}</th></tr></thead>
           <tbody>${data.openOrders
             .map(
               (o) =>
@@ -251,17 +237,17 @@ function printHandover(data: HandoverData, notes: string) {
             )
             .join("")}</tbody>
         </table>`
-      : "<p>Keine offenen Bestellungen.</p>"
+      : `<p>${t("noOpenOrders")}</p>`
 
   const notesHtml = notes.trim()
     ? `<div class="notes-box">${notes.replace(/\n/g, "<br/>")}</div>`
-    : "<p>Keine Hinweise.</p>"
+    : `<p>${t("noHints")}</p>`
 
   const html = `<!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <title>Schichtübergabe ${fmtDateStr} — ${shiftCfg.label}</title>
+  <title>${t("printTitle")} ${fmtDateStr} — ${shiftLabel}</title>
   <style>
     @page { size: A4 portrait; margin: 15mm; }
     * { box-sizing: border-box; }
@@ -290,33 +276,33 @@ function printHandover(data: HandoverData, notes: string) {
 </head>
 <body>
   <div class="report-header">
-    <h1>Schichtübergabe — ${fmtDateStr} — ${shiftCfg.label}</h1>
-    <span class="report-date">Erstellt am ${new Date().toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+    <h1>${t("printTitle")} — ${fmtDateStr} — ${shiftLabel}</h1>
+    <span class="report-date">${t("printCreatedAt")} ${new Date().toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
   </div>
 
   <div class="summary-grid">
-    <div class="summary-item"><span class="label">Lagerbewegungen</span><span class="value">${data.summary.totalStockChanges}</span></div>
-    <div class="summary-item"><span class="label">Werkzeugbuchungen</span><span class="value">${data.summary.checkoutCount + data.summary.checkinCount}</span></div>
-    <div class="summary-item"><span class="label">Offene Kommissionen</span><span class="value">${data.summary.openCommissions}</span></div>
-    <div class="summary-item"><span class="label">Offene Bestellungen</span><span class="value">${data.summary.openOrders}</span></div>
+    <div class="summary-item"><span class="label">${t("printStockMovements")}</span><span class="value">${data.summary.totalStockChanges}</span></div>
+    <div class="summary-item"><span class="label">${t("printToolBookings")}</span><span class="value">${data.summary.checkoutCount + data.summary.checkinCount}</span></div>
+    <div class="summary-item"><span class="label">${t("printOpenCommissions")}</span><span class="value">${data.summary.openCommissions}</span></div>
+    <div class="summary-item"><span class="label">${t("printOpenOrders")}</span><span class="value">${data.summary.openOrders}</span></div>
   </div>
 
-  <h2>Bestandsänderungen</h2>
+  <h2>${t("printStockChanges")}</h2>
   ${stockHtml}
 
-  <h2>Werkzeugbuchungen</h2>
+  <h2>${t("printToolBookings")}</h2>
   ${toolHtml}
 
-  <h2>Offene Kommissionen</h2>
+  <h2>${t("printOpenCommissions")}</h2>
   ${commHtml}
 
-  <h2>Offene Bestellungen</h2>
+  <h2>${t("printOpenOrders")}</h2>
   ${orderHtml}
 
-  <h2>Hinweise</h2>
+  <h2>${t("printNotes")}</h2>
   ${notesHtml}
 
-  <div class="report-footer">Schichtübergabe — LogistikApp — ${fmtDateStr} — ${shiftCfg.label}</div>
+  <div class="report-footer">${t("printTitle")} — LogistikApp — ${fmtDateStr} — ${shiftLabel}</div>
   <script>window.onload = function() { window.print(); }<\/script>
 </body>
 </html>`
@@ -343,9 +329,9 @@ export default function ShiftHandoverPage() {
   const fetchData = useCallback(async (): Promise<HandoverData> => {
     const params = new URLSearchParams({ date, shift })
     const res = await fetch(`/api/shift-handover?${params}`)
-    if (!res.ok) throw new Error("Fehler beim Laden der Schichtübergabe-Daten")
+    if (!res.ok) throw new Error(t("fetchError"))
     return res.json() as Promise<HandoverData>
-  }, [date, shift])
+  }, [date, shift, t])
 
   const handleFetch = useCallback(async () => {
     setLoading("fetch")
@@ -355,11 +341,11 @@ export default function ShiftHandoverPage() {
       const result = await fetchData()
       setData(result)
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unbekannter Fehler")
+      setError(e instanceof Error ? e.message : t("unknownError"))
     } finally {
       setLoading(null)
     }
-  }, [fetchData])
+  }, [fetchData, t])
 
   const handlePrint = useCallback(async () => {
     setLoading("print")
@@ -367,13 +353,13 @@ export default function ShiftHandoverPage() {
     try {
       const result = data ?? (await fetchData())
       if (!data) setData(result)
-      printHandover(result, notes)
+      printHandover(result, notes, t)
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unbekannter Fehler")
+      setError(e instanceof Error ? e.message : t("unknownError"))
     } finally {
       setLoading(null)
     }
-  }, [data, fetchData, notes])
+  }, [data, fetchData, notes, t])
 
   const handleEmail = useCallback(async () => {
     setLoading("email")
@@ -388,19 +374,37 @@ export default function ShiftHandoverPage() {
       if (!res.ok) {
         const json = await res.json().catch(() => ({}))
         throw new Error(
-          (json as { error?: string }).error ?? "E-Mail-Versand fehlgeschlagen"
+          (json as { error?: string }).error ?? t("emailError")
         )
       }
       setEmailSuccess(true)
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unbekannter Fehler")
+      setError(e instanceof Error ? e.message : t("unknownError"))
     } finally {
       setLoading(null)
     }
-  }, [date, shift, notes])
+  }, [date, shift, notes, t])
 
   const isBusy = loading !== null
   const ShiftIcon = SHIFT_CONFIG[shift].icon
+
+  const commissionStatusBadge = useCallback(
+    (status: string | null) => {
+      const variant =
+        status === "completed"
+          ? "default"
+          : status === "cancelled"
+            ? "destructive"
+            : "secondary"
+      const statusKey = status === "in_progress" ? "inProgress" : (status ?? "")
+      return (
+        <Badge variant={variant} className="text-xs">
+          {t.has(`commissionStatuses.${statusKey}` as Parameters<typeof t>[0]) ? t(`commissionStatuses.${statusKey}` as Parameters<typeof t>[0]) : status ?? "—"}
+        </Badge>
+      )
+    },
+    [t]
+  )
 
   return (
     <div className="flex flex-col gap-6 px-4 py-6 lg:px-6">
@@ -461,7 +465,7 @@ export default function ShiftHandoverPage() {
                       <SelectItem key={key} value={key}>
                         <span className="flex items-center gap-2">
                           <cfg.icon className="size-3.5" />
-                          {cfg.label}
+                          {t(key)}
                         </span>
                       </SelectItem>
                     )
@@ -534,28 +538,28 @@ export default function ShiftHandoverPage() {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {[
               {
-                label: "Bestandsänderungen",
+                label: t("stockChanges"),
                 value: data.summary.totalStockChanges,
                 icon: IconPackage,
-                sub: `${data.summary.inCount} Ein / ${data.summary.outCount} Aus`,
+                sub: `${data.summary.inCount} ${t("inCount")} / ${data.summary.outCount} ${t("outCount")}`,
               },
               {
-                label: "Werkzeugbuchungen",
+                label: t("toolBookings"),
                 value: data.summary.checkoutCount + data.summary.checkinCount,
                 icon: IconTool,
-                sub: `${data.summary.checkoutCount} Aus / ${data.summary.checkinCount} Zurück`,
+                sub: `${data.summary.checkoutCount} ${t("checkoutCount")} / ${data.summary.checkinCount} ${t("checkinCount")}`,
               },
               {
-                label: "Offene Kommissionen",
+                label: t("openCommissions"),
                 value: data.summary.openCommissions,
                 icon: IconClipboardList,
-                sub: "offen / in Bearbeitung",
+                sub: t("openInProgress"),
               },
               {
-                label: "Offene Bestellungen",
+                label: t("openOrders"),
                 value: data.summary.openOrders,
                 icon: IconFileInvoice,
-                sub: "Status: bestellt",
+                sub: t("statusOrdered"),
               },
             ].map(({ label, value, icon: Icon, sub }) => (
               <Card key={label} className="p-4">
@@ -578,44 +582,29 @@ export default function ShiftHandoverPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <IconPackage className="size-4 text-primary" />
-                Bestandsänderungen heute ({data.summary.totalStockChanges})
+                {t("stockChanges")} ({data.summary.totalStockChanges})
               </CardTitle>
               <CardDescription className="text-xs">
-                Alle Ein-/Ausgänge, Transfers und Korrekturen während der
-                Schicht.
+                {t("stockChangesDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               {data.stockChanges.length === 0 ? (
                 <p className="p-6 text-sm text-muted-foreground text-center">
-                  Keine Bestandsänderungen in dieser Schicht.
+                  {t("noStockChanges")}
                 </p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b text-xs text-muted-foreground">
-                        <th className="px-4 py-2 text-left font-medium">
-                          Zeit
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium">
-                          Typ
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium">
-                          Material
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium">
-                          Lagerort
-                        </th>
-                        <th className="px-4 py-2 text-right font-medium">
-                          Menge
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium">
-                          Benutzer
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium">
-                          Notiz
-                        </th>
+                        <th className="px-4 py-2 text-left font-medium">{t("time")}</th>
+                        <th className="px-4 py-2 text-left font-medium">{t("type")}</th>
+                        <th className="px-4 py-2 text-left font-medium">{t("material")}</th>
+                        <th className="px-4 py-2 text-left font-medium">{t("location")}</th>
+                        <th className="px-4 py-2 text-right font-medium">{t("quantity")}</th>
+                        <th className="px-4 py-2 text-left font-medium">{t("user")}</th>
+                        <th className="px-4 py-2 text-left font-medium">{t("note")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -627,7 +616,7 @@ export default function ShiftHandoverPage() {
                           <td className="px-4 py-2">
                             <span className="flex items-center gap-1.5">
                               {changeTypeIcon(c.changeType)}
-                              {changeTypeLabels[c.changeType] ?? c.changeType}
+                              {t.has(`changeTypes.${c.changeType}` as Parameters<typeof t>[0]) ? t(`changeTypes.${c.changeType}` as Parameters<typeof t>[0]) : c.changeType}
                             </span>
                           </td>
                           <td className="px-4 py-2">
@@ -670,38 +659,28 @@ export default function ShiftHandoverPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <IconTool className="size-4 text-primary" />
-                Werkzeugbuchungen heute (
+                {t("toolBookings")} (
                 {data.summary.checkoutCount + data.summary.checkinCount})
               </CardTitle>
               <CardDescription className="text-xs">
-                Ausgaben und Rückgaben während der Schicht.
+                {t("toolBookingsDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               {data.toolBookings.length === 0 ? (
                 <p className="p-6 text-sm text-muted-foreground text-center">
-                  Keine Werkzeugbuchungen in dieser Schicht.
+                  {t("noToolBookings")}
                 </p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b text-xs text-muted-foreground">
-                        <th className="px-4 py-2 text-left font-medium">
-                          Zeit
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium">
-                          Typ
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium">
-                          Werkzeug
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium">
-                          Benutzer
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium">
-                          Notiz
-                        </th>
+                        <th className="px-4 py-2 text-left font-medium">{t("time")}</th>
+                        <th className="px-4 py-2 text-left font-medium">{t("type")}</th>
+                        <th className="px-4 py-2 text-left font-medium">{t("tool")}</th>
+                        <th className="px-4 py-2 text-left font-medium">{t("user")}</th>
+                        <th className="px-4 py-2 text-left font-medium">{t("note")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -719,8 +698,7 @@ export default function ShiftHandoverPage() {
                               }
                               className="text-xs"
                             >
-                              {bookingTypeLabels[b.bookingType] ??
-                                b.bookingType}
+                              {t.has(`bookingTypes.${b.bookingType}` as Parameters<typeof t>[0]) ? t(`bookingTypes.${b.bookingType}` as Parameters<typeof t>[0]) : b.bookingType}
                             </Badge>
                           </td>
                           <td className="px-4 py-2">
@@ -754,32 +732,25 @@ export default function ShiftHandoverPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <IconClipboardList className="size-4 text-primary" />
-                Offene Kommissionen ({data.openCommissions.length})
+                {t("openCommissions")} ({data.openCommissions.length})
               </CardTitle>
               <CardDescription className="text-xs">
-                Kommissionen mit Status &quot;Offen&quot; oder &quot;In
-                Bearbeitung&quot;.
+                {t("openCommissionsDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               {data.openCommissions.length === 0 ? (
                 <p className="p-6 text-sm text-muted-foreground text-center">
-                  Keine offenen Kommissionen.
+                  {t("noOpenCommissions")}
                 </p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b text-xs text-muted-foreground">
-                        <th className="px-4 py-2 text-left font-medium">
-                          Kommission
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium">
-                          Status
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium">
-                          Aktualisiert
-                        </th>
+                        <th className="px-4 py-2 text-left font-medium">{t("commission")}</th>
+                        <th className="px-4 py-2 text-left font-medium">{t("status")}</th>
+                        <th className="px-4 py-2 text-left font-medium">{t("updated")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -809,38 +780,27 @@ export default function ShiftHandoverPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <IconFileInvoice className="size-4 text-primary" />
-                Offene Bestellungen ({data.openOrders.length})
+                {t("openOrders")} ({data.openOrders.length})
               </CardTitle>
               <CardDescription className="text-xs">
-                Bestellungen mit Status &quot;Bestellt&quot; — noch nicht
-                eingegangen.
+                {t("openOrdersDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               {data.openOrders.length === 0 ? (
                 <p className="p-6 text-sm text-muted-foreground text-center">
-                  Keine offenen Bestellungen.
+                  {t("noOpenOrders")}
                 </p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b text-xs text-muted-foreground">
-                        <th className="px-4 py-2 text-left font-medium">
-                          Bestellnr.
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium">
-                          Lieferant
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium">
-                          Bestelldatum
-                        </th>
-                        <th className="px-4 py-2 text-right font-medium">
-                          Betrag
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium">
-                          Notiz
-                        </th>
+                        <th className="px-4 py-2 text-left font-medium">{t("orderNumber")}</th>
+                        <th className="px-4 py-2 text-left font-medium">{t("supplier")}</th>
+                        <th className="px-4 py-2 text-left font-medium">{t("orderDate")}</th>
+                        <th className="px-4 py-2 text-right font-medium">{t("amount")}</th>
+                        <th className="px-4 py-2 text-left font-medium">{t("note")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -877,16 +837,15 @@ export default function ShiftHandoverPage() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <IconNotes className="size-4 text-primary" />
-                Hinweise
+                {t("notesTitle")}
               </CardTitle>
               <CardDescription className="text-xs">
-                Freitextfeld für die Übergabe an die nächste Schicht. Wird beim
-                PDF-Export und E-Mail-Versand mitgesendet.
+                {t("notesDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Textarea
-                placeholder="Besondere Vorkommnisse, offene Aufgaben, Hinweise für die nächste Schicht..."
+                placeholder={t("notesPlaceholder")}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={4}
@@ -903,7 +862,7 @@ export default function ShiftHandoverPage() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <p className="text-sm text-muted-foreground">
-                    Keine Aktivitäten in der gewählten Schicht gefunden.
+                    {t("noActivities")}
                   </p>
                 </CardContent>
               </Card>

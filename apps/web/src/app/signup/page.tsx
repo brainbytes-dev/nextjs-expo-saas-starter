@@ -1,8 +1,12 @@
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { Logo } from "@/components/logo"
 import { SignupForm } from "@/components/signup-form"
 
+"use client"
+
 export default function SignupPage() {
+  const t = useTranslations("signup")
   return (
     <div className="grid min-h-svh lg:grid-cols-[1fr_480px] bg-background">
 

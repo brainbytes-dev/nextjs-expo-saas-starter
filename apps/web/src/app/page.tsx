@@ -1,6 +1,7 @@
 "use client"
 
 import { Fragment, useEffect, useRef, useState } from "react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/logo"
@@ -198,7 +199,7 @@ function ScrollUI() {
       <button
         ref={btnRef}
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        aria-label="Zum Seitenanfang"
+        aria-label={t("scrollToTop")}
         className={`fixed bottom-8 right-8 z-50 size-[56px] rounded-full bg-background border border-border flex items-center justify-center group transition-all duration-500 hover:border-primary ${show ? "translate-y-0 opacity-100" : "translate-y-16 opacity-0 pointer-events-none"}`}
       >
         <svg className="absolute inset-0 size-full -rotate-90" viewBox="0 0 56 56">
@@ -232,101 +233,57 @@ const CELLS = Array.from({ length: 48 }, (_, i) => ({
 }))
 
 /* ─── Data ───────────────────────────────────────────────────── */
-const FEATURES = [
-  { icon: IconPackage,        code: "INV", title: "Inventarverwaltung",          desc: "Material, Werkzeuge, Schlüssel — alles an einem Ort. EAN-Lookup aus 8 Datenbanken mit über 100 Mio. Produkten." },
-  { icon: IconTool,           code: "WRK", title: "Werkzeug-Tracking",         desc: "Aus- und Einchecken, Wartungskalender, Kalibrierung, Checklisten und lückenlose Buchungshistorie." },
-  { icon: IconTruck,          code: "LFG", title: "Lieferverfolgung",          desc: "Kanban-Board mit Drag & Drop. Schweizer Spediteure: Post, DHL, DPD, Planzer. Tracking-Links inklusive." },
-  { icon: IconMapPin,         code: "STO", title: "Standorte & Karte",         desc: "Lager, Fahrzeuge, Baustellen — GPS-Karte, Grundriss-Ansicht und Geofencing für Auto-Checkin." },
-  { icon: IconShoppingCart,   code: "ORD", title: "Bestellwesen",              desc: "Warenkorb, Bestellpositionen, Lieferantenpreise und automatische Nachbestellung bei Unterschreitung." },
-  { icon: IconHistory,        code: "ZEI", title: "Zeiterfassung",             desc: "Live-Timer, Stundensätze, Wochenauswertung und CSV-Export. Projekte und Kommissionen zuweisbar." },
+const FEATURES_META = [
+  { icon: IconPackage,        code: "INV", titleKey: "featInvTitle", descKey: "featInvDesc" },
+  { icon: IconTool,           code: "WRK", titleKey: "featWrkTitle", descKey: "featWrkDesc" },
+  { icon: IconTruck,          code: "LFG", titleKey: "featLfgTitle", descKey: "featLfgDesc" },
+  { icon: IconMapPin,         code: "STO", titleKey: "featStoTitle", descKey: "featStoDesc" },
+  { icon: IconShoppingCart,   code: "ORD", titleKey: "featOrdTitle", descKey: "featOrdDesc" },
+  { icon: IconHistory,        code: "ZEI", titleKey: "featZeiTitle", descKey: "featZeiDesc" },
 ]
 
 const PLANS = [
   {
     name: "Starter",
     monthly: 59, yearly: 49,
-    desc: "Für kleine Teams und Einsteiger.",
-    features: [
-      "Bis 5 Benutzer",
-      "Bis 3 Standorte",
-      "Bis 500 Artikel",
-      "Material- & Werkzeugverwaltung",
-      "Barcode-Scanner (Kamera + Handscanner)",
-      "Kommissionen & Warenkorb",
-      "Bestellwesen & Wareneingang",
-      "Mobile App (iOS & Android)",
-      "E-Mail Support",
-    ],
-    cta: "Kostenlos starten", href: "/signup", highlight: false,
+    desc: "priceStarterDesc",
+    features: Array.from({length: 9}, (_, i) => `priceFeat_starter_${i}`),
+    cta: "priceStarterCta", href: "/signup", highlight: false,
   },
   {
     name: "Professional",
     monthly: 199, yearly: 169,
-    desc: "Für wachsende Betriebe mit Vollausstattung.",
-    features: [
-      "Alles aus Starter, plus:",
-      "Bis 25 Benutzer",
-      "Unbegrenzte Standorte & Artikel",
-      "Zeiterfassung mit Live-Timer",
-      "Lieferverfolgung (Kanban)",
-      "Garantieansprüche-Workflow",
-      "Bestandsoptimierung (KI)",
-      "Budget- & Kostenstellen",
-      "Umbuchungen zwischen Standorten",
-      "Kunden- & Lieferanten-Portal",
-      "Erweiterte Berichte & PDF-Export",
-      "Wartungskalender + iCal",
-      "KI-Fotorkennung & Prognose",
-      "Offline-Modus + Sync",
-      "Prioritäts-Support",
-    ],
-    cta: "14 Tage testen", href: "/signup", highlight: true,
+    desc: "priceProDesc",
+    features: Array.from({length: 15}, (_, i) => `priceFeat_pro_${i}`),
+    cta: "priceProCta", href: "/signup", highlight: true,
   },
   {
     name: "Enterprise",
     monthly: -1, yearly: -1,
-    desc: "Für Unternehmen mit individuellen Anforderungen.",
-    features: [
-      "Alles aus Professional, plus:",
-      "Unbegrenzte Benutzer",
-      "UHF RFID Reader-Support",
-      "Workflow Engine & Automatisierungen",
-      "Public API & Webhooks",
-      "Custom Branding (Logo & Farben)",
-      "SSO / SAML / Azure AD",
-      "Multi-Company Reporting",
-      "Genehmigungsworkflows",
-      "Etikettendrucker (Zebra ZPL)",
-      "Bluetooth-Waagen",
-      "Grundriss-Ansicht",
-      "Branchen-Templates",
-      "SLA-Garantie 99.9%",
-      "Prioritäts-Support",
-      "Zugang zu allen zukünftigen Features",
-      "…und vieles mehr",
-    ],
-    cta: "Kontakt aufnehmen", href: "mailto:sales@logistikapp.ch", highlight: false,
+    desc: "priceEnterpriseDesc",
+    features: Array.from({length: 17}, (_, i) => `priceFeat_ent_${i}`),
+    cta: "priceEnterpriseCta", href: "mailto:sales@logistikapp.ch", highlight: false,
   },
 ]
 
-const TRUST_SPECS = [
-  ["RECHTSRAHMEN",    "nDSG / DSGVO"],
-  ["SERVERSTANDORT",  "Zürich, Schweiz"],
-  ["ZERTIFIZIERUNG",  "ISO 27001"],
-  ["US CLOUD ACT",    "Nicht anwendbar"],
-  ["BACKUP-FREQUENZ", "Stündlich"],
-  ["UPTIME SLA",      "99.9 %"],
+const TRUST_SPEC_KEYS = [
+  ["trustLegalFramework", "trustLegalFrameworkVal"],
+  ["trustServer",         "trustServerVal"],
+  ["trustCert",           "trustCertVal"],
+  ["trustCloudAct",       "trustCloudActVal"],
+  ["trustBackup",         "trustBackupVal"],
+  ["trustUptime",         "trustUptimeVal"],
 ]
 
 const LIVE_INTEGRATIONS = [
-  { name: "bexio",   desc: "Buchhaltung & ERP",         color: "#E4312B", short: "bx",  badge: "CH #1" },
-  { name: "Abacus",  desc: "AbaNinja / Abacus ERP",     color: "#003087", short: "ac",  badge: "Verfügbar" },
-  { name: "Vertec",  desc: "CRM & Projektplanung",       color: "#FF6900", short: "vt",  badge: "Verfügbar" },
-  { name: "Zebra",   desc: "ZPL Etikettendruck",         color: "#1a1a1a", short: "zbr", badge: "Verfügbar" },
-  { name: "Stripe",  desc: "Online-Zahlungen",           color: "#635BFF", short: "str", badge: "Verfügbar" },
-  { name: "WhatsApp",desc: "Benachrichtigungen",          color: "#25D366", short: "wa",  badge: "Verfügbar" },
-  { name: "Zapier",  desc: "2000+ App-Verbindungen",     color: "#FF4A00", short: "zp",  badge: "Verfügbar" },
-  { name: "Webhooks",desc: "13 Event-Typen, HMAC-signiert", color: "#1a1a1a", short: "wh", badge: "Verfügbar" },
+  { name: "bexio",   descKey: "intBexioDesc",     color: "#E4312B", short: "bx",  badgeKey: "intBadgeChNo1" },
+  { name: "Abacus",  descKey: "intAbacusDesc",    color: "#003087", short: "ac",  badgeKey: "intBadgeAvailable" },
+  { name: "Vertec",  descKey: "intVertecDesc",     color: "#FF6900", short: "vt",  badgeKey: "intBadgeAvailable" },
+  { name: "Zebra",   descKey: "intZebraDesc",      color: "#1a1a1a", short: "zbr", badgeKey: "intBadgeAvailable" },
+  { name: "Stripe",  descKey: "intStripeDesc",     color: "#635BFF", short: "str", badgeKey: "intBadgeAvailable" },
+  { name: "WhatsApp",descKey: "intWhatsAppDesc",   color: "#25D366", short: "wa",  badgeKey: "intBadgeAvailable" },
+  { name: "Zapier",  descKey: "intZapierDesc",     color: "#FF4A00", short: "zp",  badgeKey: "intBadgeAvailable" },
+  { name: "Webhooks",descKey: "intWebhooksDesc",   color: "#1a1a1a", short: "wh",  badgeKey: "intBadgeAvailable" },
 ]
 
 const UPCOMING_INTEGRATIONS = [
@@ -340,6 +297,7 @@ const UPCOMING_INTEGRATIONS = [
 
 /* ─── Cost Calculator ───────────────────────────────────────── */
 function CostCalculator() {
+  const t = useTranslations("landing")
   const [employees, setEmployees] = useState(5)
   const [minutesPerDay, setMinutesPerDay] = useState(20)
   const [hourlyRate, setHourlyRate] = useState(65)
@@ -349,9 +307,9 @@ function CostCalculator() {
   const formattedCost = new Intl.NumberFormat("de-CH", { style: "currency", currency: "CHF", maximumFractionDigits: 0 }).format(annualCost)
 
   const sliders = [
-    { label: "Mitarbeitende suchen täglich", value: employees, min: 1, max: 50, step: 1, unit: "Personen", onChange: (v: number) => setEmployees(v) },
-    { label: "Suchzeit pro Person täglich", value: minutesPerDay, min: 5, max: 120, step: 5, unit: "Minuten", onChange: (v: number) => setMinutesPerDay(v) },
-    { label: "Ø Stundenlohn", value: hourlyRate, min: 30, max: 150, step: 5, unit: "CHF/h", onChange: (v: number) => setHourlyRate(v) },
+    { label: t("calcSliderEmployees"), value: employees, min: 1, max: 50, step: 1, unit: t("calcUnitPersons"), onChange: (v: number) => setEmployees(v) },
+    { label: t("calcSliderTime"), value: minutesPerDay, min: 5, max: 120, step: 5, unit: t("calcUnitMinutes"), onChange: (v: number) => setMinutesPerDay(v) },
+    { label: t("calcSliderRate"), value: hourlyRate, min: 30, max: 150, step: 5, unit: t("calcUnitRate"), onChange: (v: number) => setHourlyRate(v) },
   ]
 
   return (
@@ -389,13 +347,13 @@ function CostCalculator() {
       {/* Result */}
       <div className="rounded-lg border border-primary/20 bg-primary/5 p-6 text-center">
         <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">
-          Dein jährlicher Verlust durch Suchzeiten
+          {t("calcResultLabel")}
         </p>
         <div className="text-4xl font-bold text-primary font-mono">
           {formattedCost}
         </div>
         <p className="font-mono text-[10px] text-muted-foreground mt-2">
-          {employees} Pers. × {minutesPerDay} Min/Tag × CHF {hourlyRate}/h × 220 Arbeitstage
+          {t("calcResultFormula", { employees, minutes: minutesPerDay, rate: hourlyRate })}
         </p>
       </div>
 
@@ -403,10 +361,10 @@ function CostCalculator() {
       <div className="text-center">
         <Link href="/signup">
           <Button className="font-mono text-[11px] tracking-widest uppercase gap-2">
-            Jetzt kostenlos einsparen →
+            {t("calcCta")}
           </Button>
         </Link>
-        <p className="font-mono text-[10px] text-muted-foreground mt-2">14 Tage kostenlos · Keine Kreditkarte</p>
+        <p className="font-mono text-[10px] text-muted-foreground mt-2">{t("calcCtaSub")}</p>
       </div>
     </div>
   )
@@ -414,13 +372,14 @@ function CostCalculator() {
 
 /* ─── Pricing Section with yearly toggle ─────────────────────── */
 function PricingSection() {
+  const t = useTranslations("landing")
   const [yearly, setYearly] = useState(false)
 
   return (
     <section id="pricing" className="mx-auto w-full max-w-7xl px-6 py-24">
       <div className="mb-10 border-b border-border pb-6">
-        <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{`// 08 — Preise`}</div>
-        <h2 className="text-3xl lg:text-4xl font-bold">Einfach. Transparent.</h2>
+        <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{t("priceCode")}</div>
+        <h2 className="text-3xl lg:text-4xl font-bold">{t("priceHeading")}</h2>
       </div>
 
       {/* Toggle — centered above cards */}
@@ -430,14 +389,14 @@ function PricingSection() {
             onClick={() => setYearly(false)}
             className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${!yearly ? "bg-background shadow-sm text-foreground" : "text-muted-foreground"}`}
           >
-            Monatlich
+            {t("priceMonthly")}
           </button>
           <button
             onClick={() => setYearly(true)}
             className={`px-5 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${yearly ? "bg-background shadow-sm text-foreground" : "text-muted-foreground"}`}
           >
-            Jährlich
-            <span className="text-[9px] font-bold bg-primary text-white rounded-full px-2 py-0.5">−15%</span>
+            {t("priceYearly")}
+            <span className="text-[9px] font-bold bg-primary text-white rounded-full px-2 py-0.5">{t("priceDiscount")}</span>
           </button>
         </div>
       </div>
@@ -445,8 +404,8 @@ function PricingSection() {
       <div className="grid md:grid-cols-3 gap-px bg-border">
         {PLANS.map(plan => {
           const isEnterprise = plan.monthly < 0
-          const price = isEnterprise ? "ab CHF 699" : `CHF ${yearly ? plan.yearly : plan.monthly}`
-          const per = isEnterprise ? "/Mo" : yearly ? "/Mo (jährl.)" : "/Mo"
+          const price = isEnterprise ? t("priceFrom") : `CHF ${yearly ? plan.yearly : plan.monthly}`
+          const per = isEnterprise ? t("pricePerMonth") : yearly ? t("pricePerMonthYearly") : t("pricePerMonth")
           const yearlyTotal = isEnterprise ? null : plan.yearly * 12
           const monthlyTotal = isEnterprise ? null : plan.monthly * 12
           const savings = monthlyTotal && yearlyTotal ? monthlyTotal - yearlyTotal : 0
@@ -464,27 +423,27 @@ function PricingSection() {
               </div>
               {yearly && savings > 0 && (
                 <p className="text-xs text-primary font-mono font-semibold mb-2">
-                  CHF {savings} pro Jahr gespart
+                  {t("priceSavedPerYear", { amount: savings })}
                 </p>
               )}
               {yearly && yearlyTotal && (
                 <p className="text-[10px] text-muted-foreground font-mono mb-6">
-                  CHF {yearlyTotal}/Jahr · statt CHF {monthlyTotal}
+                  {t("priceYearlyBilling", { yearly: yearlyTotal, monthly: monthlyTotal })}
                 </p>
               )}
               {!yearly && <div className="mb-8" />}
-              <p className="text-xs text-muted-foreground mb-8">{plan.desc}</p>
+              <p className="text-xs text-muted-foreground mb-8">{t(plan.desc)}</p>
               <ul className="space-y-3 mb-8 flex-1">
                 {plan.features.map(f => (
                   <li key={f} className="flex items-center gap-3 text-sm">
                     <IconCheck className="size-3.5 text-primary shrink-0" />
-                    <span className="text-muted-foreground">{f}</span>
+                    <span className="text-muted-foreground">{t(f)}</span>
                   </li>
                 ))}
               </ul>
               <Link href={plan.href}>
                 <Button className="w-full font-mono text-[11px] tracking-widest uppercase" variant={plan.highlight ? "default" : "outline"}>
-                  {plan.cta}
+                  {t(plan.cta)}
                 </Button>
               </Link>
             </div>
@@ -497,35 +456,34 @@ function PricingSection() {
 
 /* ─── Migration Section ─────────────────────────────────────── */
 function MigrationSection() {
+  const t = useTranslations("landing")
   const sources = [
-    { name: "Excel / CSV", short: "XLS", color: "#217346", desc: "Beliebige Tabellen importieren" },
-    { name: "bexio", short: "BX", color: "#0073E6", desc: "Direkte API-Verbindung" },
-    { name: "PROFFIX", short: "PF", color: "#E30613", desc: "Export-Anleitung + Import" },
-    { name: "SAP Business One", short: "SAP", color: "#0FAAFF", desc: "CSV-Export + Import" },
+    { name: "Excel / CSV", short: "XLS", color: "#217346", desc: t("migExcelDesc") },
+    { name: "bexio", short: "BX", color: "#0073E6", desc: t("migBexioDesc") },
+    { name: "PROFFIX", short: "PF", color: "#E30613", desc: t("migProffixDesc") },
+    { name: "SAP Business One", short: "SAP", color: "#0FAAFF", desc: t("migSapDesc") },
   ]
 
   return (
     <section id="migration" className="mx-auto w-full max-w-7xl px-6 py-24">
       <div className="grid lg:grid-cols-2 gap-16 items-center">
         <div>
-          <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-4">{`// 06 — Migration`}</div>
+          <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-4">{t("migCode")}</div>
           <h2 className="text-3xl lg:text-4xl font-bold mb-6 leading-tight text-foreground">
-            Wechseln Sie<br />
-            in <span className="text-primary">5 Minuten.</span>
+            {t("migHeading1")}<br />
+            {t("migHeading2")} <span className="text-primary">{t("migHeadingAccent")}</span>
           </h2>
           <p className="font-mono text-sm leading-relaxed max-w-md text-muted-foreground mb-8">
-            Egal ob Excel, bexio, PROFFIX oder SAP — Ihre Daten sind in Minuten importiert.
-            Unser Import-Assistent führt Sie Schritt für Schritt.
+            {t("migDesc")}
           </p>
 
           {/* AI feature callout */}
           <div className="flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 p-4 mb-8">
             <IconSparkles className="size-5 text-primary shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-semibold mb-0.5">KI-gestütztes Column Mapping</p>
+              <p className="text-sm font-semibold mb-0.5">{t("migAiTitle")}</p>
               <p className="text-xs text-muted-foreground">
-                Spalten werden automatisch erkannt und den richtigen Feldern zugeordnet.
-                Manuelle Zuordnung ist jederzeit möglich.
+                {t("migAiDesc")}
               </p>
             </div>
           </div>
@@ -534,13 +492,13 @@ function MigrationSection() {
             <Link href="/dashboard/migration">
               <Button className="font-mono text-[11px] tracking-widest uppercase gap-2">
                 <IconTransfer className="size-3.5" />
-                Jetzt migrieren
+                {t("migCtaMigrate")}
               </Button>
             </Link>
             <Link href="/dashboard/import">
               <Button variant="outline" className="font-mono text-[11px] tracking-widest uppercase gap-2">
                 <IconUpload className="size-3.5" />
-                CSV importieren
+                {t("migCtaImport")}
               </Button>
             </Link>
           </div>
@@ -562,7 +520,7 @@ function MigrationSection() {
               </div>
               <div className="flex items-center gap-1.5">
                 <IconFileSpreadsheet className="size-3 text-muted-foreground" />
-                <span className="font-mono text-[9px] tracking-widest uppercase text-muted-foreground">Import bereit</span>
+                <span className="font-mono text-[9px] tracking-widest uppercase text-muted-foreground">{t("migReady")}</span>
               </div>
             </div>
           ))}
@@ -574,23 +532,24 @@ function MigrationSection() {
 
 /* ─── Peripherals Section ────────────────────────────────────── */
 function PeripheralsSection() {
+  const t = useTranslations("landing")
   const peripherals = [
-    { name: "Handscanner", desc: "Zebra, Honeywell, Datalogic — USB & Bluetooth", icon: IconBarcode },
-    { name: "Etikettendrucker", desc: "Zebra ZPL, Brother QL — Barcode-Labels drucken", icon: IconPrinter },
-    { name: "RFID Reader", desc: "UHF RFID für Paletten & Container (Zebra, Impinj)", icon: IconAntenna },
-    { name: "Bluetooth-Waagen", desc: "Material wiegen bei Ein-/Ausgang", icon: IconScale },
-    { name: "NFC Tags", desc: "Werkzeuge und Standorte taggen", icon: IconNfc },
-    { name: "iBeacons", desc: "Indoor-Positionierung im Lager", icon: IconBluetooth },
-    { name: "Apple Watch", desc: "Quick Scan, Timer, Checkin/Checkout", icon: IconDeviceWatch },
-    { name: "Industrie-Keypads", desc: "F-Tasten für Schnellaktionen (Cherry, X-Keys)", icon: IconKeyboard },
+    { name: t("perScanner"), desc: t("perScannerDesc"), icon: IconBarcode },
+    { name: t("perPrinter"), desc: t("perPrinterDesc"), icon: IconPrinter },
+    { name: t("perRfid"), desc: t("perRfidDesc"), icon: IconAntenna },
+    { name: t("perScale"), desc: t("perScaleDesc"), icon: IconScale },
+    { name: t("perNfc"), desc: t("perNfcDesc"), icon: IconNfc },
+    { name: t("perBeacon"), desc: t("perBeaconDesc"), icon: IconBluetooth },
+    { name: t("perWatch"), desc: t("perWatchDesc"), icon: IconDeviceWatch },
+    { name: t("perKeypad"), desc: t("perKeypadDesc"), icon: IconKeyboard },
   ]
 
   return (
     <section id="peripherals" className="mx-auto w-full max-w-7xl px-6 py-24">
       <div className="mb-10 border-b border-border pb-6">
-        <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{`// 07 — Hardware`}</div>
-        <h2 className="text-3xl lg:text-4xl font-bold">Jedes Gerät. Sofort einsatzbereit.</h2>
-        <p className="text-muted-foreground mt-2 max-w-2xl">Einstecken, verbinden, loslegen — keine Treiber, keine Konfiguration. LogistikApp unterstützt alle gängigen Lager-Peripheriegeräte.</p>
+        <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{t("perCode")}</div>
+        <h2 className="text-3xl lg:text-4xl font-bold">{t("perHeading")}</h2>
+        <p className="text-muted-foreground mt-2 max-w-2xl">{t("perDesc")}</p>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border">
         {peripherals.map(p => (
@@ -607,74 +566,75 @@ function PeripheralsSection() {
 
 /* ─── Feature Comparison Section ─────────────────────────────── */
 function FeatureComparisonSection() {
+  const t = useTranslations("landing")
   const categories = [
     {
-      name: "Alle Pläne",
+      name: "compCatAll",
       features: [
-        { name: "Materialverwaltung", starter: true, pro: true, enterprise: true },
-        { name: "Werkzeug-Tracking", starter: true, pro: true, enterprise: true },
-        { name: "Schlüsselverwaltung", starter: true, pro: true, enterprise: true },
-        { name: "Kommissionen", starter: true, pro: true, enterprise: true },
-        { name: "Bestellwesen", starter: true, pro: true, enterprise: true },
-        { name: "Barcode Scanner (Kamera + Handscanner)", starter: true, pro: true, enterprise: true },
-        { name: "Mobile App (iOS & Android)", starter: true, pro: true, enterprise: true },
-        { name: "EAN-Produkterkennung (100M+)", starter: true, pro: true, enterprise: true },
-        { name: "Datenimport (CSV/Excel)", starter: true, pro: true, enterprise: true },
-        { name: "Datenexport (CSV/JSON)", starter: true, pro: true, enterprise: true },
-        { name: "QR-Codes für Standorte", starter: true, pro: true, enterprise: true },
-        { name: "Mehrsprachig (DE, FR, IT, EN)", starter: true, pro: true, enterprise: true },
-        { name: "DSGVO Datenexport", starter: true, pro: true, enterprise: true },
+        { name: `compFeat_all_0`, starter: true, pro: true, enterprise: true },
+        { name: `compFeat_all_1`, starter: true, pro: true, enterprise: true },
+        { name: `compFeat_all_2`, starter: true, pro: true, enterprise: true },
+        { name: `compFeat_all_3`, starter: true, pro: true, enterprise: true },
+        { name: `compFeat_all_4`, starter: true, pro: true, enterprise: true },
+        { name: `compFeat_all_5`, starter: true, pro: true, enterprise: true },
+        { name: `compFeat_all_6`, starter: true, pro: true, enterprise: true },
+        { name: `compFeat_all_7`, starter: true, pro: true, enterprise: true },
+        { name: `compFeat_all_8`, starter: true, pro: true, enterprise: true },
+        { name: `compFeat_all_9`, starter: true, pro: true, enterprise: true },
+        { name: `compFeat_all_10`, starter: true, pro: true, enterprise: true },
+        { name: `compFeat_all_11`, starter: true, pro: true, enterprise: true },
+        { name: `compFeat_all_12`, starter: true, pro: true, enterprise: true },
       ],
     },
     {
-      name: "Professional + Enterprise",
+      name: "compCatPro",
       features: [
-        { name: "Zeiterfassung & Timer", starter: false, pro: true, enterprise: true },
-        { name: "Lieferverfolgung (Kanban)", starter: false, pro: true, enterprise: true },
-        { name: "Kommissionen-Kanban", starter: false, pro: true, enterprise: true },
-        { name: "Garantieansprüche-Workflow", starter: false, pro: true, enterprise: true },
-        { name: "Bestandsoptimierung (KI)", starter: false, pro: true, enterprise: true },
-        { name: "Budgets & Kostenstellen", starter: false, pro: true, enterprise: true },
-        { name: "Umbuchungen", starter: false, pro: true, enterprise: true },
-        { name: "Kunden- & Lieferanten-Portal", starter: false, pro: true, enterprise: true },
-        { name: "PDF-Lieferscheine", starter: false, pro: true, enterprise: true },
-        { name: "Wartungskalender + iCal", starter: false, pro: true, enterprise: true },
-        { name: "KI-Fotorkennung & Prognose", starter: false, pro: true, enterprise: true },
-        { name: "Wiederkehrende Bestellungen", starter: false, pro: true, enterprise: true },
-        { name: "Schichtübergabe", starter: false, pro: true, enterprise: true },
-        { name: "KI Column-Mapping (Import)", starter: false, pro: true, enterprise: true },
-        { name: "Foto-Galerie", starter: false, pro: true, enterprise: true },
-        { name: "Offline-Modus + Sync", starter: false, pro: true, enterprise: true },
-        { name: "bexio Migration", starter: false, pro: true, enterprise: true },
-        { name: "Echtzeit-Kollaboration", starter: false, pro: true, enterprise: true },
+        { name: `compFeat_pro_0`, starter: false, pro: true, enterprise: true },
+        { name: `compFeat_pro_1`, starter: false, pro: true, enterprise: true },
+        { name: `compFeat_pro_2`, starter: false, pro: true, enterprise: true },
+        { name: `compFeat_pro_3`, starter: false, pro: true, enterprise: true },
+        { name: `compFeat_pro_4`, starter: false, pro: true, enterprise: true },
+        { name: `compFeat_pro_5`, starter: false, pro: true, enterprise: true },
+        { name: `compFeat_pro_6`, starter: false, pro: true, enterprise: true },
+        { name: `compFeat_pro_7`, starter: false, pro: true, enterprise: true },
+        { name: `compFeat_pro_8`, starter: false, pro: true, enterprise: true },
+        { name: `compFeat_pro_9`, starter: false, pro: true, enterprise: true },
+        { name: `compFeat_pro_10`, starter: false, pro: true, enterprise: true },
+        { name: `compFeat_pro_11`, starter: false, pro: true, enterprise: true },
+        { name: `compFeat_pro_12`, starter: false, pro: true, enterprise: true },
+        { name: `compFeat_pro_13`, starter: false, pro: true, enterprise: true },
+        { name: `compFeat_pro_14`, starter: false, pro: true, enterprise: true },
+        { name: `compFeat_pro_15`, starter: false, pro: true, enterprise: true },
+        { name: `compFeat_pro_16`, starter: false, pro: true, enterprise: true },
+        { name: `compFeat_pro_17`, starter: false, pro: true, enterprise: true },
       ],
     },
     {
-      name: "Nur Enterprise",
+      name: "compCatEnt",
       features: [
-        { name: "UHF RFID Reader", starter: false, pro: false, enterprise: true },
-        { name: "Workflow Engine & Automatisierungen", starter: false, pro: false, enterprise: true },
-        { name: "Genehmigungsworkflows", starter: false, pro: false, enterprise: true },
-        { name: "Public API & Webhooks", starter: false, pro: false, enterprise: true },
-        { name: "Custom Branding (Logo & Farben)", starter: false, pro: false, enterprise: true },
-        { name: "SSO / SAML / Azure AD", starter: false, pro: false, enterprise: true },
-        { name: "Multi-Company Reporting", starter: false, pro: false, enterprise: true },
-        { name: "KI-Wartungsprognose", starter: false, pro: false, enterprise: true },
-        { name: "Supply Chain Dashboard", starter: false, pro: false, enterprise: true },
-        { name: "Etiketten-Designer (Drag-Drop)", starter: false, pro: false, enterprise: true },
-        { name: "Etiketten-Massendruck", starter: false, pro: false, enterprise: true },
-        { name: "E-Mail Inbox Parser (KI)", starter: false, pro: false, enterprise: true },
-        { name: "2FA / MFA (TOTP)", starter: false, pro: false, enterprise: true },
-        { name: "IP-Zugriffsbeschränkung", starter: false, pro: false, enterprise: true },
-        { name: "Datenhaltungs-Richtlinien", starter: false, pro: false, enterprise: true },
-        { name: "Plugin Marketplace", starter: false, pro: false, enterprise: true },
-        { name: "Siri / Google Assistant", starter: false, pro: false, enterprise: true },
-        { name: "Etikettendrucker (Zebra ZPL)", starter: false, pro: false, enterprise: true },
-        { name: "Bluetooth-Waagen", starter: false, pro: false, enterprise: true },
-        { name: "Grundriss-Ansicht", starter: false, pro: false, enterprise: true },
-        { name: "Branchen-Templates", starter: false, pro: false, enterprise: true },
-        { name: "White-Label / Reseller", starter: false, pro: false, enterprise: true },
-        { name: "SLA 99.9%", starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_0`, starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_1`, starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_2`, starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_3`, starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_4`, starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_5`, starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_6`, starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_7`, starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_8`, starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_9`, starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_10`, starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_11`, starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_12`, starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_13`, starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_14`, starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_15`, starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_16`, starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_17`, starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_18`, starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_19`, starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_20`, starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_21`, starter: false, pro: false, enterprise: true },
+        { name: `compFeat_ent_22`, starter: false, pro: false, enterprise: true },
       ],
     },
   ]
@@ -682,14 +642,14 @@ function FeatureComparisonSection() {
   return (
     <section id="comparison" className="mx-auto w-full max-w-7xl px-6 py-24">
       <div className="mb-10 border-b border-border pb-6">
-        <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{`// 09 — Vergleich`}</div>
-        <h2 className="text-3xl lg:text-4xl font-bold">Alle Funktionen im Überblick</h2>
+        <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{t("compCode")}</div>
+        <h2 className="text-3xl lg:text-4xl font-bold">{t("compHeading")}</h2>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border">
-              <th className="text-left py-4 pr-4 font-mono text-xs text-muted-foreground w-1/3">Funktion</th>
+              <th className="text-left py-4 pr-4 font-mono text-xs text-muted-foreground w-1/3">{t("compFeatureCol")}</th>
               <th className="text-center py-4 px-4 font-mono text-xs text-muted-foreground">Starter</th>
               <th className="text-center py-4 px-4 font-mono text-xs text-primary font-bold">Professional</th>
               <th className="text-center py-4 px-4 font-mono text-xs text-muted-foreground">Enterprise</th>
@@ -699,11 +659,11 @@ function FeatureComparisonSection() {
             {categories.map(cat => (
               <Fragment key={cat.name}>
                 <tr>
-                  <td colSpan={4} className="pt-6 pb-2 font-mono text-[10px] tracking-[0.2em] uppercase text-primary font-bold">{cat.name}</td>
+                  <td colSpan={4} className="pt-6 pb-2 font-mono text-[10px] tracking-[0.2em] uppercase text-primary font-bold">{t(cat.name)}</td>
                 </tr>
                 {cat.features.map(f => (
                   <tr key={f.name} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                    <td className="py-3 pr-4 text-muted-foreground">{f.name}</td>
+                    <td className="py-3 pr-4 text-muted-foreground">{t(f.name)}</td>
                     <td className="text-center py-3 px-4">{typeof f.starter === "string" ? <span className="text-xs font-mono">{f.starter}</span> : f.starter ? <IconCheck className="size-4 text-primary mx-auto" /> : <span className="text-muted-foreground/30">—</span>}</td>
                     <td className="text-center py-3 px-4">{typeof f.pro === "string" ? <span className="text-xs font-mono">{f.pro}</span> : f.pro ? <IconCheck className="size-4 text-primary mx-auto" /> : <span className="text-muted-foreground/30">—</span>}</td>
                     <td className="text-center py-3 px-4">{typeof f.enterprise === "string" ? <span className="text-xs font-mono">{f.enterprise}</span> : f.enterprise ? <IconCheck className="size-4 text-primary mx-auto" /> : <span className="text-muted-foreground/30">—</span>}</td>
@@ -720,6 +680,7 @@ function FeatureComparisonSection() {
 
 /* ─── Page ───────────────────────────────────────────────────── */
 export default function LandingPage() {
+  const t = useTranslations("landing")
   const [navSolid, setNavSolid] = useState(false)
 
   useEffect(() => {
@@ -741,23 +702,23 @@ export default function LandingPage() {
           <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
             <Logo />
             <nav className="hidden md:flex items-center gap-8 font-mono text-[11px] tracking-[0.15em] uppercase text-muted-foreground">
-              <a href="#features"      className="hover:text-foreground transition-colors">Funktionen</a>
-              <a href="#scan"         className="hover:text-foreground transition-colors">Scan</a>
-              <a href="#integrations" className="hover:text-foreground transition-colors">Integrationen</a>
-              <a href="#pricing"      className="hover:text-foreground transition-colors">Preise</a>
-              <a href="#peripherals"  className="hover:text-foreground transition-colors">Hardware</a>
-              <a href="#comparison"   className="hover:text-foreground transition-colors">Vergleich</a>
-              <a href="#trust"        className="hover:text-foreground transition-colors">Sicherheit</a>
-              <a href="#migration"    className="hover:text-foreground transition-colors">Migration</a>
+              <a href="#features"      className="hover:text-foreground transition-colors">{t("navFeatures")}</a>
+              <a href="#scan"         className="hover:text-foreground transition-colors">{t("navScan")}</a>
+              <a href="#integrations" className="hover:text-foreground transition-colors">{t("navIntegrations")}</a>
+              <a href="#pricing"      className="hover:text-foreground transition-colors">{t("navPricing")}</a>
+              <a href="#peripherals"  className="hover:text-foreground transition-colors">{t("navHardware")}</a>
+              <a href="#comparison"   className="hover:text-foreground transition-colors">{t("navComparison")}</a>
+              <a href="#trust"        className="hover:text-foreground transition-colors">{t("navSecurity")}</a>
+              <a href="#migration"    className="hover:text-foreground transition-colors">{t("navMigration")}</a>
             </nav>
             <div className="flex items-center gap-1.5">
               <ModeToggle />
               <Link href="/login">
-                <Button variant="ghost" size="sm" className="font-mono text-[11px] tracking-widest uppercase">Anmelden</Button>
+                <Button variant="ghost" size="sm" className="font-mono text-[11px] tracking-widest uppercase">{t("navLogin")}</Button>
               </Link>
               <Link href="/signup">
                 <Button size="sm" className="font-mono text-[11px] tracking-widest uppercase gap-1.5">
-                  Starten <IconArrowUpRight className="size-3.5" />
+                  {t("navStart")} <IconArrowUpRight className="size-3.5" />
                 </Button>
               </Link>
             </div>
@@ -828,17 +789,17 @@ export default function LandingPage() {
                 <div className="hero-sub-1 flex items-center gap-3 mb-10">
                   <span className="size-1.5 rounded-full bg-primary shrink-0 animate-pulse" />
                   <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
-                    Schweizer Inventar-Software für KMU
+                    {t("heroLabel")}
                   </span>
                 </div>
 
                 {/* Staggered words */}
                 <div className="mb-10">
                   {[
-                    { text: "IMMER",   cls: "hero-word-1" },
-                    { text: "WISSEN,", cls: "hero-word-2" },
-                    { text: "WAS",     cls: "hero-word-3" },
-                    { text: "WO IST.", cls: "hero-word-4", accent: true },
+                    { text: t("heroWord1"), cls: "hero-word-1" },
+                    { text: t("heroWord2"), cls: "hero-word-2" },
+                    { text: t("heroWord3"), cls: "hero-word-3" },
+                    { text: t("heroWord4"), cls: "hero-word-4", accent: true },
                   ].map(({ text, cls, accent }) => (
                     <div key={text} className="overflow-hidden leading-[0.88]">
                       <div className={`font-bold tracking-tight ${cls}`} style={{ fontSize: "clamp(2.5rem, 7vw, 6rem)" }}>
@@ -849,26 +810,24 @@ export default function LandingPage() {
                 </div>
 
                 <p className="hero-sub-2 font-mono text-sm text-muted-foreground leading-relaxed max-w-lg mb-10">
-                  Werkzeuge, Materialien, Fahrzeugbestände und Schlüssel —<br />
-                  alles in einer App. Für Handwerksbetriebe und Serviceteams<br />
-                  in der ganzen Schweiz.
+                  {t("heroSub").split("\n").map((line, i) => <Fragment key={i}>{i > 0 && <br />}{line}</Fragment>)}
                 </p>
 
                 <div className="hero-sub-3 flex flex-wrap gap-3 mb-4">
                   <Link href="/signup">
                     <Button size="lg" className="font-mono text-xs tracking-widest uppercase gap-2 px-7 h-12">
-                      14 Tage kostenlos <IconArrowUpRight className="size-4" />
+                      {t("heroCta")} <IconArrowUpRight className="size-4" />
                     </Button>
                   </Link>
                   <Link href="/dashboard">
                     <Button size="lg" variant="outline" className="font-mono text-xs tracking-widest uppercase h-12 px-7">
-                      Demo ansehen
+                      {t("heroDemo")}
                     </Button>
                   </Link>
                 </div>
 
                 <p className="hero-sub-3 font-mono text-[10px] text-muted-foreground tracking-widest">
-                  — Keine Kreditkarte · Setup in 5 Minuten
+                  {t("heroNote")}
                 </p>
               </div>
 
@@ -889,10 +848,10 @@ export default function LandingPage() {
                   {/* Rows */}
                   <div className="p-4 space-y-0 font-mono">
                     {[
-                      { code: "MAT_TOTAL",  label: "Materialien",      val: "1'247", unit: "Artikel"  },
-                      { code: "WRK_TOTAL",  label: "Werkzeuge",        val: "84",    unit: "Geräte"   },
-                      { code: "LOC_ACTIVE", label: "Standorte",        val: "12",    unit: "aktiv"    },
-                      { code: "BOOK_TODAY", label: "Buchungen heute",  val: "38",    unit: "Vorgänge" },
+                      { code: "MAT_TOTAL",  label: t("termMaterials"),      val: "1'247", unit: t("termArticles")  },
+                      { code: "WRK_TOTAL",  label: t("termTools"),        val: "84",    unit: t("termDevices")   },
+                      { code: "LOC_ACTIVE", label: t("termLocations"),        val: "12",    unit: t("termActive")    },
+                      { code: "BOOK_TODAY", label: t("termBookingsToday"),  val: "38",    unit: t("termTransactions") },
                     ].map(({ code, label, val, unit }, i) => (
                       <div
                         key={code}
@@ -912,7 +871,7 @@ export default function LandingPage() {
 
                     <div className="pt-2 flex items-center gap-2">
                       <span className="text-[10px] text-muted-foreground term-blink">█</span>
-                      <span className="text-[10px] text-muted-foreground tracking-widest">SYSTEM BEREIT</span>
+                      <span className="text-[10px] text-muted-foreground tracking-widest">{t("termReady")}</span>
                     </div>
                   </div>
                 </div>
@@ -938,7 +897,7 @@ export default function LandingPage() {
           <div style={{ animation: "marquee 22s linear infinite", whiteSpace: "nowrap", display: "flex" }}>
             {[0, 1].map(r => (
               <div key={r} className="flex items-center gap-12 pr-12">
-                {["Schreinerei", "Maurer", "Sanitär", "Elektro", "Feuerwehr", "Rettungsdienste", "Metallbau", "Haustechnik", "Tiefbau", "Gärtnerei", "Holzbau", "Gebäudereinigung", "Malerei", "Fahrzeugflotten"].map(n => (
+                {([t("marqueeSchreinerei"), t("marqueeMaurer"), t("marqueeSanitaer"), t("marqueeElektro"), t("marqueeFeuerwehr"), t("marqueeRettungsdienste"), t("marqueeMetallbau"), t("marqueeHaustechnik"), t("marqueeTiefbau"), t("marqueeGaertnerei"), t("marqueeHolzbau"), t("marqueeGebaeudereinigung"), t("marqueeMalerei"), t("marqueeFahrzeugflotten")] as string[]).map(n => (
                   <span key={n + r} className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground whitespace-nowrap">
                     {n}
                   </span>
@@ -952,10 +911,10 @@ export default function LandingPage() {
         <section className="mx-auto w-full max-w-7xl px-6 py-24">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-border">
             {[
-              { icon: IconPackage,      title: "Alles an einem Ort",     desc: "Materialien, Werkzeuge, Schlüssel — eine App, keine Zettelwirtschaft." },
-              { icon: IconMapPin,       title: "Mehrere Standorte",       desc: "Lager, Fahrzeuge und Baustellen immer im Blick — ohne Raterei." },
-              { icon: IconTruck,        title: "Mobil einsetzbar",        desc: "Vom Büro oder direkt auf der Baustelle — funktioniert auf jedem Gerät." },
-              { icon: IconHistory,      title: "Lückenlose Rückverfolgung", desc: "Wer hat was, wann und wohin bewegt? Die Historie antwortet immer." },
+              { icon: IconPackage,      title: t("vpAllInOne"),     desc: t("vpAllInOneDesc") },
+              { icon: IconMapPin,       title: t("vpLocations"),       desc: t("vpLocationsDesc") },
+              { icon: IconTruck,        title: t("vpMobile"),        desc: t("vpMobileDesc") },
+              { icon: IconHistory,      title: t("vpTraceability"), desc: t("vpTraceabilityDesc") },
             ].map(({ icon: Icon, title, desc }) => (
               <div key={title} className="bg-background p-8">
                 <Icon className="size-6 text-primary mb-4" />
@@ -970,20 +929,20 @@ export default function LandingPage() {
         <section id="features" className="mx-auto w-full max-w-7xl px-6 pb-24">
           <div className="mb-14 flex items-end justify-between border-b border-border pb-6">
             <div>
-              <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{`// 01 — Funktionen`}</div>
+              <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{t("featSectionCode")}</div>
               <h2 className="text-3xl lg:text-4xl font-bold leading-tight">
-                Alles was ein<br />
-                <span className="text-primary">Handwerksbetrieb</span> braucht.
+                {t("featHeading1")}<br />
+                <span className="text-primary">{t("featHeading2")}</span> {t("featHeading3")}
               </h2>
             </div>
             <div className="hidden md:flex flex-col items-end font-mono text-[10px] tracking-widest text-muted-foreground">
-              <div>06 MODULE</div>
-              <div>01 SYSTEM</div>
+              <div>{t("featModules")}</div>
+              <div>{t("featSystem")}</div>
             </div>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
-            {FEATURES.map(f => (
+            {FEATURES_META.map(f => (
               <div
                 key={f.code}
                 className="feat-card bg-background p-8 group"
@@ -999,8 +958,8 @@ export default function LandingPage() {
                   </div>
                   <span className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">{f.code}</span>
                 </div>
-                <h3 className="font-bold text-base mb-2 group-hover:text-primary transition-colors duration-200">{f.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+                <h3 className="font-bold text-base mb-2 group-hover:text-primary transition-colors duration-200">{t(f.titleKey)}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{t(f.descKey)}</p>
                 <div className="mt-6 h-px bg-border group-hover:bg-primary transition-colors duration-300" />
               </div>
             ))}
@@ -1011,16 +970,16 @@ export default function LandingPage() {
         <section className="border-y border-border bg-muted/20 py-24">
           <div className="mx-auto max-w-7xl px-6">
             <div className="mb-14">
-              <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{`// 02 — In 3 Schritten`}</div>
-              <h2 className="text-3xl lg:text-4xl font-bold">In 5 Minuten einsatzbereit.</h2>
+              <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{t("howCode")}</div>
+              <h2 className="text-3xl lg:text-4xl font-bold">{t("howHeading")}</h2>
             </div>
             <div className="grid md:grid-cols-3 gap-0 relative">
               {/* Connecting line */}
               <div className="hidden md:block absolute top-8 left-[16.666%] right-[16.666%] h-px bg-border" />
               {[
-                { n: "01", title: "Konto erstellen",   desc: "Registrierung in unter einer Minute. Keine Kreditkarte erforderlich." },
-                { n: "02", title: "Team & Artikel",    desc: "Mitarbeiter einladen, Lagerorte definieren, Artikel und Werkzeuge erfassen." },
-                { n: "03", title: "Sofort produktiv",  desc: "Buchungen tätigen, Bestände prüfen, Bestellungen auslösen — vom ersten Tag an." },
+                { n: "01", title: t("howStep1Title"),   desc: t("howStep1Desc") },
+                { n: "02", title: t("howStep2Title"),    desc: t("howStep2Desc") },
+                { n: "03", title: t("howStep3Title"),  desc: t("howStep3Desc") },
               ].map(({ n, title, desc }) => (
                 <div key={n} className="p-8">
                   <div className="size-16 border border-border rounded flex items-center justify-center font-mono text-2xl font-bold text-primary bg-background mb-6 relative z-10">
@@ -1040,14 +999,13 @@ export default function LandingPage() {
             {/* Left: Copy */}
             <div>
               <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-4">
-                {`// 03 — Versteckte Kosten`}
+                {t("calcCode")}
               </div>
               <h2 className="text-3xl lg:text-4xl font-bold mb-6 leading-tight">
-                Was kostet dich<br />dein <span className="text-primary">Chaos?</span>
+                {t("calcHeading1")}<br />{t("calcHeading2")} <span className="text-primary">{t("calcHeadingAccent")}</span>
               </h2>
               <p className="font-mono text-sm text-muted-foreground leading-relaxed max-w-md">
-                Verlorene Werkzeuge, Suchzeiten, Doppelbestellungen — diese Kosten erscheinen nie auf einer Rechnung.
-                Berechne deinen jährlichen Verlust.
+                {t("calcDesc")}
               </p>
             </div>
 
@@ -1079,24 +1037,23 @@ export default function LandingPage() {
             <div className="mb-16 text-center">
               <div className="inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/10">
                 <IconScan className="size-3.5 text-primary" />
-                <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-primary">Killer Feature</span>
+                <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-primary">{t("scanBadge")}</span>
               </div>
               <h2 className="text-4xl lg:text-6xl font-bold mb-6 leading-[0.95] tracking-tight">
-                Barcode scannen.<br />
-                <span className="text-primary">Produkt erkannt.</span>
+                {t("scanHeading1")}<br />
+                <span className="text-primary">{t("scanHeading2")}</span>
               </h2>
               <p className="font-mono text-sm text-muted-foreground max-w-xl mx-auto leading-relaxed">
-                Über 100 Millionen Produkte sofort erkannt — Lebensmittel, Baumaterial,
-                Medikamente, Chemikalien, Kosmetik und mehr. Kein manuelles Tippen.
+                {t("scanDesc")}
               </p>
             </div>
 
             {/* Stats row */}
             <div className="grid grid-cols-3 gap-px bg-border rounded-xl overflow-hidden mb-16 max-w-2xl mx-auto">
               {[
-                { icon: IconScan, value: "< 2s", label: "Erkennung", sub: "Barcode scannen, fertig" },
-                { icon: IconDatabase, value: "100M+", label: "Produkte", sub: "Sofort erkannt" },
-                { icon: IconCurrencyFrank, value: "0.—", label: "Aufpreis", sub: "Im Abo enthalten" },
+                { icon: IconScan, value: "< 2s", label: t("scanStatRecognition"), sub: t("scanStatRecognitionSub") },
+                { icon: IconDatabase, value: "100M+", label: t("scanStatProducts"), sub: t("scanStatProductsSub") },
+                { icon: IconCurrencyFrank, value: "0.—", label: t("scanStatSurcharge"), sub: t("scanStatSurchargeSub") },
               ].map(({ icon: Icon, value, label, sub }) => (
                 <div key={label} className="bg-card p-6 text-center">
                   <Icon className="size-5 text-primary mx-auto mb-3" />
@@ -1110,14 +1067,14 @@ export default function LandingPage() {
             {/* Benefits grid — what the customer gets */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-16">
               {[
-                { icon: "🏗️", title: "Baumaterial", desc: "Schrauben, Zement, Rohre — alles erkannt" },
-                { icon: "🧴", title: "Kosmetik & Hygiene", desc: "Reinigungsmittel, Pflegeprodukte" },
-                { icon: "💊", title: "Medikamente", desc: "PZN-Codes, Arzneimittel, Chemikalien" },
-                { icon: "🔧", title: "Werkzeuge & Geräte", desc: "Elektrowerkzeug, Maschinen, Zubehör" },
-                { icon: "🍎", title: "Lebensmittel", desc: "Gastronomie, Catering, Kantinen" },
-                { icon: "💡", title: "Elektromaterial", desc: "Kabel, Schalter, Leuchtmittel" },
-                { icon: "🏥", title: "Medizinprodukte", desc: "Praxisbedarf, Labormaterial" },
-                { icon: "📦", title: "Alles andere", desc: "Wenn's einen Barcode hat, erkennen wir's" },
+                { icon: "🏗️", title: t("scanCatConstruction"), desc: t("scanCatConstructionDesc") },
+                { icon: "🧴", title: t("scanCatCosmetics"), desc: t("scanCatCosmeticsDesc") },
+                { icon: "💊", title: t("scanCatMedicine"), desc: t("scanCatMedicineDesc") },
+                { icon: "🔧", title: t("scanCatTools"), desc: t("scanCatToolsDesc") },
+                { icon: "🍎", title: t("scanCatFood"), desc: t("scanCatFoodDesc") },
+                { icon: "💡", title: t("scanCatElectric"), desc: t("scanCatElectricDesc") },
+                { icon: "🏥", title: t("scanCatMedical"), desc: t("scanCatMedicalDesc") },
+                { icon: "📦", title: t("scanCatOther"), desc: t("scanCatOtherDesc") },
               ].map(item => (
                 <div
                   key={item.title}
@@ -1134,9 +1091,9 @@ export default function LandingPage() {
             <div className="max-w-3xl mx-auto mb-16">
               <div className="flex items-center gap-0 justify-center">
                 {[
-                  { step: "1", label: "Barcode scannen", desc: "Kamera auf Produkt" },
-                  { step: "2", label: "Automatisch erkannt", desc: "8 DBs in < 2 Sek." },
-                  { step: "3", label: "Material angelegt", desc: "Name, Hersteller, alles" },
+                  { step: "1", label: t("scanStep1"), desc: t("scanStep1Desc") },
+                  { step: "2", label: t("scanStep2"), desc: t("scanStep2Desc") },
+                  { step: "3", label: t("scanStep3"), desc: t("scanStep3Desc") },
                 ].map((s, i) => (
                   <div key={s.step} className="flex items-center">
                     <div className="text-center px-6">
@@ -1158,11 +1115,11 @@ export default function LandingPage() {
             <div className="text-center">
               <Link href="/signup">
                 <Button size="lg" className="font-mono text-[11px] tracking-widest uppercase gap-2 px-10 h-12 bg-primary hover:bg-primary/90 text-white border-0">
-                  Kostenlos testen <IconArrowUpRight className="size-4" />
+                  {t("scanCta")} <IconArrowUpRight className="size-4" />
                 </Button>
               </Link>
               <p className="font-mono text-[10px] text-muted-foreground/60 mt-4 tracking-widest">
-                Im Abo enthalten · Keine Zusatzkosten · Unbegrenzte Scans
+                {t("scanCtaSub")}
               </p>
             </div>
           </div>
@@ -1175,15 +1132,15 @@ export default function LandingPage() {
             {/* Header */}
             <div className="mb-14 flex items-end justify-between border-b border-border pb-6">
               <div>
-                <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{`// 04 — Integrationen`}</div>
+                <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-2">{t("intCode")}</div>
                 <h2 className="text-3xl lg:text-4xl font-bold leading-tight">
-                  Nahtlos in Ihre<br />
-                  <span className="text-primary">bestehende Umgebung.</span>
+                  {t("intHeading1")}<br />
+                  <span className="text-primary">{t("intHeading2")}</span>
                 </h2>
               </div>
               <div className="hidden md:flex flex-col items-end font-mono text-[10px] tracking-widest text-muted-foreground">
-                <div className="text-primary">8 VERFÜGBAR</div>
-                <div>6+ GEPLANT</div>
+                <div className="text-primary">{t("intAvailable")}</div>
+                <div>{t("intPlanned")}</div>
               </div>
             </div>
 
@@ -1191,7 +1148,7 @@ export default function LandingPage() {
             <div className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <span className="size-1.5 rounded-full bg-primary animate-pulse" />
-                <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground">Jetzt verfügbar</span>
+                <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground">{t("intNowAvailable")}</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {LIVE_INTEGRATIONS.map(integration => (
@@ -1201,12 +1158,12 @@ export default function LandingPage() {
                       <BrandLogo name={integration.name} fallbackColor={integration.color} fallbackShort={integration.short} size={36} />
                       <div>
                         <div className="text-sm font-semibold leading-none mb-0.5">{integration.name}</div>
-                        <div className="text-xs text-muted-foreground leading-snug">{integration.desc}</div>
+                        <div className="text-xs text-muted-foreground leading-snug">{t(integration.descKey)}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="size-1.5 rounded-full bg-primary" />
-                      <span className="font-mono text-[9px] tracking-widest uppercase text-primary">{integration.badge}</span>
+                      <span className="font-mono text-[9px] tracking-widest uppercase text-primary">{t(integration.badgeKey)}</span>
                     </div>
                   </div>
                 ))}
@@ -1217,7 +1174,7 @@ export default function LandingPage() {
             <div className="mb-10">
               <div className="flex items-center gap-3 mb-6">
                 <span className="size-1.5 rounded-full bg-border" />
-                <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground">In Entwicklung</span>
+                <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground">{t("intInDevelopment")}</span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                 {UPCOMING_INTEGRATIONS.map(integration => (
@@ -1234,10 +1191,10 @@ export default function LandingPage() {
               <Link href="/dashboard/settings/integrations">
                 <Button variant="outline" className="font-mono text-[11px] tracking-widest uppercase gap-2">
                   <IconPlugConnected className="size-3.5" />
-                  Alle Integrationen ansehen
+                  {t("intViewAll")}
                 </Button>
               </Link>
-              <span className="font-mono text-[10px] text-muted-foreground">14+ Integrationen · Buchhaltung, ERP, Automation, Webhooks</span>
+              <span className="font-mono text-[10px] text-muted-foreground">{t("intCount")}</span>
             </div>
           </div>
         </section>
@@ -1247,24 +1204,23 @@ export default function LandingPage() {
           <div className="mx-auto max-w-7xl px-6">
             <div className="grid lg:grid-cols-2 gap-20 items-center">
               <div>
-                <div className="font-mono text-[10px] tracking-[0.2em] uppercase mb-4 text-muted-foreground">{`// 05 — Datensouveränität`}</div>
+                <div className="font-mono text-[10px] tracking-[0.2em] uppercase mb-4 text-muted-foreground">{t("trustCode")}</div>
                 <h2 className="text-3xl lg:text-4xl font-bold mb-6 leading-tight text-foreground">
-                  Ihre Daten<br />
-                  gehören <span className="text-primary">Ihnen.</span>
+                  {t("trustHeading1")}<br />
+                  {t("trustHeading2")} <span className="text-primary">{t("trustHeadingAccent")}</span>
                 </h2>
                 <p className="font-mono text-sm leading-relaxed max-w-md text-muted-foreground">
-                  LogistikApp speichert ausnahmslos alle Daten auf Servern in der Schweiz.
-                  Vollständig konform mit dem revidierten Datenschutzgesetz (nDSG).
+                  {t("trustDesc")}
                 </p>
               </div>
 
               {/* Spec sheet */}
               <div className="font-mono space-y-0">
-                {TRUST_SPECS.map(([key, val]) => (
-                  <div key={key} className="flex items-center py-3.5 border-b border-border">
-                    <span className="text-[10px] tracking-[0.18em] w-44 shrink-0 text-muted-foreground">{key}</span>
+                {TRUST_SPEC_KEYS.map(([keyId, valId]) => (
+                  <div key={keyId} className="flex items-center py-3.5 border-b border-border">
+                    <span className="text-[10px] tracking-[0.18em] w-44 shrink-0 text-muted-foreground">{t(keyId)}</span>
                     <div className="flex-1 mx-4 h-px bg-border" />
-                    <span className="text-[11px] font-bold tracking-wider text-foreground">{val}</span>
+                    <span className="text-[11px] font-bold tracking-wider text-foreground">{t(valId)}</span>
                   </div>
                 ))}
               </div>
@@ -1296,13 +1252,13 @@ export default function LandingPage() {
 
             <div className="relative z-10">
               <div className="font-mono text-[10px] tracking-[0.25em] uppercase text-muted-foreground mb-4">READY TO START?</div>
-              <h2 className="text-3xl lg:text-4xl font-bold mb-4">Bereit loszulegen?</h2>
+              <h2 className="text-3xl lg:text-4xl font-bold mb-4">{t("ctaReady")}</h2>
               <p className="font-mono text-sm text-muted-foreground mb-8 max-w-sm mx-auto">
-                14 Tage kostenlos — ohne Kreditkarte, ohne Verpflichtung.
+                {t("ctaDesc")}
               </p>
               <Link href="/signup">
                 <Button size="lg" className="font-mono text-[11px] tracking-widest uppercase gap-2 px-10 h-12">
-                  Jetzt starten <IconArrowUpRight className="size-4" />
+                  {t("ctaButton")} <IconArrowUpRight className="size-4" />
                 </Button>
               </Link>
             </div>
@@ -1319,20 +1275,20 @@ export default function LandingPage() {
                 © {new Date().getFullYear()} BrainBytes GmbH · LogistikApp
               </p>
               <div className="flex gap-6 font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
-                <a href="#migration" className="hover:text-foreground transition-colors">Migration</a>
-                <a href="#peripherals" className="hover:text-foreground transition-colors">Hardware</a>
-                <a href="#comparison" className="hover:text-foreground transition-colors">Vergleich</a>
-                <Link href="/login"  className="hover:text-foreground transition-colors">Anmelden</Link>
-                <Link href="/signup" className="hover:text-foreground transition-colors">Registrieren</Link>
+                <a href="#migration" className="hover:text-foreground transition-colors">{t("footerMigration")}</a>
+                <a href="#peripherals" className="hover:text-foreground transition-colors">{t("footerHardware")}</a>
+                <a href="#comparison" className="hover:text-foreground transition-colors">{t("footerComparison")}</a>
+                <Link href="/login"  className="hover:text-foreground transition-colors">{t("footerLogin")}</Link>
+                <Link href="/signup" className="hover:text-foreground transition-colors">{t("footerSignup")}</Link>
               </div>
             </div>
             {/* Legal row */}
             <div className="flex items-center justify-center gap-6 border-t border-border pt-4">
-              <Link href="/datenschutz" className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase hover:text-foreground transition-colors">Datenschutz</Link>
+              <Link href="/datenschutz" className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase hover:text-foreground transition-colors">{t("footerPrivacy")}</Link>
               <span className="text-border font-mono text-[10px]">·</span>
-              <Link href="/agb" className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase hover:text-foreground transition-colors">AGB</Link>
+              <Link href="/agb" className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase hover:text-foreground transition-colors">{t("footerTerms")}</Link>
               <span className="text-border font-mono text-[10px]">·</span>
-              <Link href="/impressum" className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase hover:text-foreground transition-colors">Impressum</Link>
+              <Link href="/impressum" className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase hover:text-foreground transition-colors">{t("footerImprint")}</Link>
             </div>
           </div>
         </footer>

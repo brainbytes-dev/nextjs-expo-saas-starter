@@ -59,42 +59,42 @@ const DEFAULT_CONFIG: RetentionConfig = {
   autoCleanup: false,
 }
 
-const PERIOD_OPTIONS = [
-  { value: "3", label: "3 Monate" },
-  { value: "6", label: "6 Monate" },
-  { value: "12", label: "12 Monate" },
-  { value: "24", label: "24 Monate" },
-  { value: "36", label: "36 Monate" },
-  { value: "0", label: "Unbegrenzt" },
-]
-
-const ENTITIES = [
-  {
-    key: "stockChangesMonths" as const,
-    label: "Bestandsänderungen",
-    description: "Einbuchungen, Ausbuchungen und Korrekturen",
-  },
-  {
-    key: "toolBookingsMonths" as const,
-    label: "Werkzeugbuchungen",
-    description: "Ausleihen, Rückgaben und Reservierungen",
-  },
-  {
-    key: "auditLogMonths" as const,
-    label: "Aktivitätsprotokoll",
-    description: "Änderungsverlauf und Benutzeraktionen",
-  },
-  {
-    key: "commentsMonths" as const,
-    label: "Kommentare",
-    description: "Kommentare an Materialien, Werkzeugen und Aufträgen",
-  },
-]
-
 // ── Main Page ──────────────────────────────────────────────────────────────
 
 export default function DataRetentionPage() {
   const ts = useTranslations("settings")
+
+  const PERIOD_OPTIONS = [
+    { value: "3", label: ts("months3") },
+    { value: "6", label: ts("months6") },
+    { value: "12", label: ts("months12") },
+    { value: "24", label: ts("months24") },
+    { value: "36", label: ts("months36") },
+    { value: "0", label: ts("unlimited") },
+  ]
+
+  const ENTITIES = [
+    {
+      key: "stockChangesMonths" as const,
+      label: ts("stockChangesLabel"),
+      description: ts("stockChangesDesc"),
+    },
+    {
+      key: "toolBookingsMonths" as const,
+      label: ts("toolBookingsLabel"),
+      description: ts("toolBookingsDesc"),
+    },
+    {
+      key: "auditLogMonths" as const,
+      label: ts("auditLogLabel"),
+      description: ts("auditLogDesc"),
+    },
+    {
+      key: "commentsMonths" as const,
+      label: ts("commentsLabel"),
+      description: ts("commentsDesc"),
+    },
+  ]
   const [config, setConfig] = useState<RetentionConfig>(DEFAULT_CONFIG)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -106,11 +106,11 @@ export default function DataRetentionPage() {
   const loadConfig = useCallback(async () => {
     try {
       const res = await fetch("/api/settings/data-retention")
-      if (!res.ok) throw new Error("Fehler")
+      if (!res.ok) throw new Error("Error")
       const data = await res.json()
       setConfig({ ...DEFAULT_CONFIG, ...data })
     } catch {
-      setError("Einstellungen konnten nicht geladen werden.")
+      setError(ts("settingsLoadError"))
     } finally {
       setLoading(false)
     }
@@ -140,16 +140,16 @@ export default function DataRetentionPage() {
       })
       if (!res.ok) {
         const data = await res.json()
-        throw new Error(data.error || "Fehler")
+        throw new Error(data.error || "Error")
       }
-      setSuccess("Einstellungen wurden gespeichert.")
+      setSuccess(ts("settingsSaved"))
       setDirty(false)
       setTimeout(() => setSuccess(null), 3000)
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
-          : "Einstellungen konnten nicht gespeichert werden."
+          : ts("settingsSaveError")
       )
     } finally {
       setSaving(false)
@@ -166,16 +166,16 @@ export default function DataRetentionPage() {
       })
       if (!res.ok) {
         const data = await res.json()
-        throw new Error(data.error || "Fehler")
+        throw new Error(data.error || "Error")
       }
       const data = await res.json()
       setSuccess(
-        `Bereinigung abgeschlossen. ${data.deleted} Einträge wurden gelöscht.`
+        ts("cleanupComplete", { count: data.deleted })
       )
       setTimeout(() => setSuccess(null), 5000)
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Bereinigung fehlgeschlagen."
+        err instanceof Error ? err.message : ts("cleanupFailed")
       )
     } finally {
       setCleaning(false)
@@ -227,9 +227,7 @@ export default function DataRetentionPage() {
                 Aufbewahrungsfristen
               </CardTitle>
               <CardDescription>
-                Legen Sie fest, wie lange historische Daten aufbewahrt werden
-                sollen. Ältere Einträge werden bei der Bereinigung automatisch
-                gelöscht.
+                {ts("retentionPeriodsDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -265,8 +263,7 @@ export default function DataRetentionPage() {
                   </div>
                   {config[entity.key] > 0 && (
                     <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
-                      Einträge älter als {config[entity.key]} Monate werden bei
-                      der Bereinigung gelöscht.
+                      {ts("entriesOlderThan", { count: config[entity.key] })}
                     </p>
                   )}
                 </div>
@@ -277,18 +274,17 @@ export default function DataRetentionPage() {
           {/* Auto-cleanup toggle */}
           <Card>
             <CardHeader>
-              <CardTitle>Automatische Bereinigung</CardTitle>
+              <CardTitle>{ts("autoCleanup")}</CardTitle>
               <CardDescription>
-                Wenn aktiviert, werden alte Daten automatisch gemäss den
-                konfigurierten Fristen bereinigt.
+                {ts("autoCleanupDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Auto-Bereinigung</p>
+                  <p className="text-sm font-medium">{ts("autoCleanupToggle")}</p>
                   <p className="text-xs text-muted-foreground">
-                    Alte Daten werden täglich automatisch gelöscht.
+                    {ts("autoCleanupToggleDesc")}
                   </p>
                 </div>
                 <Switch
@@ -305,7 +301,7 @@ export default function DataRetentionPage() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <Button onClick={saveConfig} disabled={saving || !dirty}>
               <IconDeviceFloppy className="mr-1.5 size-4" />
-              {saving ? "Wird gespeichert…" : "Einstellungen speichern"}
+              {saving ? ts("savingSettings") : ts("saveSettings2")}
             </Button>
 
             {activePolicies > 0 && (
@@ -318,8 +314,8 @@ export default function DataRetentionPage() {
                   >
                     <IconTrash className="mr-1.5 size-4" />
                     {cleaning
-                      ? "Bereinigung läuft…"
-                      : "Bereinigung jetzt starten"}
+                      ? ts("cleanupRunning")
+                      : ts("startCleanup")}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -328,14 +324,11 @@ export default function DataRetentionPage() {
                       Bereinigung jetzt starten?
                     </AlertDialogTitle>
                     <AlertDialogDescription>
-                      Alle Daten, die älter als die konfigurierten Fristen sind,
-                      werden unwiderruflich gelöscht. Betroffen sind{" "}
-                      {activePolicies} Datenkategorie(n). Diese Aktion kann
-                      nicht rückgängig gemacht werden.
+                      {ts("cleanupConfirmDesc", { count: activePolicies })}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                    <AlertDialogCancel>{ts("cancelBtn")}</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={runCleanup}
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -351,8 +344,7 @@ export default function DataRetentionPage() {
           {/* Info */}
           {activePolicies === 0 && (
             <p className="text-sm text-muted-foreground">
-              Derzeit sind keine Aufbewahrungsfristen konfiguriert — alle Daten
-              werden unbegrenzt aufbewahrt.
+              {ts("noRetentionConfigured")}
             </p>
           )}
         </>

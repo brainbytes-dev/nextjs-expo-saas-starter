@@ -51,79 +51,39 @@ import {
 // ── Types ──────────────────────────────────────────────────────────────────
 
 type Resource =
-  | "materials"
-  | "tools"
-  | "keys"
-  | "locations"
-  | "commissions"
-  | "orders"
-  | "suppliers"
-  | "customers"
-  | "reports"
-  | "settings"
-  | "team"
-  | "integrations"
+  | "materials" | "tools" | "keys" | "locations" | "commissions"
+  | "orders" | "suppliers" | "customers" | "reports" | "settings"
+  | "team" | "integrations"
 
 type Action = "read" | "create" | "update" | "delete"
 type PermissionMap = Record<Resource, Record<Action, boolean>>
 
 interface Role {
-  id: string
-  name: string
-  slug: string
-  isSystem: boolean
-  createdAt: string
-  permissions?: PermissionMap
+  id: string; name: string; slug: string; isSystem: boolean; createdAt: string; permissions?: PermissionMap
 }
 
-interface OrgInfo {
-  id: string
-  name: string
-  role: string | null
-}
+interface OrgInfo { id: string; name: string; role: string | null }
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
 const RESOURCES: Resource[] = [
-  "materials",
-  "tools",
-  "keys",
-  "locations",
-  "commissions",
-  "orders",
-  "suppliers",
-  "customers",
-  "reports",
-  "settings",
-  "team",
-  "integrations",
+  "materials", "tools", "keys", "locations", "commissions",
+  "orders", "suppliers", "customers", "reports", "settings", "team", "integrations",
 ]
 
 const ACTIONS: Action[] = ["read", "create", "update", "delete"]
 
-const RESOURCE_LABELS: Record<Resource, string> = {
-  materials: "Materialien",
-  tools: "Werkzeuge",
-  keys: "Schlüssel",
-  locations: "Lagerorte",
-  commissions: "Kommissionen",
-  orders: "Bestellungen",
-  suppliers: "Lieferanten",
-  customers: "Kunden",
-  reports: "Berichte",
-  settings: "Einstellungen",
-  team: "Team",
-  integrations: "Integrationen",
+const RESOURCE_LABEL_KEYS: Record<Resource, string> = {
+  materials: "resMatLbl", tools: "resToolsLbl", keys: "resKeysLbl",
+  locations: "resLocLbl", commissions: "resCommLbl", orders: "resOrdLbl",
+  suppliers: "resSupLbl", customers: "resCustLbl", reports: "resRepLbl",
+  settings: "resSetLbl", team: "resTeamLbl", integrations: "resIntLbl",
 }
 
-const ACTION_LABELS: Record<Action, string> = {
-  read: "Lesen",
-  create: "Erstellen",
-  update: "Bearbeiten",
-  delete: "Löschen",
+const ACTION_LABEL_KEYS: Record<Action, string> = {
+  read: "actRead", create: "actCreate", update: "actUpdate", delete: "actDelete",
 }
 
-// Non-editable system roles
 const LOCKED_ROLE_SLUGS = new Set(["inhaber", "administrator"])
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -132,31 +92,20 @@ function emptyPermMap(): PermissionMap {
   const map = {} as PermissionMap
   for (const r of RESOURCES) {
     map[r] = {} as Record<Action, boolean>
-    for (const a of ACTIONS) {
-      map[r][a] = false
-    }
+    for (const a of ACTIONS) map[r][a] = false
   }
   return map
 }
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("de-CH", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  })
+  return new Date(iso).toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit", year: "numeric" })
 }
 
 // ── Permission Matrix Component ─────────────────────────────────────────────
 
-interface PermissionMatrixProps {
-  permMap: PermissionMap
-  onChange: (map: PermissionMap) => void
-  readonly?: boolean
-}
-
-function PermissionMatrix({ permMap, onChange, readonly = false }: PermissionMatrixProps) {
+function PermissionMatrix({ permMap, onChange, readonly = false }: { permMap: PermissionMap; onChange: (map: PermissionMap) => void; readonly?: boolean }) {
   const ts = useTranslations("settings")
+
   const toggle = (resource: Resource, action: Action) => {
     if (readonly) return
     const updated = { ...permMap, [resource]: { ...permMap[resource], [action]: !permMap[resource][action] } }
@@ -166,10 +115,7 @@ function PermissionMatrix({ permMap, onChange, readonly = false }: PermissionMat
   const toggleRow = (resource: Resource) => {
     if (readonly) return
     const allChecked = ACTIONS.every((a) => permMap[resource][a])
-    const updated = {
-      ...permMap,
-      [resource]: Object.fromEntries(ACTIONS.map((a) => [a, !allChecked])) as Record<Action, boolean>,
-    }
+    const updated = { ...permMap, [resource]: Object.fromEntries(ACTIONS.map((a) => [a, !allChecked])) as Record<Action, boolean> }
     onChange(updated)
   }
 
@@ -180,42 +126,38 @@ function PermissionMatrix({ permMap, onChange, readonly = false }: PermissionMat
           <TableRow>
             <TableHead className="w-40 min-w-[140px]">{ts("resource")}</TableHead>
             {ACTIONS.map((a) => (
-              <TableHead key={a} className="w-24 text-center text-xs">
-                {ACTION_LABELS[a]}
-              </TableHead>
+              <TableHead key={a} className="w-24 text-center text-xs">{ts(ACTION_LABEL_KEYS[a] as any)}</TableHead>
             ))}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {RESOURCES.map((resource) => {
-            return (
-              <TableRow key={resource} className="group">
-                <TableCell className="font-medium text-sm">
-                  <button
-                    type="button"
-                    className="flex items-center gap-1.5 hover:text-foreground text-muted-foreground transition-colors disabled:pointer-events-none"
-                    onClick={() => toggleRow(resource)}
+          {RESOURCES.map((resource) => (
+            <TableRow key={resource} className="group">
+              <TableCell className="font-medium text-sm">
+                <button
+                  type="button"
+                  className="flex items-center gap-1.5 hover:text-foreground text-muted-foreground transition-colors disabled:pointer-events-none"
+                  onClick={() => toggleRow(resource)}
+                  disabled={readonly}
+                  title={ts("roleToggleAll", { resource: ts(RESOURCE_LABEL_KEYS[resource] as any) })}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-current shrink-0" />
+                  {ts(RESOURCE_LABEL_KEYS[resource] as any)}
+                </button>
+              </TableCell>
+              {ACTIONS.map((action) => (
+                <TableCell key={action} className="text-center">
+                  <Checkbox
+                    checked={permMap[resource]?.[action] ?? false}
+                    onCheckedChange={() => toggle(resource, action)}
                     disabled={readonly}
-                    title={`Alle ${RESOURCE_LABELS[resource]} Berechtigungen umschalten`}
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-current shrink-0" />
-                    {RESOURCE_LABELS[resource]}
-                  </button>
+                    aria-label={`${ts(RESOURCE_LABEL_KEYS[resource] as any)} ${ts(ACTION_LABEL_KEYS[action] as any)}`}
+                    className="mx-auto"
+                  />
                 </TableCell>
-                {ACTIONS.map((action) => (
-                  <TableCell key={action} className="text-center">
-                    <Checkbox
-                      checked={permMap[resource]?.[action] ?? false}
-                      onCheckedChange={() => toggle(resource, action)}
-                      disabled={readonly}
-                      aria-label={`${RESOURCE_LABELS[resource]} ${ACTION_LABELS[action]}`}
-                      className="mx-auto"
-                    />
-                  </TableCell>
-                ))}
-              </TableRow>
-            )
-          })}
+              ))}
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
     </div>
@@ -235,59 +177,50 @@ export default function RolesPage() {
   const [isLoadingRoles, setIsLoadingRoles] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Create dialog
   const [createOpen, setCreateOpen] = useState(false)
   const [newRoleName, setNewRoleName] = useState("")
   const [newRolePerms, setNewRolePerms] = useState<PermissionMap>(emptyPermMap())
   const [isCreating, setIsCreating] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
 
-  // Edit dialog
   const [editRole, setEditRole] = useState<Role | null>(null)
   const [editPerms, setEditPerms] = useState<PermissionMap>(emptyPermMap())
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
-  // Delete
   const [deletingId, setDeletingId] = useState<string | null>(null)
-
-  // ── Data loading ──────────────────────────────────────────────────────────
 
   useEffect(() => {
     async function loadOrg() {
       try {
         const res = await fetch("/api/organizations")
-        if (!res.ok) throw new Error("Organisations-Daten konnten nicht geladen werden")
+        if (!res.ok) throw new Error(ts("roleOrgLoadError"))
         const orgs: OrgInfo[] = await res.json()
         if (orgs.length > 0) setOrg(orgs[0]!)
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Fehler beim Laden")
+        setError(err instanceof Error ? err.message : ts("roleLoadError"))
       } finally {
         setIsLoadingOrg(false)
       }
     }
     loadOrg()
-  }, [])
+  }, [ts])
 
   const fetchRoles = useCallback(async (orgId: string) => {
     setIsLoadingRoles(true)
     try {
       const res = await fetch(`/api/roles?orgId=${orgId}`)
-      if (!res.ok) throw new Error("Rollen konnten nicht geladen werden")
+      if (!res.ok) throw new Error(ts("rolesLoadError"))
       const data: Role[] = await res.json()
       setRolesList(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Fehler beim Laden der Rollen")
+      setError(err instanceof Error ? err.message : ts("rolesLoadFailed"))
     } finally {
       setIsLoadingRoles(false)
     }
-  }, [])
+  }, [ts])
 
-  useEffect(() => {
-    if (org?.id) fetchRoles(org.id)
-  }, [org?.id, fetchRoles])
-
-  // ── Create ─────────────────────────────────────────────────────────────────
+  useEffect(() => { if (org?.id) fetchRoles(org.id) }, [org?.id, fetchRoles])
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -297,23 +230,17 @@ export default function RolesPage() {
     try {
       const res = await fetch("/api/roles", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-organization-id": org.id,
-        },
+        headers: { "Content-Type": "application/json", "x-organization-id": org.id },
         body: JSON.stringify({ name: newRoleName, permissions: newRolePerms }),
       })
       const json = await res.json()
-      if (!res.ok) {
-        setCreateError(json.error ?? "Rolle konnte nicht erstellt werden")
-        return
-      }
+      if (!res.ok) { setCreateError(json.error ?? ts("roleCreateFailed")); return }
       setCreateOpen(false)
       setNewRoleName("")
       setNewRolePerms(emptyPermMap())
       await fetchRoles(org.id)
     } catch {
-      setCreateError("Netzwerkfehler. Bitte erneut versuchen.")
+      setCreateError(ts("roleNetworkError"))
     } finally {
       setIsCreating(false)
     }
@@ -321,21 +248,13 @@ export default function RolesPage() {
 
   const handleCreateDialogChange = (open: boolean) => {
     setCreateOpen(open)
-    if (!open) {
-      setNewRoleName("")
-      setNewRolePerms(emptyPermMap())
-      setCreateError(null)
-    }
+    if (!open) { setNewRoleName(""); setNewRolePerms(emptyPermMap()); setCreateError(null) }
   }
-
-  // ── Edit ───────────────────────────────────────────────────────────────────
 
   const openEdit = async (role: Role) => {
     if (!org) return
     setSaveError(null)
     setEditRole(role)
-
-    // Fetch full permissions for this role
     const res = await fetch(`/api/roles/${role.id}?orgId=${org.id}`)
     if (res.ok) {
       const data = await res.json()
@@ -352,55 +271,39 @@ export default function RolesPage() {
     try {
       const res = await fetch(`/api/roles/${editRole.id}`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "x-organization-id": org.id,
-        },
+        headers: { "Content-Type": "application/json", "x-organization-id": org.id },
         body: JSON.stringify({ permissions: editPerms }),
       })
       const json = await res.json()
-      if (!res.ok) {
-        setSaveError(json.error ?? "Änderungen konnten nicht gespeichert werden")
-        return
-      }
+      if (!res.ok) { setSaveError(json.error ?? ts("roleSaveFailed")); return }
       setEditRole(null)
       await fetchRoles(org.id)
     } catch {
-      setSaveError("Netzwerkfehler. Bitte erneut versuchen.")
+      setSaveError(ts("roleNetworkError"))
     } finally {
       setIsSaving(false)
     }
   }
 
-  // ── Delete ─────────────────────────────────────────────────────────────────
-
   const handleDelete = async (role: Role) => {
-    if (!org || !window.confirm(`Rolle "${role.name}" wirklich löschen?`)) return
+    if (!org || !window.confirm(ts("roleDeleteConfirm", { name: role.name }))) return
     setDeletingId(role.id)
     try {
-      const res = await fetch(`/api/roles/${role.id}`, {
-        method: "DELETE",
-        headers: { "x-organization-id": org.id },
-      })
+      const res = await fetch(`/api/roles/${role.id}`, { method: "DELETE", headers: { "x-organization-id": org.id } })
       if (!res.ok) {
         const json = await res.json()
-        setError(json.error ?? "Rolle konnte nicht gelöscht werden")
+        setError(json.error ?? ts("roleDeleteFailed"))
         return
       }
       setRolesList((prev) => prev.filter((r) => r.id !== role.id))
     } catch {
-      setError("Netzwerkfehler beim Löschen der Rolle")
+      setError(ts("roleNetworkDeleteError"))
     } finally {
       setDeletingId(null)
     }
   }
 
-  // ── Derived ────────────────────────────────────────────────────────────────
-
-  const canManageRoles =
-    org?.role === "owner" || org?.role === "admin"
-
-  // ── Render ─────────────────────────────────────────────────────────────────
+  const canManageRoles = org?.role === "owner" || org?.role === "admin"
 
   if (isLoadingOrg) {
     return (
@@ -414,9 +317,7 @@ export default function RolesPage() {
   if (!org) {
     return (
       <div className="px-4 py-8 md:px-6 lg:px-8">
-        <p className="text-muted-foreground text-sm">
-          {ts("noOrgFound")}
-        </p>
+        <p className="text-muted-foreground text-sm">{ts("noOrgFound")}</p>
       </div>
     )
   }
@@ -424,69 +325,35 @@ export default function RolesPage() {
   return (
     <TooltipProvider>
       <div className="space-y-8 px-4 py-4 md:px-6 md:py-6 lg:px-8 lg:py-8">
-        {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-1">
-              Einstellungen
-            </p>
-            <h1 className="text-2xl font-semibold tracking-tight">Rollen & Berechtigungen</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {ts("rolesDesc", { org: org.name })}
-            </p>
+            <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-1">{ts("rolesSettings")}</p>
+            <h1 className="text-2xl font-semibold tracking-tight">{ts("rolesPageTitle")}</h1>
+            <p className="text-sm text-muted-foreground mt-1">{ts("rolesDesc", { org: org.name })}</p>
           </div>
-
           {canManageRoles && (
             <Dialog open={createOpen} onOpenChange={handleCreateDialogChange}>
               <DialogTrigger asChild>
-                <Button size="sm" className="shrink-0">
-                  <IconShieldPlus className="mr-2 size-4" />
-                  {ts("newRole")}
-                </Button>
+                <Button size="sm" className="shrink-0"><IconShieldPlus className="mr-2 size-4" />{ts("newRole")}</Button>
               </DialogTrigger>
               <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>{ts("createCustomRole")}</DialogTitle>
-                  <DialogDescription>
-                    Gib der Rolle einen Namen und lege die Berechtigungen fest.
-                  </DialogDescription>
+                  <DialogDescription>{ts("roleCreateDialogDesc")}</DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleCreate} className="space-y-6 pt-2">
                   <div className="space-y-2">
                     <Label htmlFor="role-name">{ts("roleNameLabel")}</Label>
-                    <Input
-                      id="role-name"
-                      placeholder="z. B. Fahrer, Einkäufer"
-                      value={newRoleName}
-                      onChange={(e) => setNewRoleName(e.target.value)}
-                      disabled={isCreating}
-                      required
-                    />
+                    <Input id="role-name" placeholder={ts("roleNamePlaceholder")} value={newRoleName} onChange={(e) => setNewRoleName(e.target.value)} disabled={isCreating} required />
                   </div>
                   <div className="space-y-2">
                     <Label>{ts("permissionsLabel")}</Label>
-                    <div className="rounded-md border">
-                      <PermissionMatrix
-                        permMap={newRolePerms}
-                        onChange={setNewRolePerms}
-                      />
-                    </div>
+                    <div className="rounded-md border"><PermissionMatrix permMap={newRolePerms} onChange={setNewRolePerms} /></div>
                   </div>
-                  {createError && (
-                    <p className="text-sm text-destructive">{createError}</p>
-                  )}
+                  {createError && <p className="text-sm text-destructive">{createError}</p>}
                   <DialogFooter>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => handleCreateDialogChange(false)}
-                      disabled={isCreating}
-                    >
-                      Abbrechen
-                    </Button>
-                    <Button type="submit" disabled={isCreating || !newRoleName.trim()}>
-                      {isCreating ? ts("creating") : ts("createReport")}
-                    </Button>
+                    <Button type="button" variant="outline" onClick={() => handleCreateDialogChange(false)} disabled={isCreating}>{ts("roleCreateCancel")}</Button>
+                    <Button type="submit" disabled={isCreating || !newRoleName.trim()}>{isCreating ? ts("creating") : ts("createReport")}</Button>
                   </DialogFooter>
                 </form>
               </DialogContent>
@@ -494,39 +361,21 @@ export default function RolesPage() {
           )}
         </div>
 
-        {error && (
-          <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-            {error}
-          </div>
-        )}
+        {error && <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
 
-        {/* Roles list */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <IconShield className="size-4" />
-              {ts("roles")}
-              {rolesList.length > 0 && (
-                <Badge variant="secondary" className="ml-1">
-                  {rolesList.length}
-                </Badge>
-              )}
+              <IconShield className="size-4" />{ts("roles")}
+              {rolesList.length > 0 && <Badge variant="secondary" className="ml-1">{rolesList.length}</Badge>}
             </CardTitle>
-            <CardDescription>
-              {ts("systemRolesReadonly")}
-            </CardDescription>
+            <CardDescription>{ts("systemRolesReadonly")}</CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             {isLoadingRoles ? (
-              <div className="space-y-3 p-6">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-10 w-full" />
-                ))}
-              </div>
+              <div className="space-y-3 p-6">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
             ) : rolesList.length === 0 ? (
-              <div className="py-12 text-center text-sm text-muted-foreground">
-                Noch keine Rollen. Klicke auf &quot;Neue Rolle&quot;.
-              </div>
+              <div className="py-12 text-center text-sm text-muted-foreground">{ts("noRolesYet")}</div>
             ) : (
               <Table>
                 <TableHeader>
@@ -546,55 +395,32 @@ export default function RolesPage() {
                           <div className="flex items-center gap-2">
                             {isLocked && (
                               <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <IconLock className="size-3.5 text-muted-foreground shrink-0" />
-                                </TooltipTrigger>
-                                <TooltipContent>Berechtigungen dieser Systemrolle können nicht geändert werden</TooltipContent>
+                                <TooltipTrigger asChild><IconLock className="size-3.5 text-muted-foreground shrink-0" /></TooltipTrigger>
+                                <TooltipContent>{ts("roleSystemLocked")}</TooltipContent>
                               </Tooltip>
                             )}
                             {role.name}
                           </div>
                         </TableCell>
                         <TableCell>
-                          {role.isSystem ? (
-                            <Badge variant="secondary" className="text-xs">System</Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-xs">{ts("custom")}</Badge>
-                          )}
+                          {role.isSystem ? <Badge variant="secondary" className="text-xs">System</Badge> : <Badge variant="outline" className="text-xs">{ts("custom")}</Badge>}
                         </TableCell>
-                        <TableCell className="text-muted-foreground text-sm">
-                          {formatDate(role.createdAt)}
-                        </TableCell>
+                        <TableCell className="text-muted-foreground text-sm">{formatDate(role.createdAt)}</TableCell>
                         {canManageRoles && (
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-1">
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="size-8 text-muted-foreground hover:text-foreground"
-                                    onClick={() => openEdit(role)}
-                                  >
-                                    <IconEdit className="size-4" />
-                                  </Button>
+                                  <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-foreground" onClick={() => openEdit(role)}><IconEdit className="size-4" /></Button>
                                 </TooltipTrigger>
-                                <TooltipContent>Berechtigungen ansehen / bearbeiten</TooltipContent>
+                                <TooltipContent>{ts("roleEditView")}</TooltipContent>
                               </Tooltip>
                               {!role.isSystem && (
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="size-8 text-muted-foreground hover:text-destructive"
-                                      disabled={deletingId === role.id}
-                                      onClick={() => handleDelete(role)}
-                                    >
-                                      <IconTrash className="size-4" />
-                                    </Button>
+                                    <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-destructive" disabled={deletingId === role.id} onClick={() => handleDelete(role)}><IconTrash className="size-4" /></Button>
                                   </TooltipTrigger>
-                                  <TooltipContent>Rolle löschen</TooltipContent>
+                                  <TooltipContent>{ts("roleDeleteTooltip")}</TooltipContent>
                                 </Tooltip>
                               )}
                             </div>
@@ -609,49 +435,28 @@ export default function RolesPage() {
           </CardContent>
         </Card>
 
-        {/* Edit Role Dialog */}
         {editRole && (
           <Dialog open={!!editRole} onOpenChange={(open) => { if (!open) setEditRole(null) }}>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
-                  {LOCKED_ROLE_SLUGS.has(editRole.slug) && (
-                    <IconLock className="size-4 text-muted-foreground" />
-                  )}
+                  {LOCKED_ROLE_SLUGS.has(editRole.slug) && <IconLock className="size-4 text-muted-foreground" />}
                   {editRole.name}
                 </DialogTitle>
                 <DialogDescription>
-                  {LOCKED_ROLE_SLUGS.has(editRole.slug)
-                    ? "Diese Systemrolle ist schreibgeschützt. Berechtigungen können nicht geändert werden."
-                    : "Passe die Berechtigungen für diese Rolle an."}
+                  {LOCKED_ROLE_SLUGS.has(editRole.slug) ? ts("roleEditReadonly") : ts("roleEditDesc")}
                 </DialogDescription>
               </DialogHeader>
-
               <div className="rounded-md border mt-2">
-                <PermissionMatrix
-                  permMap={editPerms}
-                  onChange={setEditPerms}
-                  readonly={LOCKED_ROLE_SLUGS.has(editRole.slug)}
-                />
+                <PermissionMatrix permMap={editPerms} onChange={setEditPerms} readonly={LOCKED_ROLE_SLUGS.has(editRole.slug)} />
               </div>
-
-              {saveError && (
-                <p className="text-sm text-destructive mt-2">{saveError}</p>
-              )}
-
+              {saveError && <p className="text-sm text-destructive mt-2">{saveError}</p>}
               <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setEditRole(null)}
-                  disabled={isSaving}
-                >
+                <Button type="button" variant="outline" onClick={() => setEditRole(null)} disabled={isSaving}>
                   {LOCKED_ROLE_SLUGS.has(editRole.slug) ? tc("close") : tc("cancel")}
                 </Button>
                 {!LOCKED_ROLE_SLUGS.has(editRole.slug) && (
-                  <Button onClick={handleSave} disabled={isSaving}>
-                    {isSaving ? tc("loading") : tc("save")}
-                  </Button>
+                  <Button onClick={handleSave} disabled={isSaving}>{isSaving ? tc("loading") : tc("save")}</Button>
                 )}
               </DialogFooter>
             </DialogContent>

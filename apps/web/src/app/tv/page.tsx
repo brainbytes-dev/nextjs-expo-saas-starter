@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { useSession } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import type { ActivityItem } from "@/app/api/dashboard/activity/route"
@@ -68,14 +69,14 @@ const REFRESH_INTERVAL_MS = 60_000
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-function formatRelativeTime(isoString: string): string {
+function formatRelativeTime(isoString: string, t: (key: string, values?: Record<string, unknown>) => string): string {
   const diff = Date.now() - new Date(isoString).getTime()
   const mins = Math.floor(diff / 60_000)
-  if (mins < 1) return "Gerade eben"
-  if (mins < 60) return `vor ${mins} Min.`
+  if (mins < 1) return t("justNow")
+  if (mins < 60) return t("minutesAgo", { count: mins })
   const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `vor ${hrs} Std.`
-  return `vor ${Math.floor(hrs / 24)} Tag(en)`
+  if (hrs < 24) return t("hoursAgo", { count: hrs })
+  return t("daysAgo", { count: Math.floor(hrs / 24) })
 }
 
 function formatDate(dateStr: string): string {
@@ -190,29 +191,30 @@ function KpiCard({
 // View: KPI Overview
 // ---------------------------------------------------------------------------
 function KpiView({ stats }: { stats: DashboardStats | null }) {
-  if (!stats) return <LoadingView label="KPI wird geladen..." />
+  const t = useTranslations("tvDashboard")
+  if (!stats) return <LoadingView label={t("kpiLoading")} />
   return (
     <section className="flex-1 flex flex-col gap-3 lg:gap-6 p-4 lg:p-10">
-      <h2 className="text-xl lg:text-3xl font-bold text-white/60 uppercase tracking-widest">Übersicht</h2>
+      <h2 className="text-xl lg:text-3xl font-bold text-white/60 uppercase tracking-widest">{t("overview")}</h2>
       <div className="flex-1 grid grid-cols-3 gap-3 lg:gap-6">
-        <KpiCard icon={IconPackage} label="Materialien" value={stats.materials} />
-        <KpiCard icon={IconTool} label="Werkzeuge" value={stats.tools} />
+        <KpiCard icon={IconPackage} label={t("materials")} value={stats.materials} />
+        <KpiCard icon={IconTool} label={t("tools")} value={stats.tools} />
         <KpiCard
           icon={IconAlertTriangle}
-          label="Niedriger Bestand"
+          label={t("lowStock")}
           value={stats.lowStockCount}
           alert={stats.lowStockCount > 0}
-          sub={stats.lowStockCount > 0 ? "Nachbestellung erforderlich" : "Alles im grünen Bereich"}
+          sub={stats.lowStockCount > 0 ? t("reorderRequired") : t("allGood")}
         />
         <KpiCard
           icon={IconClock}
-          label="Überfällige Werkzeuge"
+          label={t("overdueTools")}
           value={stats.overdueToolsCount}
           alert={stats.overdueToolsCount > 0}
-          sub={stats.overdueToolsCount > 0 ? "Rückgabe ausstehend" : "Alle zurückgegeben"}
+          sub={stats.overdueToolsCount > 0 ? t("returnPending") : t("allReturned")}
         />
-        <KpiCard icon={IconKey} label="Schlüssel" value={stats.keys} />
-        <KpiCard icon={IconUsers} label="Benutzer" value={stats.users} />
+        <KpiCard icon={IconKey} label={t("keys")} value={stats.keys} />
+        <KpiCard icon={IconUsers} label={t("users")} value={stats.users} />
       </div>
     </section>
   )
@@ -222,13 +224,14 @@ function KpiView({ stats }: { stats: DashboardStats | null }) {
 // View: Low Stock
 // ---------------------------------------------------------------------------
 function LowStockView({ items }: { items: LowStockItem[] | null }) {
-  if (!items) return <LoadingView label="Bestand wird geladen..." />
+  const t = useTranslations("tvDashboard")
+  if (!items) return <LoadingView label={t("stockLoading")} />
   if (items.length === 0) {
     return (
       <EmptyView
         icon={IconPackage}
-        title="Kein niedriger Bestand"
-        sub="Alle Materialien sind ausreichend vorrätig."
+        title={t("noLowStock")}
+        sub={t("noLowStockDesc")}
       />
     )
   }
@@ -236,7 +239,7 @@ function LowStockView({ items }: { items: LowStockItem[] | null }) {
     <section className="flex-1 flex flex-col gap-3 lg:gap-6 p-4 lg:p-10 overflow-hidden">
       <h2 className="text-xl lg:text-3xl font-bold text-red-400 uppercase tracking-widest flex items-center gap-2 lg:gap-3">
         <IconAlertTriangle className="size-6 lg:size-8" />
-        Niedriger Bestand ({items.length})
+        {t("lowStockCount", { count: items.length })}
       </h2>
       <AutoScrollList className="flex flex-col gap-2 lg:gap-3">
         {items.map((item) => (
@@ -255,7 +258,7 @@ function LowStockView({ items }: { items: LowStockItem[] | null }) {
               {item.totalStock}
             </span>
             {item.reorderLevel !== null && (
-              <span className="text-lg text-white/40 shrink-0">/ {item.reorderLevel} Min.</span>
+              <span className="text-lg text-white/40 shrink-0">/ {item.reorderLevel} {t("minLabel")}</span>
             )}
           </div>
         ))}
@@ -268,13 +271,14 @@ function LowStockView({ items }: { items: LowStockItem[] | null }) {
 // View: Overdue Tools
 // ---------------------------------------------------------------------------
 function OverdueToolsView({ items }: { items: OverdueTool[] | null }) {
-  if (!items) return <LoadingView label="Werkzeuge werden geladen..." />
+  const t = useTranslations("tvDashboard")
+  if (!items) return <LoadingView label={t("toolsLoading")} />
   if (items.length === 0) {
     return (
       <EmptyView
         icon={IconTool}
-        title="Keine überfälligen Werkzeuge"
-        sub="Alle Werkzeuge wurden rechtzeitig zurückgegeben."
+        title={t("noOverdueTools")}
+        sub={t("noOverdueToolsDesc")}
       />
     )
   }
@@ -282,7 +286,7 @@ function OverdueToolsView({ items }: { items: OverdueTool[] | null }) {
     <section className="flex-1 flex flex-col gap-3 lg:gap-6 p-4 lg:p-10 overflow-hidden">
       <h2 className="text-xl lg:text-3xl font-bold text-primary uppercase tracking-widest flex items-center gap-2 lg:gap-3">
         <IconClock className="size-6 lg:size-8" />
-        Überfällige Werkzeuge ({items.length})
+        {t("overdueToolsCount", { count: items.length })}
       </h2>
       <AutoScrollList className="flex flex-col gap-2 lg:gap-3">
         {items.map((item) => (
@@ -295,7 +299,7 @@ function OverdueToolsView({ items }: { items: OverdueTool[] | null }) {
             </span>
             <span className="flex-1 text-2xl font-semibold text-white truncate">{item.name}</span>
             <span className="text-xl text-primary shrink-0">
-              {item.assignedUserName ?? "Unbekannt"}
+              {item.assignedUserName ?? t("unknown")}
             </span>
             <IconChevronRight className="size-5 text-white/30" />
             <span className="text-xl text-white/50 shrink-0">
@@ -312,13 +316,14 @@ function OverdueToolsView({ items }: { items: OverdueTool[] | null }) {
 // View: Today's Activity
 // ---------------------------------------------------------------------------
 function ActivityView({ items }: { items: ActivityItem[] | null }) {
-  if (!items) return <LoadingView label="Aktivität wird geladen..." />
+  const t = useTranslations("tvDashboard")
+  if (!items) return <LoadingView label={t("activityLoading")} />
   if (items.length === 0) {
     return (
       <EmptyView
         icon={IconActivity}
-        title="Keine Aktivität heute"
-        sub="Noch keine Buchungen in diesem Zeitraum."
+        title={t("noActivity")}
+        sub={t("noActivityDesc")}
       />
     )
   }
@@ -326,7 +331,7 @@ function ActivityView({ items }: { items: ActivityItem[] | null }) {
     <section className="flex-1 flex flex-col gap-3 lg:gap-6 p-4 lg:p-10 overflow-hidden">
       <h2 className="text-xl lg:text-3xl font-bold text-primary uppercase tracking-widest flex items-center gap-2 lg:gap-3">
         <IconActivity className="size-6 lg:size-8" />
-        Letzte Aktivitäten
+        {t("recentActivity")}
       </h2>
       <AutoScrollList className="flex flex-col gap-2 lg:gap-3">
         {items.map((item) => (
@@ -361,7 +366,7 @@ function ActivityView({ items }: { items: ActivityItem[] | null }) {
               {item.userName ?? "—"}
             </span>
             <span className="text-lg text-white/30 shrink-0 w-32 text-right">
-              {formatRelativeTime(item.createdAt)}
+              {formatRelativeTime(item.createdAt, t)}
             </span>
           </div>
         ))}
@@ -374,13 +379,14 @@ function ActivityView({ items }: { items: ActivityItem[] | null }) {
 // View: Upcoming Maintenance
 // ---------------------------------------------------------------------------
 function MaintenanceView({ items }: { items: MaintenanceItem[] | null }) {
-  if (!items) return <LoadingView label="Wartungen werden geladen..." />
+  const t = useTranslations("tvDashboard")
+  if (!items) return <LoadingView label={t("maintenanceLoading")} />
   if (items.length === 0) {
     return (
       <EmptyView
         icon={IconTools}
-        title="Keine anstehenden Wartungen"
-        sub="Alle Werkzeuge sind auf dem aktuellen Stand."
+        title={t("noMaintenance")}
+        sub={t("noMaintenanceDesc")}
       />
     )
   }
@@ -388,7 +394,7 @@ function MaintenanceView({ items }: { items: MaintenanceItem[] | null }) {
     <section className="flex-1 flex flex-col gap-3 lg:gap-6 p-4 lg:p-10 overflow-hidden">
       <h2 className="text-xl lg:text-3xl font-bold text-yellow-400 uppercase tracking-widest flex items-center gap-2 lg:gap-3">
         <IconTools className="size-6 lg:size-8" />
-        Wartungen ({items.length})
+        {t("maintenanceCount", { count: items.length })}
       </h2>
       <AutoScrollList className="flex flex-col gap-2 lg:gap-3">
         {items.map((item) => {
@@ -416,7 +422,7 @@ function MaintenanceView({ items }: { items: MaintenanceItem[] | null }) {
                       : "bg-green-900/40 text-green-300",
                 ].join(" ")}
               >
-                {isOverdue ? "Überfällig" : isThisWeek ? "Diese Woche" : `${item.daysUntil}d`}
+                {isOverdue ? t("overdue") : isThisWeek ? t("thisWeek") : `${item.daysUntil}d`}
               </span>
               <span className="font-mono text-white/40 text-xl w-28 shrink-0">
                 {item.number ?? "—"}
@@ -490,18 +496,19 @@ function ProgressBar({ duration }: { duration: number }) {
 // ---------------------------------------------------------------------------
 // View labels + icons for the tab indicator
 // ---------------------------------------------------------------------------
-const VIEW_META: Record<ViewId, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
-  kpi: { label: "KPI", icon: IconActivity },
-  lowstock: { label: "Niedriger Bestand", icon: IconAlertTriangle },
-  overdue: { label: "Überfällige Werkzeuge", icon: IconClock },
-  activity: { label: "Aktivität", icon: IconActivity },
-  maintenance: { label: "Wartungen", icon: IconTools },
+const VIEW_META: Record<ViewId, { labelKey: string; icon: React.ComponentType<{ className?: string }> }> = {
+  kpi: { labelKey: "viewKpi", icon: IconActivity },
+  lowstock: { labelKey: "viewLowStock", icon: IconAlertTriangle },
+  overdue: { labelKey: "viewOverdue", icon: IconClock },
+  activity: { labelKey: "viewActivity", icon: IconActivity },
+  maintenance: { labelKey: "viewMaintenance", icon: IconTools },
 }
 
 // ---------------------------------------------------------------------------
 // Main TV Dashboard Page
 // ---------------------------------------------------------------------------
 export default function TvPage() {
+  const t = useTranslations("tvDashboard")
   const { data: session, isPending } = useSession()
   const router = useRouter()
   const clock = useNowClock()
@@ -644,7 +651,7 @@ export default function TvPage() {
                   : "bg-white/10 text-white/40 hover:bg-white/15 hover:text-white/60",
               ].join(" ")}
             >
-              {VIEW_META[v].label}
+              {t(VIEW_META[v].labelKey)}
             </button>
           ))}
         </div>
@@ -670,11 +677,8 @@ export default function TvPage() {
 
       {/* ── Footer hint ─────────────────────────────────────────────────────── */}
       <footer className="shrink-0 px-4 lg:px-10 py-2 lg:py-3 bg-black/30 border-t border-white/5 flex items-center justify-between text-xs text-white/20">
-        <span>Pfeiltasten: Ansicht wechseln &nbsp;·&nbsp; F11: Vollbild</span>
-        <span>
-          Automatische Aktualisierung alle {REFRESH_INTERVAL_MS / 1000} Sek.
-          &nbsp;·&nbsp; Ansichtswechsel alle {VIEW_DURATION_MS / 1000} Sek.
-        </span>
+        <span>{t("footerKeys")}</span>
+        <span>{t("footerRefresh", { refreshSec: REFRESH_INTERVAL_MS / 1000, viewSec: VIEW_DURATION_MS / 1000 })}</span>
       </footer>
     </div>
   )

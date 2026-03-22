@@ -375,6 +375,7 @@ function CustomWidgetGrid({ widgets }: { widgets: WidgetLayoutItem[] }) {
 // ── Main Dashboard Page ───────────────────────────────────────────────────────
 export default function DashboardPage() {
   const t = useTranslations("dashboard")
+  const tc = useTranslations("common")
   const { data: session } = useSession()
 
   // Static dashboard state
@@ -532,7 +533,7 @@ export default function DashboardPage() {
           {t("greeting", { name: firstName })}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Hier ist dein Überblick für heute
+          {t("subtitle")}
         </p>
       </div>
       <div className="flex items-center gap-2 shrink-0 no-print">
@@ -544,7 +545,7 @@ export default function DashboardPage() {
         >
           <Link href="/dashboard/customize">
             <IconLayoutDashboard className="size-3.5" />
-            Dashboard anpassen
+            {t("customizeDashboard")}
           </Link>
         </Button>
         <Button
@@ -554,7 +555,7 @@ export default function DashboardPage() {
           className="gap-1.5"
         >
           <IconRefresh className="size-3.5" />
-          Aktualisieren
+          {tc("refresh")}
         </Button>
         <PrintButton />
       </div>
@@ -602,7 +603,7 @@ export default function DashboardPage() {
       {pageHeader}
 
       {/* ── KPI Cards ────────────────────────────────────────────────── */}
-      <section aria-label="Kennzahlen" className="px-4 lg:px-6">
+      <section aria-label={t("kpiSection")} className="px-4 lg:px-6">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
           {loading ? (
             [...Array(4)].map((_, i) => (
@@ -623,7 +624,7 @@ export default function DashboardPage() {
                 iconBg="bg-blue-500/10"
                 iconColor="text-blue-500"
                 value={stats.materials.toLocaleString("de-CH")}
-                label="Materialien"
+                label={t("materials")}
                 href="/dashboard/materials"
               />
               <KpiCard
@@ -631,7 +632,7 @@ export default function DashboardPage() {
                 iconBg="bg-emerald-500/10"
                 iconColor="text-emerald-600"
                 value={stats.tools.toLocaleString("de-CH")}
-                label="Werkzeuge"
+                label={t("tools")}
                 href="/dashboard/tools"
               />
               <KpiCard
@@ -639,7 +640,7 @@ export default function DashboardPage() {
                 iconBg="bg-amber-500/10"
                 iconColor="text-amber-600"
                 value={stats.keys.toLocaleString("de-CH")}
-                label="Schlüssel"
+                label={t("keys")}
                 href="/dashboard/keys"
               />
               <KpiCard
@@ -647,7 +648,7 @@ export default function DashboardPage() {
                 iconBg="bg-muted"
                 iconColor="text-muted-foreground"
                 value={stats.users}
-                label="Nutzer"
+                label={t("users")}
                 suffix={`/ ${stats.maxUsers}`}
                 href="/dashboard/settings/users"
               />
@@ -655,7 +656,7 @@ export default function DashboardPage() {
           ) : (
             <Card className="col-span-full">
               <CardContent className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-                Statistiken konnten nicht geladen werden.
+                {t("statsLoadError")}
               </CardContent>
             </Card>
           )}
@@ -664,10 +665,10 @@ export default function DashboardPage() {
 
       {/* ── Alert Cards ──────────────────────────────────────────────── */}
       {(loading || hasAlerts !== false) && (
-        <section aria-label="Warnmeldungen" className="px-4 lg:px-6">
+        <section aria-label={t("alertsSection")} className="px-4 lg:px-6">
           {!loading && hasAlerts && (
             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Handlungsbedarf
+              {t("actionRequired")}
             </p>
           )}
           <div className="grid grid-cols-1 gap-3 @xl/main:grid-cols-3">
@@ -692,8 +693,8 @@ export default function DashboardPage() {
                   iconColor="text-destructive"
                   bgColor="bg-destructive/10"
                   badgeVariant={stats.lowStockCount > 0 ? "destructive" : "secondary"}
-                  label="Unter Meldebestand"
-                  sublabel="Materialien mit zu wenig Bestand"
+                  label={t("lowStock")}
+                  sublabel={t("lowStockSublabel")}
                   count={stats.lowStockCount}
                   href="/dashboard/materials?filter=lowStock"
                 />
@@ -703,8 +704,8 @@ export default function DashboardPage() {
                   iconColor="text-amber-600"
                   bgColor="bg-amber-500/10"
                   badgeVariant={stats.expiringCount > 0 ? "default" : "secondary"}
-                  label="Bald ablaufend"
-                  sublabel="Ablaufdatum in 30 Tagen"
+                  label={t("expiringItems")}
+                  sublabel={t("expiringItemsSublabel")}
                   count={stats.expiringCount}
                   href="/dashboard/materials?filter=expiring"
                 />
@@ -714,8 +715,8 @@ export default function DashboardPage() {
                   iconColor="text-orange-600"
                   bgColor="bg-orange-500/10"
                   badgeVariant={stats.overdueToolsCount > 0 ? "default" : "secondary"}
-                  label="Überfällige Werkzeuge"
-                  sublabel="Seit mehr als 7 Tagen ausgecheckt"
+                  label={t("overdueTools")}
+                  sublabel={t("overdueToolsSublabel")}
                   count={stats.overdueToolsCount}
                   href="/dashboard/tools?filter=overdue"
                 />
@@ -732,12 +733,12 @@ export default function DashboardPage() {
         <Card className="@3xl/main:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
-              <CardTitle>Letzte Aktivitäten</CardTitle>
-              <CardDescription>Buchungen und Bestandsänderungen</CardDescription>
+              <CardTitle>{t("recentActivity")}</CardTitle>
+              <CardDescription>{t("activitySubtitle")}</CardDescription>
             </div>
             <Button variant="ghost" size="sm" asChild className="gap-1.5 text-xs text-muted-foreground">
               <Link href="/dashboard/history/stock-changes">
-                Alle anzeigen
+                {t("viewAll")}
                 <IconArrowRight className="size-3.5" />
               </Link>
             </Button>
@@ -747,7 +748,7 @@ export default function DashboardPage() {
               <ActivityFeedSkeleton />
             ) : activity.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">
-                Noch keine Aktivitäten vorhanden.
+                {t("noActivity")}
               </p>
             ) : (
               <div className="divide-y divide-border">
@@ -787,8 +788,8 @@ export default function DashboardPage() {
         {/* Quick Actions */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle>Schnellaktionen</CardTitle>
-            <CardDescription>Häufig verwendete Funktionen</CardDescription>
+            <CardTitle>{t("quickActions")}</CardTitle>
+            <CardDescription>{t("quickActionsSubtitle")}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
             <Button variant="outline" className="justify-start gap-2.5 h-10" asChild>
@@ -796,7 +797,7 @@ export default function DashboardPage() {
                 <span className="flex size-6 items-center justify-center rounded bg-blue-500/10">
                   <IconPackage className="size-3.5 text-blue-500" />
                 </span>
-                Material erfassen
+                {t("addMaterial")}
               </Link>
             </Button>
             <Button variant="outline" className="justify-start gap-2.5 h-10" asChild>
@@ -804,7 +805,7 @@ export default function DashboardPage() {
                 <span className="flex size-6 items-center justify-center rounded bg-emerald-500/10">
                   <IconTool className="size-3.5 text-emerald-600" />
                 </span>
-                Werkzeug erfassen
+                {t("addTool")}
               </Link>
             </Button>
             <Button variant="outline" className="justify-start gap-2.5 h-10" asChild>
@@ -812,7 +813,7 @@ export default function DashboardPage() {
                 <span className="flex size-6 items-center justify-center rounded bg-amber-500/10">
                   <IconKey className="size-3.5 text-amber-600" />
                 </span>
-                Schlüssel erfassen
+                {t("addKey")}
               </Link>
             </Button>
             <Separator className="my-1" />
@@ -821,7 +822,7 @@ export default function DashboardPage() {
                 <span className="flex size-6 items-center justify-center rounded bg-primary/10">
                   <IconClipboardList className="size-3.5 text-primary" />
                 </span>
-                Lieferschein erstellen
+                {t("createDeliveryNote")}
               </Link>
             </Button>
             <Button variant="outline" className="justify-start gap-2.5 h-10" asChild>
@@ -829,7 +830,7 @@ export default function DashboardPage() {
                 <span className="flex size-6 items-center justify-center rounded bg-muted">
                   <IconEdit className="size-3.5 text-muted-foreground" />
                 </span>
-                Bestandsänderung buchen
+                {t("bookStockChange")}
               </Link>
             </Button>
           </CardContent>
@@ -837,7 +838,7 @@ export default function DashboardPage() {
             <Button variant="default" className="w-full gap-1.5" asChild>
               <Link href="/dashboard/materials/new">
                 <IconPlus className="size-4" />
-                Neues Element anlegen
+                {t("createNewItem")}
               </Link>
             </Button>
           </CardFooter>
@@ -846,16 +847,16 @@ export default function DashboardPage() {
 
       {/* ── Anstehende Wartungen ──────────────────────────────────────── */}
       {(maintenanceLoading || upcomingMaintenance.length > 0) && (
-        <section aria-label="Anstehende Wartungen" className="px-4 lg:px-6">
+        <section aria-label={t("upcomingMaintenance")} className="px-4 lg:px-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
-                <CardTitle>Anstehende Wartungen</CardTitle>
-                <CardDescription>Werkzeuge mit Wartungsfälligkeit in den nächsten 7 Tagen</CardDescription>
+                <CardTitle>{t("upcomingMaintenance")}</CardTitle>
+                <CardDescription>{t("maintenanceSubtitle")}</CardDescription>
               </div>
               <Button variant="ghost" size="sm" asChild className="gap-1.5 text-xs text-muted-foreground">
                 <Link href="/dashboard/calendar">
-                  Alle anzeigen
+                  {t("viewAll")}
                   <IconArrowRight className="size-3.5" />
                 </Link>
               </Button>
@@ -890,15 +891,17 @@ export default function DashboardPage() {
                           <p className="truncate text-sm font-medium">{item.name}</p>
                           <p className="text-xs text-muted-foreground">
                             {isOverdue
-                              ? `${Math.abs(item.daysUntil)} Tag${Math.abs(item.daysUntil) !== 1 ? "e" : ""} überfällig`
-                              : `Fällig: ${new Date(item.nextMaintenanceDate + "T00:00:00").toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit", year: "numeric" })}`}
+                              ? (Math.abs(item.daysUntil) !== 1
+                                  ? t("daysOverduePlural", { count: Math.abs(item.daysUntil) })
+                                  : t("daysOverdue", { count: Math.abs(item.daysUntil) }))
+                              : t("dueDate", { date: new Date(item.nextMaintenanceDate + "T00:00:00").toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit", year: "numeric" }) })}
                             {item.assignedUserName && ` — ${item.assignedUserName}`}
                           </p>
                         </div>
                         <Button variant="outline" size="sm" asChild>
                           <Link href={`/dashboard/tools/${item.id}`}>
                             <IconCheck className="size-3.5 mr-1" />
-                            Wartung
+                            {t("maintenanceButton")}
                           </Link>
                         </Button>
                       </div>
@@ -913,16 +916,16 @@ export default function DashboardPage() {
 
       {/* ── Ablaufende Materialien ────────────────────────────────────── */}
       {(expiryLoading || expiringItems.length > 0) && (
-        <section aria-label="Ablaufende Materialien" className="px-4 lg:px-6">
+        <section aria-label={t("expiringMaterials")} className="px-4 lg:px-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
-                <CardTitle>Ablaufende Materialien</CardTitle>
-                <CardDescription>Chargen mit Ablaufdatum in den nächsten 30 Tagen (FEFO)</CardDescription>
+                <CardTitle>{t("expiringMaterials")}</CardTitle>
+                <CardDescription>{t("expiringMaterialsSubtitle")}</CardDescription>
               </div>
               <Button variant="ghost" size="sm" asChild className="gap-1.5 text-xs text-muted-foreground">
                 <Link href="/dashboard/materials">
-                  Alle anzeigen
+                  {t("viewAll")}
                   <IconArrowRight className="size-3.5" />
                 </Link>
               </Button>
@@ -957,8 +960,8 @@ export default function DashboardPage() {
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium">{item.materialName}</p>
                           <p className="text-xs text-muted-foreground">
-                            {item.locationName ?? "Kein Lagerort"}{item.batchNumber ? ` · Charge: ${item.batchNumber}` : ""}
-                            {" · "}{item.quantity} {item.unit ?? "Stk."}
+                            {item.locationName ?? t("noLocation")}{item.batchNumber ? ` · ${t("batch")}: ${item.batchNumber}` : ""}
+                            {" · "}{item.quantity} {item.unit ?? t("pcs")}
                           </p>
                         </div>
                         <Badge
@@ -966,9 +969,9 @@ export default function DashboardPage() {
                           className={`shrink-0 text-xs tabular-nums ${isWarning ? "border-amber-500 text-amber-600" : ""}`}
                         >
                           {isExpired
-                            ? `${Math.abs(item.daysUntil)}d abgelaufen`
+                            ? t("expiredDays", { count: Math.abs(item.daysUntil) })
                             : item.daysUntil === 0
-                              ? "Heute"
+                              ? t("today")
                               : `${item.daysUntil}d`}
                         </Badge>
                       </div>
@@ -983,24 +986,24 @@ export default function DashboardPage() {
 
       {/* ── Anomalien ─────────────────────────────────────────────────── */}
       {(anomalyLoading || anomalies.length > 0) && (
-        <section aria-label="Erkannte Anomalien" className="px-4 lg:px-6">
+        <section aria-label={t("detectedAnomalies")} className="px-4 lg:px-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <IconAlertTriangle className="size-5 text-amber-500" />
-                  Erkannte Anomalien
+                  {t("detectedAnomalies")}
                   {!anomalyLoading && anomalies.filter(a => a.severity === "high").length > 0 && (
                     <span className="inline-flex items-center rounded-full bg-destructive px-2 py-0.5 text-xs font-semibold text-destructive-foreground">
                       {anomalies.filter(a => a.severity === "high").length}
                     </span>
                   )}
                 </CardTitle>
-                <CardDescription>Ungewöhnliche Lagerbewegungen der letzten 7 Tage</CardDescription>
+                <CardDescription>{t("anomaliesSubtitle")}</CardDescription>
               </div>
               <Button variant="ghost" size="sm" asChild className="gap-1.5 text-xs text-muted-foreground">
                 <Link href="/dashboard/anomalies">
-                  Alle anzeigen
+                  {t("viewAll")}
                   <IconArrowRight className="size-3.5" />
                 </Link>
               </Button>
@@ -1024,7 +1027,7 @@ export default function DashboardPage() {
                   <div className="flex size-9 items-center justify-center rounded-xl bg-emerald-500/10">
                     <IconShieldCheck className="size-4 text-emerald-600" />
                   </div>
-                  Keine Anomalien erkannt — Lagerbewegungen sind unauffällig.
+                  {t("noAnomalies")}
                 </div>
               ) : (
                 <div className="divide-y divide-border">
@@ -1052,7 +1055,7 @@ export default function DashboardPage() {
                           variant={anomaly.severity === "high" ? "destructive" : "outline"}
                           className={`shrink-0 text-xs ${anomaly.severity === "medium" ? "border-amber-500 text-amber-700" : anomaly.severity === "low" ? "border-blue-400 text-blue-600" : ""}`}
                         >
-                          {anomaly.severity === "high" ? "Kritisch" : anomaly.severity === "medium" ? "Mittel" : "Niedrig"}
+                          {anomaly.severity === "high" ? t("severityHigh") : anomaly.severity === "medium" ? t("severityMedium") : t("severityLow")}
                         </Badge>
                       </div>
                     )
@@ -1073,8 +1076,8 @@ export default function DashboardPage() {
       <div className="px-4 lg:px-6">
         <Card>
           <CardHeader>
-            <CardTitle>Buchungen — letzte 12 Monate</CardTitle>
-            <CardDescription>Materialien / Werkzeuge / Schlüssel (Platzhalterdaten)</CardDescription>
+            <CardTitle>{t("bookingsLast12Months")}</CardTitle>
+            <CardDescription>{t("chartSubtitle")}</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (

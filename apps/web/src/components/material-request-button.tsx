@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import {
   IconPlus,
   IconPackage,
@@ -54,10 +55,11 @@ export function MaterialRequestButton({
   materialUnit: prefillUnit,
   open: controlledOpen,
   onOpenChange,
-  label = "Material anfragen",
+  label: labelProp,
   variant = "outline",
   size = "sm",
 }: MaterialRequestButtonProps) {
+  const t = useTranslations("materialRequest")
   const [internalOpen, setInternalOpen] = useState(false)
   const isControlled = controlledOpen !== undefined
   const open = isControlled ? controlledOpen : internalOpen
@@ -148,16 +150,16 @@ export function MaterialRequestButton({
       {!isControlled && (
         <Button variant={variant} size={size} onClick={() => setOpen(true)}>
           <IconPackage className="size-4" />
-          {label}
+          {labelProp || t("title")}
         </Button>
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Material anfragen</DialogTitle>
+            <DialogTitle>{t("title")}</DialogTitle>
             <DialogDescription>
-              Stellen Sie eine Anfrage für Material-Nachbestellung.
+              {t("description")}
             </DialogDescription>
           </DialogHeader>
 
@@ -166,9 +168,9 @@ export function MaterialRequestButton({
               <div className="flex size-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
                 <IconCheck className="size-6 text-green-600" />
               </div>
-              <p className="text-sm font-medium">Anfrage erfolgreich gestellt</p>
+              <p className="text-sm font-medium">{t("success")}</p>
               <p className="text-xs text-muted-foreground text-center">
-                Ein Admin wird Ihre Anfrage prüfen und genehmigen.
+                {t("successDesc")}
               </p>
             </div>
           ) : (
@@ -176,11 +178,11 @@ export function MaterialRequestButton({
               <div className="space-y-4 py-2">
                 {!prefillId && (
                   <div className="space-y-2">
-                    <Label>Material</Label>
+                    <Label>{t("materialLabel")}</Label>
                     <div className="relative">
                       <IconSearch className="absolute left-2.5 top-2.5 size-4 text-muted-foreground pointer-events-none" />
                       <Input
-                        placeholder="Material suchen oder Namen eingeben…"
+                        placeholder={t("searchPlaceholder")}
                         className="pl-8"
                         value={materialSearch}
                         onChange={(e) => {
@@ -193,7 +195,7 @@ export function MaterialRequestButton({
                     {materialId && (
                       <p className="text-xs text-green-600 flex items-center gap-1">
                         <IconCheck className="size-3.5" />
-                        Vorhandenes Material verknüpft
+                        {t("linkedMaterial")}
                       </p>
                     )}
                     {searchResults.length > 0 && !materialId && (
@@ -226,7 +228,7 @@ export function MaterialRequestButton({
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label>Menge</Label>
+                    <Label>{t("quantity")}</Label>
                     <Input
                       type="number"
                       min={1}
@@ -235,7 +237,7 @@ export function MaterialRequestButton({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Einheit</Label>
+                    <Label>{t("unit")}</Label>
                     <Input
                       value={unit}
                       onChange={(e) => setUnit(e.target.value)}
@@ -245,27 +247,27 @@ export function MaterialRequestButton({
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Priorität</Label>
+                  <Label>{t("priority")}</Label>
                   <Select value={priority} onValueChange={setPriority}>
                     <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="low">Niedrig</SelectItem>
-                      <SelectItem value="normal">Normal</SelectItem>
-                      <SelectItem value="high">Hoch</SelectItem>
-                      <SelectItem value="urgent">Dringend</SelectItem>
+                      <SelectItem value="low">{t("priorityLow")}</SelectItem>
+                      <SelectItem value="normal">{t("priorityNormal")}</SelectItem>
+                      <SelectItem value="high">{t("priorityHigh")}</SelectItem>
+                      <SelectItem value="urgent">{t("priorityUrgent")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
                   <Label>
-                    Begründung{" "}
+                    {t("reason")}{" "}
                     <span className="font-normal text-muted-foreground">(optional)</span>
                   </Label>
                   <Textarea
-                    placeholder="Warum wird das Material benötigt?"
+                    placeholder={t("reasonPlaceholder")}
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                     className="min-h-[72px]"
@@ -286,7 +288,7 @@ export function MaterialRequestButton({
                   }
                 >
                   <IconPlus className="size-4" />
-                  {submitting ? "Wird gesendet…" : "Anfrage stellen"}
+                  {submitting ? t("submitting") : t("submitRequest")}
                 </Button>
               </DialogFooter>
             </>

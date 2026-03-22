@@ -117,8 +117,7 @@ export default function KeypadSettingsPage() {
           {ts("keypadTitle")}
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Konfigurieren Sie die Tastenbelegung Ihres programmierbaren Keypads
-          oder Ihrer Funktionstasten für schnelle Lager-Aktionen.
+          {ts("keypadSubtitle")}
         </p>
       </div>
 
@@ -130,18 +129,17 @@ export default function KeypadSettingsPage() {
             Schnelltasten
           </CardTitle>
           <CardDescription>
-            Aktivieren oder deaktivieren Sie die Funktionstasten-Erkennung.
+            {ts("quickKeysDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="keypad-enabled" className="text-base font-medium">
-                Schnelltasten aktiviert
+                {ts("quickKeysEnabled")}
               </Label>
               <p className="text-sm text-muted-foreground">
-                Funktionstasten (F1-F12) lösen Lager-Aktionen aus, wenn kein
-                Eingabefeld fokussiert ist.
+                {ts("quickKeysEnabledDesc")}
               </p>
             </div>
             <Switch
@@ -158,9 +156,9 @@ export default function KeypadSettingsPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Tastenbelegung</CardTitle>
+              <CardTitle>{ts("keyMapping")}</CardTitle>
               <CardDescription>
-                Weisen Sie jeder Funktionstaste eine Lager-Aktion zu.
+                {ts("keyMappingDesc")}
               </CardDescription>
             </div>
             <Button variant="outline" size="sm" onClick={handleReset}>
@@ -173,9 +171,9 @@ export default function KeypadSettingsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-24">Taste</TableHead>
-                <TableHead className="w-48">Standard</TableHead>
-                <TableHead>Aktuelle Aktion</TableHead>
+                <TableHead className="w-24">{ts("keyCol")}</TableHead>
+                <TableHead className="w-48">{ts("defaultCol")}</TableHead>
+                <TableHead>{ts("currentAction")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -219,10 +217,9 @@ export default function KeypadSettingsPage() {
       {/* ── Lernen-Modus ── */}
       <Card>
         <CardHeader>
-          <CardTitle>Lernen-Modus</CardTitle>
+          <CardTitle>{ts("learnMode")}</CardTitle>
           <CardDescription>
-            Drücken Sie eine Taste auf Ihrem Keypad, um zu sehen, welcher
-            Tastencode empfangen wird. Nützlich zur Diagnose und Konfiguration.
+            {ts("learnModeDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -240,12 +237,12 @@ export default function KeypadSettingsPage() {
               {learnMode ? (
                 <>
                   <IconPlayerStop className="mr-2 size-4" />
-                  Lernen beenden
+                  {ts("stopLearning")}
                 </>
               ) : (
                 <>
                   <IconPlayerRecord className="mr-2 size-4" />
-                  Lernen starten
+                  {ts("startLearning")}
                 </>
               )}
             </Button>
@@ -257,7 +254,7 @@ export default function KeypadSettingsPage() {
                     <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-green-500/10">
                       <IconCheck className="size-6 text-green-600" />
                     </div>
-                    <p className="text-lg font-semibold">Taste erkannt!</p>
+                    <p className="text-lg font-semibold">{ts("keyDetected")}</p>
                     <div className="flex items-center justify-center gap-4">
                       <div>
                         <p className="text-xs uppercase tracking-wider text-muted-foreground">
@@ -283,8 +280,7 @@ export default function KeypadSettingsPage() {
                       </div>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Drücken Sie eine weitere Taste oder beenden Sie den
-                      Lernen-Modus.
+                      {ts("pressAnotherKey")}
                     </p>
                   </div>
                 ) : (
@@ -293,10 +289,10 @@ export default function KeypadSettingsPage() {
                       <IconKeyboard className="size-6 text-primary" />
                     </div>
                     <p className="text-lg font-medium text-muted-foreground">
-                      Warte auf Tastendruck...
+                      {ts("waitingForKey")}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Drücken Sie eine beliebige Taste auf Ihrem Keypad.
+                      {ts("pressAnyKey")}
                     </p>
                   </div>
                 )}
@@ -314,8 +310,7 @@ export default function KeypadSettingsPage() {
             Kompatible Geräte
           </CardTitle>
           <CardDescription>
-            Programmierbare Keypads und Tastaturen, die mit LogistikApp
-            funktionieren.
+            {ts("compatibleDevicesDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -346,10 +341,7 @@ export default function KeypadSettingsPage() {
               Hinweis
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Jedes USB-Keypad, das <strong>Funktionstasten (F1-F12)</strong>{" "}
-              senden kann, wird unterstützt. Programmieren Sie Ihre physischen
-              Tasten so, dass sie die gewünschten F-Tasten senden. Die meisten
-              Keypads werden mit einer Konfigurationssoftware geliefert.
+              {ts("keypadNoteText")}
             </p>
           </div>
         </CardContent>

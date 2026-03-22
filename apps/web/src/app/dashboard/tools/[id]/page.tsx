@@ -168,11 +168,11 @@ interface ToolDetail {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-const conditionConfig: Record<ToolCondition, { label: string; className: string }> = {
-  good: { label: "Gut", className: "bg-secondary/10 text-secondary border-transparent" },
-  damaged: { label: "Beschädigt", className: "bg-primary/10 text-primary border-transparent" },
-  repair: { label: "Reparatur", className: "bg-destructive/10 text-destructive border-transparent" },
-  decommissioned: { label: "Ausgemustert", className: "bg-muted text-muted-foreground border-transparent" },
+const conditionClassNames: Record<ToolCondition, string> = {
+  good: "bg-secondary/10 text-secondary border-transparent",
+  damaged: "bg-primary/10 text-primary border-transparent",
+  repair: "bg-destructive/10 text-destructive border-transparent",
+  decommissioned: "bg-muted text-muted-foreground border-transparent",
 }
 
 function formatDate(dateStr: string | null): string {
@@ -418,7 +418,7 @@ export default function ToolDetailPage() {
   if (!tool) {
     return (
       <div className="flex flex-col items-center justify-center py-20 px-4">
-        <h2 className="text-lg font-medium">Werkzeug nicht gefunden</h2>
+        <h2 className="text-lg font-medium">{t("notFound")}</h2>
         <Button
           variant="outline"
           className="mt-4"
@@ -431,7 +431,8 @@ export default function ToolDetailPage() {
     )
   }
 
-  const cond = tool.condition ? conditionConfig[tool.condition] : null
+  const condClassName = tool.condition ? conditionClassNames[tool.condition] : null
+  const condLabel = tool.condition ? t(`conditions.${tool.condition}`) : null
   const maintenanceOverdue = isMaintenanceOverdue(tool.nextMaintenanceDate)
   const isHome = !tool.assignedToId && !tool.assignedLocationId
 
@@ -469,9 +470,9 @@ export default function ToolDetailPage() {
               <h1 className="text-2xl font-semibold tracking-tight">
                 {tool.name}
               </h1>
-              {cond && (
-                <Badge variant="outline" className={`text-xs ${cond.className}`}>
-                  {cond.label}
+              {condClassName && (
+                <Badge variant="outline" className={`text-xs ${condClassName}`}>
+                  {condLabel}
                 </Badge>
               )}
             </div>
@@ -490,7 +491,7 @@ export default function ToolDetailPage() {
             onClick={() => router.push("/dashboard/tools/labels")}
           >
             <IconTag className="size-4" />
-            Etiketten
+            {t("labels")}
           </Button>
           <Button
             variant="outline"
@@ -501,7 +502,7 @@ export default function ToolDetailPage() {
             }}
           >
             <IconCalendar className="size-4" />
-            Reservieren
+            {t("reserve")}
           </Button>
           <Separator orientation="vertical" className="mx-1 h-6" />
           {isEditing ? (
@@ -549,13 +550,13 @@ export default function ToolDetailPage() {
         <div className="flex items-center gap-3 rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
           <IconClockHour4 className="size-5 shrink-0 text-yellow-600" />
           <div className="flex-1">
-            <span className="font-medium">Genehmigung ausstehend</span> &mdash; Deine Ausleihanfrage wurde an die Administratoren weitergeleitet.
+            <span className="font-medium">{t("pendingApproval")}</span> &mdash; {t("pendingApprovalDesc")}
           </div>
           <button
             className="shrink-0 text-yellow-600 hover:text-yellow-800 underline text-xs"
             onClick={() => setPendingApproval(null)}
           >
-            Schliessen
+            {t("dismissLabel")}
           </button>
         </div>
       )}
@@ -579,7 +580,7 @@ export default function ToolDetailPage() {
                       </span>
                     ) : (
                       <span className="text-primary">
-                        Ausgecheckt &mdash; {tool.assignedUserName ?? "\u2014"}
+                        {t("checkedOut")} &mdash; {tool.assignedUserName ?? "\u2014"}
                       </span>
                     )}
                   </span>
@@ -587,13 +588,13 @@ export default function ToolDetailPage() {
                 {!isHome && tool.assignedLocationId && (
                   <p className="flex items-center gap-1 text-sm text-muted-foreground">
                     <IconMapPin className="size-3.5" />
-                    Lagerort-ID: {tool.assignedLocationId}
+                    {t("locationId", { id: tool.assignedLocationId })}
                   </p>
                 )}
                 {maintenanceOverdue && (
                   <p className="flex items-center gap-1 text-sm font-medium text-destructive">
                     <IconAlertTriangle className="size-3.5" />
-                    Wartung &uuml;berf&auml;llig ({formatDate(tool.nextMaintenanceDate)})
+                    {t("maintenanceOverdue", { date: formatDate(tool.nextMaintenanceDate) })}
                   </p>
                 )}
               </div>
@@ -647,7 +648,7 @@ export default function ToolDetailPage() {
         <Card>
           <CardContent className="p-4">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              N&auml;chste Wartung
+              {t("nextMaintenance")}
             </p>
             <p
               className={`mt-1 text-lg font-bold ${
@@ -661,11 +662,11 @@ export default function ToolDetailPage() {
         <Card>
           <CardContent className="p-4">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Intervall
+              {t("interval")}
             </p>
             <p className="mt-1 text-lg font-bold">
               {tool.maintenanceIntervalDays
-                ? `${tool.maintenanceIntervalDays} Tage`
+                ? t("intervalDays", { count: tool.maintenanceIntervalDays })
                 : "\u2014"}
             </p>
           </CardContent>
@@ -673,7 +674,7 @@ export default function ToolDetailPage() {
         <Card>
           <CardContent className="p-4">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Buchungen
+              {t("bookings")}
             </p>
             <p className="mt-1 text-lg font-bold">
               {tool.recentBookings?.length ?? 0}
@@ -687,11 +688,11 @@ export default function ToolDetailPage() {
         <TabsList>
           <TabsTrigger value="general">{t("tabs.general")}</TabsTrigger>
           <TabsTrigger value="bookings">{t("tabs.bookingHistory")}</TabsTrigger>
-          <TabsTrigger value="maintenance">Wartung</TabsTrigger>
-          <TabsTrigger value="qr">QR-Code</TabsTrigger>
-          <TabsTrigger value="insurance">Versicherung & Garantie</TabsTrigger>
-          <TabsTrigger value="attachments">Anhänge</TabsTrigger>
-          <TabsTrigger value="comments">Kommentare</TabsTrigger>
+          <TabsTrigger value="maintenance">{t("tabs.maintenance")}</TabsTrigger>
+          <TabsTrigger value="qr">{t("tabs.qr")}</TabsTrigger>
+          <TabsTrigger value="insurance">{t("tabs.insurance")}</TabsTrigger>
+          <TabsTrigger value="attachments">{t("tabs.attachments")}</TabsTrigger>
+          <TabsTrigger value="comments">{t("tabs.comments")}</TabsTrigger>
         </TabsList>
 
         {/* ─── General Tab ─────────────────────────────────────────── */}
@@ -807,7 +808,7 @@ export default function ToolDetailPage() {
 
               {/* Barcode */}
               <div className="space-y-2">
-                <Label>Barcode</Label>
+                <Label>{t("barcode")}</Label>
                 {isEditing ? (
                   <Input
                     value={form.barcode ?? ""}
@@ -824,7 +825,7 @@ export default function ToolDetailPage() {
 
               {/* Hersteller */}
               <div className="space-y-2">
-                <Label>Hersteller</Label>
+                <Label>{t("manufacturer")}</Label>
                 {isEditing ? (
                   <Input
                     value={form.manufacturer ?? ""}
@@ -839,7 +840,7 @@ export default function ToolDetailPage() {
 
               {/* Herstellernummer */}
               <div className="space-y-2">
-                <Label>Herstellernummer</Label>
+                <Label>{t("manufacturerNumber")}</Label>
                 {isEditing ? (
                   <Input
                     value={form.manufacturerNumber ?? ""}
@@ -859,7 +860,7 @@ export default function ToolDetailPage() {
 
               {/* Seriennummer */}
               <div className="space-y-2">
-                <Label>Seriennummer</Label>
+                <Label>{t("serialNumber")}</Label>
                 {isEditing ? (
                   <Input
                     value={form.serialNumber ?? ""}
@@ -893,16 +894,16 @@ export default function ToolDetailPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="good">Gut</SelectItem>
-                      <SelectItem value="damaged">Besch&auml;digt</SelectItem>
-                      <SelectItem value="repair">Reparatur</SelectItem>
-                      <SelectItem value="decommissioned">Ausgemustert</SelectItem>
+                      <SelectItem value="good">{t("conditions.good")}</SelectItem>
+                      <SelectItem value="damaged">{t("conditions.damaged")}</SelectItem>
+                      <SelectItem value="repair">{t("conditions.repair")}</SelectItem>
+                      <SelectItem value="decommissioned">{t("conditions.decommissioned")}</SelectItem>
                     </SelectContent>
                   </Select>
                 ) : (
                   <p className="text-sm">
                     {tool.condition
-                      ? conditionConfig[tool.condition].label
+                      ? t(`conditions.${tool.condition}`)
                       : "\u2014"}
                   </p>
                 )}
@@ -910,7 +911,7 @@ export default function ToolDetailPage() {
 
               {/* Wartungsintervall */}
               <div className="space-y-2">
-                <Label>Wartungsintervall (Tage)</Label>
+                <Label>{t("maintenanceIntervalDays")}</Label>
                 {isEditing ? (
                   <Input
                     type="number"
@@ -927,7 +928,7 @@ export default function ToolDetailPage() {
                 ) : (
                   <p className="text-sm">
                     {tool.maintenanceIntervalDays
-                      ? `${tool.maintenanceIntervalDays} Tage`
+                      ? t("intervalDays", { count: tool.maintenanceIntervalDays })
                       : "\u2014"}
                   </p>
                 )}
@@ -935,7 +936,7 @@ export default function ToolDetailPage() {
 
               {/* Notizen */}
               <div className="space-y-2 sm:col-span-2">
-                <Label>Notizen</Label>
+                <Label>{t("notesField")}</Label>
                 {isEditing ? (
                   <textarea
                     className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
@@ -960,16 +961,16 @@ export default function ToolDetailPage() {
             {!tool.recentBookings || tool.recentBookings.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16">
                 <p className="text-sm text-muted-foreground">
-                  Keine Buchungen vorhanden
+                  {t("noBookings")}
                 </p>
               </div>
             ) : (
               <div className="divide-y">
                 {tool.recentBookings.map((booking) => {
                   const bookingTypeLabel: Record<string, string> = {
-                    checkout: "Ausgecheckt",
-                    checkin: "Eingecheckt",
-                    transfer: "Umgebucht",
+                    checkout: t("bookingTypes.checkout"),
+                    checkin: t("bookingTypes.checkin"),
+                    transfer: t("bookingTypes.transfer"),
                   }
                   const completedItems = booking.checklistResult?.filter((r) => r.checked) ?? []
                   const totalItems = booking.checklistResult?.length ?? 0
@@ -1007,7 +1008,7 @@ export default function ToolDetailPage() {
                           <details className="group">
                             <summary className="flex cursor-pointer items-center gap-1 text-xs text-primary hover:underline list-none">
                               <IconChecklist className="size-3" />
-                              Checkliste anzeigen
+                              {t("showChecklist")}
                             </summary>
                             <div className="mt-2 space-y-1 rounded-md border bg-muted/40 px-3 py-2">
                               {booking.checklistResult.map((item) => (
@@ -1024,7 +1025,7 @@ export default function ToolDetailPage() {
                                     )}
                                   </div>
                                   {item.required && !item.checked && (
-                                    <span className="ml-auto shrink-0 text-[10px] text-destructive font-medium">Pflicht!</span>
+                                    <span className="ml-auto shrink-0 text-[10px] text-destructive font-medium">{t("required")}</span>
                                   )}
                                 </div>
                               ))}
@@ -1065,7 +1066,7 @@ export default function ToolDetailPage() {
                       : "text-muted-foreground"
                   }`}
                 />
-                <p className="text-xs text-muted-foreground">N&auml;chste Wartung</p>
+                <p className="text-xs text-muted-foreground">{t("nextMaintenance")}</p>
                 <p
                   className={`text-lg font-semibold ${
                     maintenanceOverdue ? "text-destructive" : ""
@@ -1078,10 +1079,10 @@ export default function ToolDetailPage() {
             <Card>
               <CardContent className="flex flex-col items-center p-4 text-center">
                 <IconTool className="mb-2 size-6 text-muted-foreground" />
-                <p className="text-xs text-muted-foreground">Intervall</p>
+                <p className="text-xs text-muted-foreground">{t("interval")}</p>
                 <p className="text-lg font-semibold">
                   {tool.maintenanceIntervalDays
-                    ? `${tool.maintenanceIntervalDays} Tage`
+                    ? t("intervalDays", { count: tool.maintenanceIntervalDays })
                     : "\u2014"}
                 </p>
               </CardContent>
@@ -1091,7 +1092,7 @@ export default function ToolDetailPage() {
           <Card>
             <div className="flex flex-col items-center justify-center py-16">
               <p className="text-sm text-muted-foreground">
-                Wartungshistorie wird in einer zuk&uuml;nftigen Version verf&uuml;gbar sein.
+                {t("maintenanceHistoryPlaceholder")}
               </p>
             </div>
           </Card>
@@ -1340,7 +1341,7 @@ export default function ToolDetailPage() {
                   />
                 </div>
                 <div className="space-y-2 sm:col-span-2">
-                  <Label>Notizen</Label>
+                  <Label>{t("notesField")}</Label>
                   <textarea
                     className="flex min-h-[70px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none"
                     value={calibForm.notes}
@@ -1361,7 +1362,7 @@ export default function ToolDetailPage() {
                     disabled={calibSaving || !calibForm.calibratedAt}
                   >
                     <IconCertificate className="size-4" />
-                    {calibSaving ? tc("loading") : "Speichern"}
+                    {calibSaving ? tc("loading") : tc("save")}
                   </Button>
                 </div>
               </CardContent>
@@ -1553,19 +1554,19 @@ export default function ToolDetailPage() {
               <Input
                 value={checkoutUserId}
                 onChange={(e) => setCheckoutUserId(e.target.value)}
-                placeholder="Benutzer-ID oder Name..."
+                placeholder={t("userPlaceholder")}
               />
             </div>
             <div className="space-y-2">
               <Label>
-                <IconMapPin className="inline size-4" /> Ziel-Lagerort
+                <IconMapPin className="inline size-4" /> {t("targetLocation")}
               </Label>
               <Select
                 value={checkoutLocationId}
                 onValueChange={setCheckoutLocationId}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Lagerort w&auml;hlen..." />
+                  <SelectValue placeholder={t("selectLocationPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {locations.map((l) => (
@@ -1577,19 +1578,19 @@ export default function ToolDetailPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Notiz (optional)</Label>
+              <Label>{t("noteOptional")}</Label>
               <textarea
                 className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none"
                 value={checkoutNotes}
                 onChange={(e) => setCheckoutNotes(e.target.value)}
-                placeholder="Bemerkung zur Ausbuchung..."
+                placeholder={t("checkoutNotePlaceholder")}
               />
             </div>
 
             {/* Checklist */}
             {checkoutChecklist.length > 0 && (
               <ChecklistStep
-                title="Abholungs-Checkliste"
+                title={t("pickupChecklist")}
                 results={checkoutChecklist}
                 onChange={setCheckoutChecklist}
               />
@@ -1677,7 +1678,7 @@ export default function ToolDetailPage() {
               }}
             >
               <IconLogout className="size-4" />
-              {checkoutSubmitting ? "Wird gesendet..." : t("checkOut")}
+              {checkoutSubmitting ? t("submitting") : t("checkOut")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1704,13 +1705,13 @@ export default function ToolDetailPage() {
           <div className="space-y-4 py-2">
             <div className="rounded-lg border p-3 space-y-1">
               <p className="text-sm">
-                <span className="text-muted-foreground">Aktuell bei:</span>{" "}
+                <span className="text-muted-foreground">{t("currentlyAt")}</span>{" "}
                 <span className="font-medium">
                   {tool.assignedUserName ?? "\u2014"}
                 </span>
               </p>
               <p className="text-sm">
-                <span className="text-muted-foreground">Zur&uuml;ck an:</span>{" "}
+                <span className="text-muted-foreground">{t("returnTo")}</span>{" "}
                 <span className="font-medium">
                   {tool.homeLocationName ?? "\u2014"}
                 </span>
@@ -1726,26 +1727,26 @@ export default function ToolDetailPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="good">Gut</SelectItem>
-                  <SelectItem value="damaged">Besch&auml;digt</SelectItem>
-                  <SelectItem value="repair">Reparatur n&ouml;tig</SelectItem>
+                  <SelectItem value="good">{t("conditions.good")}</SelectItem>
+                  <SelectItem value="damaged">{t("conditions.damaged")}</SelectItem>
+                  <SelectItem value="repair">{t("conditionRepairNeeded")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Notiz (optional)</Label>
+              <Label>{t("noteOptional")}</Label>
               <textarea
                 className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none"
                 value={checkinNotes}
                 onChange={(e) => setCheckinNotes(e.target.value)}
-                placeholder="Bemerkung zur R&uuml;ckgabe..."
+                placeholder={t("checkinNotePlaceholder")}
               />
             </div>
 
             {/* Checklist */}
             {checkinChecklist.length > 0 && (
               <ChecklistStep
-                title="Rückgabe-Checkliste"
+                title={t("returnChecklist")}
                 results={checkinChecklist}
                 onChange={setCheckinChecklist}
               />
@@ -1833,10 +1834,9 @@ export default function ToolDetailPage() {
       <Dialog open={showDelete} onOpenChange={setShowDelete}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Werkzeug l&ouml;schen</DialogTitle>
+            <DialogTitle>{t("deleteTitle")}</DialogTitle>
             <DialogDescription>
-              M&ouml;chten Sie &laquo;{tool.name}&raquo; wirklich l&ouml;schen?
-              Diese Aktion kann nicht r&uuml;ckg&auml;ngig gemacht werden.
+              {t("deleteDescription", { name: tool.name })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

@@ -60,8 +60,7 @@ export default function ScannerSettingsPage() {
           {ts("scannerTitle")}
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Konfigurieren Sie die Erkennung von Hardware-Barcode-Scannern im
-          Keyboard-Wedge-Modus.
+          {ts("scannerSubtitle")}
         </p>
       </div>
 
@@ -70,10 +69,10 @@ export default function ScannerSettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <IconBarcode className="size-5" />
-            Scanner-Erkennung
+            {ts("scannerDetection")}
           </CardTitle>
           <CardDescription>
-            Steuern Sie, wie LogistikApp auf Barcode-Scanner-Eingaben reagiert.
+            {ts("scannerDetectionDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -84,11 +83,10 @@ export default function ScannerSettingsPage() {
                 htmlFor="scanner-enabled"
                 className="text-base font-medium"
               >
-                Scanner-Erkennung aktiviert
+                {ts("scannerEnabled")}
               </Label>
               <p className="text-sm text-muted-foreground">
-                Schnelle Tastatureingaben werden automatisch als Barcode-Scan
-                erkannt.
+                {ts("scannerEnabledDesc")}
               </p>
             </div>
             <Switch
@@ -108,11 +106,10 @@ export default function ScannerSettingsPage() {
                 className="flex items-center gap-2 text-base font-medium"
               >
                 <IconVolume className="size-4 text-muted-foreground" />
-                Piepton bei Scan
+                {ts("scannerSound")}
               </Label>
               <p className="text-sm text-muted-foreground">
-                Ein kurzer Bestätigungston wird bei jedem erkannten Scan
-                abgespielt.
+                {ts("scannerSoundDesc")}
               </p>
             </div>
             <Switch
@@ -133,11 +130,10 @@ export default function ScannerSettingsPage() {
                 className="flex items-center gap-2 text-base font-medium"
               >
                 <IconSearch className="size-4 text-muted-foreground" />
-                Produkt automatisch nachschlagen
+                {ts("scannerAutoLookup")}
               </Label>
               <p className="text-sm text-muted-foreground">
-                Nach dem Scan wird der Barcode automatisch in der Datenbank
-                gesucht.
+                {ts("scannerAutoLookupDesc")}
               </p>
             </div>
             <Switch
@@ -153,11 +149,9 @@ export default function ScannerSettingsPage() {
       {/* ── Testbereich ── */}
       <Card>
         <CardHeader>
-          <CardTitle>Scanner testen</CardTitle>
+          <CardTitle>{ts("testScanner")}</CardTitle>
           <CardDescription>
-            Scannen Sie einen Barcode, um die Erkennung zu testen. Klicken Sie
-            nicht in ein Eingabefeld — der Scanner wird nur erkannt, wenn kein
-            Textfeld fokussiert ist.
+            {ts("testScannerDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -167,7 +161,7 @@ export default function ScannerSettingsPage() {
                 <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-green-500/10">
                   <IconCheck className="size-6 text-green-600" />
                 </div>
-                <p className="text-lg font-semibold">Scan erkannt!</p>
+                <p className="text-lg font-semibold">{ts("scanDetected")}</p>
                 <p className="font-mono text-2xl tracking-wider">
                   {testResult}
                 </p>
@@ -185,12 +179,12 @@ export default function ScannerSettingsPage() {
                   <IconBarcode className="size-6 text-muted-foreground" />
                 </div>
                 <p className="text-lg font-medium text-muted-foreground">
-                  Scannen Sie einen Barcode zum Testen
+                  {ts("scanBarcodePlease")}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {enabled
-                    ? "Bereit — Scanner-Erkennung ist aktiv."
-                    : "Scanner-Erkennung ist deaktiviert. Aktivieren Sie sie oben."}
+                    ? ts("scannerReady")
+                    : ts("scannerDisabled")}
                 </p>
               </div>
             )}
@@ -198,7 +192,7 @@ export default function ScannerSettingsPage() {
 
           {lastScan && !testResult && (
             <p className="mt-4 text-sm text-muted-foreground">
-              Letzter Scan:{" "}
+              {ts("lastScan")}{" "}
               <span className="font-mono font-medium">{lastScan}</span>
             </p>
           )}
@@ -213,8 +207,7 @@ export default function ScannerSettingsPage() {
             Kompatible Scanner
           </CardTitle>
           <CardDescription>
-            LogistikApp unterstützt alle gängigen USB- und Bluetooth-Scanner im
-            Keyboard-Wedge-Modus.
+            {ts("compatibleScannersDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -226,11 +219,11 @@ export default function ScannerSettingsPage() {
               },
               {
                 brand: "Honeywell",
-                desc: "Voyager 1200g, Granit 1981i und weitere",
+                desc: "Voyager 1200g, Granit 1981i+",
               },
               {
                 brand: "Datalogic",
-                desc: "QuickScan QD2500, Gryphon GD4500 und weitere",
+                desc: "QuickScan QD2500, Gryphon GD4500+",
               },
               {
                 brand: "Symbol / Motorola",
@@ -252,10 +245,7 @@ export default function ScannerSettingsPage() {
               Hinweis
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Jeder USB- oder Bluetooth-Scanner, der im{" "}
-              <strong>Keyboard-Wedge-Modus</strong> arbeitet, wird unterstützt.
-              Stellen Sie sicher, dass Ihr Scanner so konfiguriert ist, dass er
-              nach jedem Scan eine Enter-Taste sendet.
+              {ts("scannerNoteText")}
             </p>
           </div>
         </CardContent>

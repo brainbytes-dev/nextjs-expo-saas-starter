@@ -128,7 +128,7 @@ export default function NewToolPage() {
 
   const validate = useCallback((): boolean => {
     const errs: Partial<Record<keyof FormState, string>> = {}
-    if (!form.name.trim()) errs.name = "Name ist erforderlich"
+    if (!form.name.trim()) errs.name = t("nameRequired")
     setErrors(errs)
     return Object.keys(errs).length === 0
   }, [form])
@@ -208,7 +208,7 @@ export default function NewToolPage() {
           {/* AI Photo Recognition */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">KI-Erkennung aus Foto</CardTitle>
+              <CardTitle className="text-base">{t("aiRecognition")}</CardTitle>
             </CardHeader>
             <CardContent>
               <AiPhotoRecognize onRecognized={handleRecognized} />
@@ -218,7 +218,7 @@ export default function NewToolPage() {
           {/* Basic info */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Grunddaten</CardTitle>
+              <CardTitle className="text-base">{t("basicData")}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-5 sm:grid-cols-2">
               {/* Name */}
@@ -230,7 +230,7 @@ export default function NewToolPage() {
                   id="name"
                   value={form.name}
                   onChange={(e) => updateField("name", e.target.value)}
-                  placeholder="z.B. Bohrmaschine Hilti TE 6-A22"
+                  placeholder={t("namePlaceholder")}
                   aria-invalid={!!errors.name}
                 />
                 {errors.name && (
@@ -245,7 +245,7 @@ export default function NewToolPage() {
                   id="number"
                   value={form.number}
                   onChange={(e) => updateField("number", e.target.value)}
-                  placeholder="z.B. WZ-001"
+                  placeholder={t("numberPlaceholder")}
                 />
               </div>
 
@@ -257,7 +257,7 @@ export default function NewToolPage() {
                   onValueChange={(v) => updateField("groupId", v)}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Gruppe w&auml;hlen..." />
+                    <SelectValue placeholder={t("selectGroup")} />
                   </SelectTrigger>
                   <SelectContent>
                     {groups.map((g) => (
@@ -277,7 +277,7 @@ export default function NewToolPage() {
                   onValueChange={(v) => updateField("homeLocationId", v)}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Lagerort w&auml;hlen..." />
+                    <SelectValue placeholder={t("selectLocation")} />
                   </SelectTrigger>
                   <SelectContent>
                     {locations.map((l) => (
@@ -291,7 +291,7 @@ export default function NewToolPage() {
 
               {/* Barcode */}
               <div className="space-y-2">
-                <Label htmlFor="barcode">Barcode</Label>
+                <Label htmlFor="barcode">{t("barcode")}</Label>
                 <Input
                   id="barcode"
                   value={form.barcode}
@@ -305,11 +305,11 @@ export default function NewToolPage() {
           {/* Herstellerdaten */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Herstellerdaten</CardTitle>
+              <CardTitle className="text-base">{t("manufacturerData")}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="manufacturer">Hersteller</Label>
+                <Label htmlFor="manufacturer">{t("manufacturer")}</Label>
                 <Input
                   id="manufacturer"
                   value={form.manufacturer}
@@ -318,7 +318,7 @@ export default function NewToolPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="manufacturerNumber">Herstellernummer</Label>
+                <Label htmlFor="manufacturerNumber">{t("manufacturerNumber")}</Label>
                 <Input
                   id="manufacturerNumber"
                   value={form.manufacturerNumber}
@@ -329,7 +329,7 @@ export default function NewToolPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="serialNumber">Seriennummer</Label>
+                <Label htmlFor="serialNumber">{t("serialNumber")}</Label>
                 <Input
                   id="serialNumber"
                   value={form.serialNumber}
@@ -343,7 +343,7 @@ export default function NewToolPage() {
           {/* Zustand & Wartung */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Zustand &amp; Wartung</CardTitle>
+              <CardTitle className="text-base">{t("conditionAndMaintenance")}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-2">
@@ -356,16 +356,16 @@ export default function NewToolPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="good">Gut</SelectItem>
-                    <SelectItem value="damaged">Besch&auml;digt</SelectItem>
-                    <SelectItem value="repair">Reparatur</SelectItem>
-                    <SelectItem value="decommissioned">Ausgemustert</SelectItem>
+                    <SelectItem value="good">{t("conditionGood")}</SelectItem>
+                    <SelectItem value="damaged">{t("conditionDamaged")}</SelectItem>
+                    <SelectItem value="repair">{t("conditionRepair")}</SelectItem>
+                    <SelectItem value="decommissioned">{t("conditionDecommissioned")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="maintenanceInterval">
-                  Wartungsintervall (Tage)
+                  {t("maintenanceInterval")}
                 </Label>
                 <Input
                   id="maintenanceInterval"
@@ -379,13 +379,13 @@ export default function NewToolPage() {
                 />
               </div>
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="notes">Notizen</Label>
+                <Label htmlFor="notes">{t("notes")}</Label>
                 <textarea
                   id="notes"
                   className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                   value={form.notes}
                   onChange={(e) => updateField("notes", e.target.value)}
-                  placeholder="Zus&auml;tzliche Informationen..."
+                  placeholder={t("additionalInfo")}
                 />
               </div>
             </CardContent>
@@ -397,7 +397,7 @@ export default function NewToolPage() {
           {/* Summary preview */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">&Uuml;bersicht</CardTitle>
+              <CardTitle className="text-base">{t("overview")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div className="flex justify-between">
@@ -418,19 +418,19 @@ export default function NewToolPage() {
                 <span className="text-muted-foreground">{t("condition")}</span>
                 <span>
                   {form.condition === "good"
-                    ? "Gut"
+                    ? t("conditionGood")
                     : form.condition === "damaged"
-                      ? "Beschädigt"
+                      ? t("conditionDamaged")
                       : form.condition === "repair"
-                        ? "Reparatur"
-                        : "Ausgemustert"}
+                        ? t("conditionRepair")
+                        : t("conditionDecommissioned")"}
                 </span>
               </div>
               {form.manufacturer && (
                 <>
                   <Separator />
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Hersteller</span>
+                    <span className="text-muted-foreground">{t("manufacturer")}</span>
                     <span className="truncate max-w-[140px]">{form.manufacturer}</span>
                   </div>
                 </>
@@ -439,7 +439,7 @@ export default function NewToolPage() {
                 <>
                   <Separator />
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Seriennummer</span>
+                    <span className="text-muted-foreground">{t("serialNumber")}</span>
                     <span className="font-mono text-xs">
                       {form.serialNumber}
                     </span>

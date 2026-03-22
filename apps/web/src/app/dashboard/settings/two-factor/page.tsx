@@ -70,7 +70,7 @@ export default function TwoFactorSettingsPage() {
 
   const handleDisable = async () => {
     if (!disablePassword) {
-      setDisableError("Bitte Passwort eingeben.")
+      setDisableError(ts("pleaseEnterPassword"))
       return
     }
 
@@ -85,14 +85,14 @@ export default function TwoFactorSettingsPage() {
       })
       const data = await res.json()
       if (!res.ok) {
-        setDisableError(data.error || "Fehler beim Deaktivieren.")
+        setDisableError(data.error || ts("disableError"))
         return
       }
       setStatus({ enabled: false })
       setDisableDialogOpen(false)
       setDisablePassword("")
     } catch {
-      setDisableError("Netzwerkfehler. Bitte erneut versuchen.")
+      setDisableError(ts("networkError2"))
     } finally {
       setIsDisabling(false)
     }
@@ -137,7 +137,7 @@ export default function TwoFactorSettingsPage() {
                 Zwei-Faktor-Authentifizierung ist aktiv
               </CardTitle>
               <CardDescription>
-                Ihr Konto ist mit einem zusatzlichen Sicherheitsfaktor geschutzt.
+                {ts("twoFactorActiveDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -148,7 +148,7 @@ export default function TwoFactorSettingsPage() {
                 </Badge>
                 {status.verifiedAt && (
                   <span className="text-sm text-muted-foreground">
-                    Aktiviert am{" "}
+                    {ts("activatedOn")}{" "}
                     {new Date(status.verifiedAt).toLocaleDateString("de-CH", {
                       year: "numeric",
                       month: "long",
@@ -160,7 +160,7 @@ export default function TwoFactorSettingsPage() {
 
               {status.remainingRecoveryCodes !== undefined && (
                 <p className="text-sm text-muted-foreground">
-                  Verbleibende Wiederherstellungscodes:{" "}
+                  {ts("remainingCodes")}{" "}
                   <span
                     className={
                       status.remainingRecoveryCodes <= 2
@@ -168,7 +168,7 @@ export default function TwoFactorSettingsPage() {
                         : "font-medium"
                     }
                   >
-                    {status.remainingRecoveryCodes} von 10
+                    {ts("ofTotal", { count: status.remainingRecoveryCodes, total: 10 })}
                   </span>
                 </p>
               )}
@@ -182,7 +182,7 @@ export default function TwoFactorSettingsPage() {
                 Zwei-Faktor-Authentifizierung deaktivieren
               </CardTitle>
               <CardDescription>
-                Das Deaktivieren der 2FA verringert die Sicherheit Ihres Kontos.
+                {ts("disable2faWarning")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -199,17 +199,16 @@ export default function TwoFactorSettingsPage() {
                       2FA wirklich deaktivieren?
                     </DialogTitle>
                     <DialogDescription>
-                      Geben Sie Ihr Passwort ein, um die Zwei-Faktor-Authentifizierung
-                      zu deaktivieren. Alle Wiederherstellungscodes werden geloscht.
+                      {ts("disable2faConfirmDesc")}
                     </DialogDescription>
                   </DialogHeader>
 
                   <div className="space-y-4 py-2">
                     <div className="space-y-2">
-                      <Label htmlFor="disable-password">Passwort</Label>
+                      <Label htmlFor="disable-password">{ts("password")}</Label>
                       <PasswordInput
                         id="disable-password"
-                        placeholder="Passwort eingeben"
+                        placeholder=ts("enterPassword")
                         value={disablePassword}
                         onChange={(e) => {
                           setDisablePassword(e.target.value)
@@ -232,7 +231,7 @@ export default function TwoFactorSettingsPage() {
 
                   <DialogFooter>
                     <DialogClose asChild>
-                      <Button variant="outline">Abbrechen</Button>
+                      <Button variant="outline">{ts("cancelBtn")}</Button>
                     </DialogClose>
                     <Button
                       variant="destructive"
@@ -242,10 +241,10 @@ export default function TwoFactorSettingsPage() {
                       {isDisabling ? (
                         <>
                           <IconLoader2 className="mr-2 size-4 animate-spin" />
-                          Deaktiviert...
+                          {ts("disabling")}
                         </>
                       ) : (
-                        "Deaktivieren"
+                        ts("deactivate")
                       )}
                     </Button>
                   </DialogFooter>

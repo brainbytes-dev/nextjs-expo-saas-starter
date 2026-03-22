@@ -56,10 +56,10 @@ interface ImportResult {
 }
 
 const ENTITY_OPTIONS = [
-  { value: "materials" as EntityType, label: "Materialien", icon: IconPackage },
-  { value: "tools" as EntityType, label: "Werkzeuge", icon: IconTool },
-  { value: "suppliers" as EntityType, label: "Lieferanten", icon: IconTruck },
-  { value: "locations" as EntityType, label: "Standorte", icon: IconMapPin },
+  { value: "materials" as EntityType, label: t("materials"), icon: IconPackage },
+  { value: "tools" as EntityType, label: t("tools"), icon: IconTool },
+  { value: "suppliers" as EntityType, label: t("suppliers"), icon: IconTruck },
+  { value: "locations" as EntityType, label: t("locations"), icon: IconMapPin },
 ]
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -156,7 +156,7 @@ export default function ImportPage() {
 
       if (!res.ok) {
         const data = await res.json()
-        setAiError(data.error || "KI-Mapping fehlgeschlagen")
+        setAiError(data.error || t("aiMappingFailed"))
         return
       }
 
@@ -165,7 +165,7 @@ export default function ImportPage() {
         setMapping(data.mapping)
       }
     } catch {
-      setAiError("Netzwerkfehler beim KI-Mapping")
+      setAiError(t("networkError"))
     } finally {
       setAiLoading(false)
     }
@@ -187,13 +187,13 @@ export default function ImportPage() {
       const nameVal = nameCol ? data[nameCol] : undefined
 
       if (!nameVal?.trim()) {
-        return { rowIndex: i, data, status: "error" as const, message: "Name fehlt" }
+        return { rowIndex: i, data, status: "error" as const, message: t("nameMissing") }
       }
 
       // Check for numeric fields
       const minStockCol = Object.entries(mapping).find(([, target]) => target === "mindestbestand")?.[0]
       if (minStockCol && data[minStockCol] && isNaN(Number(data[minStockCol]))) {
-        return { rowIndex: i, data, status: "error" as const, message: "Mindestbestand ist keine Zahl" }
+        return { rowIndex: i, data, status: "error" as const, message: t("minStockNotNumber") }
       }
 
       return { rowIndex: i, data, status: "ok" as const }
@@ -249,7 +249,7 @@ export default function ImportPage() {
         setImportResult({
           imported: 0,
           skipped: 0,
-          errors: [{ row: 0, error: data.error || "Import fehlgeschlagen" }],
+          errors: [{ row: 0, error: data.error || t("importFailed") }],
         })
         return
       }
@@ -261,7 +261,7 @@ export default function ImportPage() {
       setImportResult({
         imported: 0,
         skipped: 0,
-        errors: [{ row: 0, error: "Netzwerkfehler" }],
+        errors: [{ row: 0, error: t("networkError") }],
       })
     } finally {
       setImporting(false)
@@ -344,7 +344,7 @@ export default function ImportPage() {
         <div>
           <h1 className="text-2xl font-bold">{t("title")}</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            CSV-Dateien importieren und Spalten zuordnen
+            {t("description")}
           </p>
         </div>
         <Button variant="ghost" size="sm" onClick={() => router.push("/dashboard")}>
@@ -356,10 +356,10 @@ export default function ImportPage() {
       {/* Step indicator */}
       <div className="flex items-center gap-2">
         {[
-          { num: 1, label: "Hochladen" },
-          { num: 2, label: "Zuordnung" },
-          { num: 3, label: "Validierung" },
-          { num: 4, label: "Import" },
+          { num: 1, label: t("stepUpload") },
+          { num: 2, label: t("stepMapping") },
+          { num: 3, label: t("stepValidation") },
+          { num: 4, label: t("stepImport") },
         ].map((s, i) => (
           <div key={s.num} className="flex items-center gap-2">
             {i > 0 && <div className="w-8 h-px bg-border" />}
@@ -390,14 +390,14 @@ export default function ImportPage() {
             <CardHeader>
               <CardTitle>{t("uploadFile")}</CardTitle>
               <CardDescription>
-                CSV-Datei per Drag & Drop oder Dateiauswahl hochladen
+                {t("uploadDescription")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {/* Entity type selection */}
               <div className="mb-6">
                 <label className="text-sm font-medium mb-2 block">
-                  Was importieren Sie?
+                  {t("whatToImport")}
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   {ENTITY_OPTIONS.map((opt) => (
@@ -464,14 +464,14 @@ export default function ImportPage() {
                   <>
                     <IconUpload className="size-10 text-muted-foreground mb-3" />
                     <p className="text-sm font-medium">
-                      Datei hierher ziehen
+                      {t("dropFile")}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1 mb-4">
-                      CSV, TXT (Semikolon oder Komma getrennt)
+                      {t("dropFormats")}
                     </p>
                     <label>
                       <Button variant="outline" size="sm" asChild>
-                        <span>Datei auswählen</span>
+                        <span>{t("selectFile")}</span>
                       </Button>
                       <input
                         type="file"
@@ -540,7 +540,7 @@ export default function ImportPage() {
               <div>
                 <CardTitle>{t("columnMapping")}</CardTitle>
                 <CardDescription>
-                  Ordnen Sie die CSV-Spalten den Feldern in LogistikApp zu
+                  {t("columnMappingDesc")}
                 </CardDescription>
               </div>
               <Button
@@ -591,11 +591,11 @@ export default function ImportPage() {
                       }}
                     >
                       <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="Nicht zuordnen" />
+                        <SelectValue placeholder={t("doNotMap")} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__none__">
-                          <span className="text-muted-foreground">Nicht zuordnen</span>
+                          <span className="text-muted-foreground">{t("doNotMap")}</span>
                         </SelectItem>
                         {targetFields.map((field: TargetField) => (
                           <SelectItem key={field.key} value={field.key}>
@@ -641,7 +641,7 @@ export default function ImportPage() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{stats.ok}</p>
-                    <p className="text-xs text-muted-foreground">Neue Einträge</p>
+                    <p className="text-xs text-muted-foreground">{t("newEntries")}</p>
                   </div>
                 </div>
               </CardContent>
@@ -654,7 +654,7 @@ export default function ImportPage() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{stats.warnings}</p>
-                    <p className="text-xs text-muted-foreground">Duplikate</p>
+                    <p className="text-xs text-muted-foreground">{t("duplicates")}</p>
                   </div>
                 </div>
               </CardContent>
@@ -667,7 +667,7 @@ export default function ImportPage() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{stats.errors}</p>
-                    <p className="text-xs text-muted-foreground">Fehler</p>
+                    <p className="text-xs text-muted-foreground">{t("errors")}</p>
                   </div>
                 </div>
               </CardContent>
@@ -679,7 +679,7 @@ export default function ImportPage() {
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4">
-                  <p className="text-sm font-medium">Duplikate behandeln:</p>
+                  <p className="text-sm font-medium">{t("handleDuplicates")}</p>
                   <div className="flex gap-2">
                     <Button
                       variant={duplicateAction === "skip" ? "default" : "outline"}
@@ -808,7 +808,7 @@ export default function ImportPage() {
                         <IconCheck className="size-6 text-green-600" />
                       </div>
                       <div>
-                        <p className="text-lg font-bold">Import abgeschlossen</p>
+                        <p className="text-lg font-bold">{t("importDone")}</p>
                         <p className="text-sm text-muted-foreground">
                           {importResult.imported} importiert, {importResult.skipped} übersprungen
                         </p>
@@ -820,7 +820,7 @@ export default function ImportPage() {
                         <IconAlertTriangle className="size-6 text-yellow-600" />
                       </div>
                       <div>
-                        <p className="text-lg font-bold">Import mit Hinweisen</p>
+                        <p className="text-lg font-bold">{t("importWithNotes")}</p>
                         <p className="text-sm text-muted-foreground">
                           {importResult.imported} importiert, {importResult.skipped} übersprungen,{" "}
                           {importResult.errors.length} Fehler
@@ -896,7 +896,7 @@ export default function ImportPage() {
             Zurück
           </Button>
           <Button disabled={!canProceed()} onClick={goNext}>
-            {step === 3 ? "Importieren" : "Weiter"}
+            {step === 3 ? t("stepImport") : t("next")}
             <IconArrowRight className="size-4 ml-2" />
           </Button>
         </div>

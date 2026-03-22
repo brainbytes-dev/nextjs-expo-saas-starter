@@ -11,6 +11,7 @@
 import { useState, useEffect, useCallback } from "react"
 import Image from "next/image"
 import { useParams, useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import {
   IconArrowLeft,
   IconPrinter,
@@ -62,10 +63,10 @@ interface CommissionDetail {
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  open:        { label: "Offen",           color: "bg-muted text-muted-foreground" },
-  in_progress: { label: "In Bearbeitung",  color: "bg-primary/10 text-primary" },
-  completed:   { label: "Abgeschlossen",   color: "bg-emerald-100 text-emerald-700" },
-  cancelled:   { label: "Storniert",       color: "bg-destructive/10 text-destructive" },
+  open:        { label: "statusOpen", color: "bg-muted text-muted-foreground" },
+  in_progress: { label: "inProgress", color: "bg-primary/10 text-primary" },
+  completed:   { label: "completed", color: "bg-emerald-100 text-emerald-700" },
+  cancelled:   { label: "cancelled", color: "bg-destructive/10 text-destructive" },
 }
 
 function formatDate(iso: string) {
@@ -76,6 +77,8 @@ function formatDate(iso: string) {
 
 // ── Page ────────────────────────────────────────────────────────────────────
 export default function CommissionDetailPage() {
+  const t = useTranslations("commissions")
+  const tc = useTranslations("common")
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
@@ -95,7 +98,7 @@ export default function CommissionDetailPage() {
         fetch(`/api/commissions/${id}/entries`),
       ])
 
-      if (!commRes.ok) throw new Error("Kommission nicht gefunden.")
+      if (!commRes.ok) throw new Error(t("notFound"))
       const commData = await commRes.json()
       setCommission(commData)
 
@@ -104,7 +107,7 @@ export default function CommissionDetailPage() {
         setEntries(entriesData.data ?? [])
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Fehler beim Laden.")
+      setError(err instanceof Error ? err.message : t("loadError"))
     } finally {
       setLoading(false)
     }
@@ -175,8 +178,8 @@ export default function CommissionDetailPage() {
   if (error || !commission) {
     return (
       <div className="flex flex-col gap-4 p-6">
-        <p className="text-destructive">{error ?? "Kommission nicht gefunden."}</p>
-        <Button variant="outline" onClick={() => router.back()}>Zurück</Button>
+        <p className="text-destructive">{error ?? t("notFound")}</p>
+        <Button variant="outline" onClick={() => router.back()}>{tc("back")}</Button>
       </div>
     )
   }
@@ -213,18 +216,18 @@ export default function CommissionDetailPage() {
           {canSign && (
             <Button variant="outline" onClick={() => setSigOpen(true)} className="gap-2">
               <IconSignature className="size-4" />
-              Unterschrift erfassen
+              {t("captureSignature")}
             </Button>
           )}
           {isSigned && (
             <div className="flex items-center gap-1.5 text-emerald-600 text-sm font-medium">
               <IconCheck className="size-4" />
-              Unterschrieben
+              {t("signed")}
             </div>
           )}
           <Button onClick={handlePrint} className="gap-2">
             <IconPrinter className="size-4" />
-            Lieferschein drucken
+            {t("printDelivery")}
           </Button>
         </div>
       </div>
@@ -233,7 +236,7 @@ export default function CommissionDetailPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="border-0 shadow-sm">
           <CardContent className="p-4 flex flex-col gap-1">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Kunde</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("customerLabel")}</p>
             <div className="flex items-center gap-1.5">
               <IconUser className="size-3.5 text-muted-foreground/60" />
               <p className="text-sm font-medium text-foreground">{commission.customerName ?? "—"}</p>
@@ -243,7 +246,7 @@ export default function CommissionDetailPage() {
 
         <Card className="border-0 shadow-sm">
           <CardContent className="p-4 flex flex-col gap-1">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Lieferort</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("deliveryLocation")}</p>
             <div className="flex items-center gap-1.5">
               <IconMapPin className="size-3.5 text-muted-foreground/60" />
               <p className="text-sm font-medium text-foreground">{commission.targetLocationName ?? "—"}</p>
@@ -253,7 +256,7 @@ export default function CommissionDetailPage() {
 
         <Card className="border-0 shadow-sm">
           <CardContent className="p-4 flex flex-col gap-1">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Verantwortlich</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("responsibleLabel")}</p>
             <div className="flex items-center gap-1.5">
               <IconUser className="size-3.5 text-muted-foreground/60" />
               <p className="text-sm font-medium text-foreground">{commission.responsibleName ?? "—"}</p>
@@ -266,7 +269,7 @@ export default function CommissionDetailPage() {
       {isSigned && commission.signature && (
         <Card className="border-0 shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Digitale Unterschrift</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("digitalSignature")}</CardTitle>
           </CardHeader>
           <CardContent className="flex items-start gap-8 p-4 pt-0">
             <Image
@@ -279,10 +282,10 @@ export default function CommissionDetailPage() {
             />
             <div className="flex flex-col gap-1 text-sm text-muted-foreground">
               {commission.signedBy && (
-                <p><span className="font-medium text-foreground">Empfangen von:</span> {commission.signedBy}</p>
+                <p><span className="font-medium text-foreground">{t("receivedBy")}</span> {commission.signedBy}</p>
               )}
               {commission.signedAt && (
-                <p><span className="font-medium text-foreground">Datum:</span> {formatDate(commission.signedAt)}</p>
+                <p><span className="font-medium text-foreground">{t("dateLabel")}</span> {formatDate(commission.signedAt)}</p>
               )}
             </div>
           </CardContent>
@@ -295,25 +298,25 @@ export default function CommissionDetailPage() {
           <div className="flex items-center gap-2">
             <IconClipboardList className="size-4 text-muted-foreground" />
             <CardTitle className="text-sm font-medium">
-              Positionen ({entries.length})
+              {t("positions")} ({entries.length})
             </CardTitle>
           </div>
         </CardHeader>
         <CardContent className="p-0">
           {entries.length === 0 ? (
             <p className="py-10 text-center text-sm text-muted-foreground">
-              Keine Positionen vorhanden.
+              {t("noPositions")}
             </p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-b border-border">
-                  <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-12">Pos.</TableHead>
-                  <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-32">Artikelnr.</TableHead>
-                  <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Bezeichnung</TableHead>
-                  <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-20 text-right">Menge</TableHead>
-                  <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-20">Einheit</TableHead>
-                  <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-24">Status</TableHead>
+                  <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-12">{t("posCol")}</TableHead>
+                  <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-32">{t("articleNo")}</TableHead>
+                  <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("designation")}</TableHead>
+                  <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-20 text-right">{t("quantityCol")}</TableHead>
+                  <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-20">{t("unitCol")}</TableHead>
+                  <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-24">{t("statusCol")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -325,7 +328,7 @@ export default function CommissionDetailPage() {
                     </TableCell>
                     <TableCell>
                       <p className="text-sm font-medium text-foreground">
-                        {entry.materialName ?? entry.toolName ?? "Unbekannt"}
+                        {entry.materialName ?? entry.toolName ?? tc("unknown")}
                       </p>
                       {entry.notes && (
                         <p className="text-xs text-muted-foreground italic">{entry.notes}</p>
@@ -346,10 +349,10 @@ export default function CommissionDetailPage() {
                           : "bg-muted text-muted-foreground"
                       }`}>
                         {(entry as { status?: string }).status === "completed"
-                          ? "Erledigt"
+                          ? t("statusDone")
                           : (entry as { status?: string }).status === "picked"
-                          ? "Gepickt"
-                          : "Offen"}
+                          ? t("statusPicked")
+                          : t("statusOpen")}
                       </span>
                     </TableCell>
                   </TableRow>
@@ -364,7 +367,7 @@ export default function CommissionDetailPage() {
       {commission.notes && (
         <Card className="border-0 shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Notizen</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("notes")}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-foreground whitespace-pre-wrap">{commission.notes}</p>

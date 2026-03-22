@@ -141,7 +141,7 @@ export default function LabelDesignerPage() {
     height: 50,
   })
 
-  const [templateName, setTemplateName] = React.useState("Neue Vorlage")
+  const [templateName, setTemplateName] = React.useState(t("newTemplateName"))
   const [savedTemplates, setSavedTemplates] = React.useState<Array<{
     id: string
     name: string
@@ -264,7 +264,7 @@ export default function LabelDesignerPage() {
         <div>
           <h2 className="text-2xl font-bold tracking-tight">{t("title")}</h2>
           <p className="text-muted-foreground">
-            Erstelle benutzerdefinierte Barcode-Etiketten per Drag & Drop
+            {t("description")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -278,7 +278,7 @@ export default function LabelDesignerPage() {
           </Button>
           <Button onClick={handleSaveTemplate} disabled={saving}>
             <IconDeviceFloppy className="mr-2 size-4" />
-            {saving ? "Speichere..." : "Als Vorlage speichern"}
+            {saving ? t("saving") : t("saveTemplate")}
           </Button>
         </div>
       </div>
@@ -292,12 +292,12 @@ export default function LabelDesignerPage() {
             </CardHeader>
             <CardContent className="space-y-1">
               {[
-                { type: "text" as const, icon: IconLetterT, label: "Text" },
-                { type: "barcode" as const, icon: IconBarcode, label: "Barcode (Code128)" },
-                { type: "qrcode" as const, icon: IconQrcode, label: "QR-Code" },
-                { type: "image" as const, icon: IconPhoto, label: "Bild" },
-                { type: "line" as const, icon: IconLine, label: "Linie" },
-                { type: "rectangle" as const, icon: IconSquare, label: "Rechteck" },
+                { type: "text" as const, icon: IconLetterT, label: t("text") },
+                { type: "barcode" as const, icon: IconBarcode, label: t("barcodeCode128") },
+                { type: "qrcode" as const, icon: IconQrcode, label: t("qrCode") },
+                { type: "image" as const, icon: IconPhoto, label: t("image") },
+                { type: "line" as const, icon: IconLine, label: t("line") },
+                { type: "rectangle" as const, icon: IconSquare, label: t("rectangle") },
               ].map((item) => (
                 <Button
                   key={item.type}
@@ -389,12 +389,12 @@ export default function LabelDesignerPage() {
           {/* Element list */}
           <Card className="w-full">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Ebenen ({state.elements.length})</CardTitle>
+              <CardTitle className="text-sm">{t("layers")} ({state.elements.length})</CardTitle>
             </CardHeader>
             <CardContent>
               {state.elements.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-2">
-                  Klicke links auf ein Element, um es hinzuzufügen.
+                  {t("addElementHint")}
                 </p>
               ) : (
                 <div className="space-y-1">
@@ -436,7 +436,7 @@ export default function LabelDesignerPage() {
         <div className="space-y-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Properties</CardTitle>
+              <CardTitle className="text-sm">{t("properties")}</CardTitle>
             </CardHeader>
             <CardContent>
               {selectedElement ? (
@@ -477,7 +477,7 @@ export default function LabelDesignerPage() {
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <Label className="text-xs text-muted-foreground">Breite (mm)</Label>
+                      <Label className="text-xs text-muted-foreground">{t("widthMm")}</Label>
                       <Input
                         type="number"
                         value={selectedElement.width}
@@ -492,7 +492,7 @@ export default function LabelDesignerPage() {
                       />
                     </div>
                     <div>
-                      <Label className="text-xs text-muted-foreground">Höhe (mm)</Label>
+                      <Label className="text-xs text-muted-foreground">{t("heightMm")}</Label>
                       <Input
                         type="number"
                         value={selectedElement.height}
@@ -515,7 +515,7 @@ export default function LabelDesignerPage() {
                     selectedElement.type === "barcode" ||
                     selectedElement.type === "qrcode") && (
                     <div>
-                      <Label className="text-xs text-muted-foreground">Datenbindung</Label>
+                      <Label className="text-xs text-muted-foreground">{t("dataBinding")}</Label>
                       <Select
                         value={selectedElement.dataBinding ?? "custom_text"}
                         onValueChange={(v) =>
@@ -551,7 +551,7 @@ export default function LabelDesignerPage() {
                     selectedElement.type === "barcode" ||
                     selectedElement.type === "qrcode") && (
                     <div>
-                      <Label className="text-xs text-muted-foreground">Inhalt / Vorschautext</Label>
+                      <Label className="text-xs text-muted-foreground">{t("contentPreview")}</Label>
                       <Input
                         value={selectedElement.content ?? ""}
                         onChange={(e) =>
@@ -571,7 +571,7 @@ export default function LabelDesignerPage() {
                     <>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <Label className="text-xs text-muted-foreground">Schriftgrösse (pt)</Label>
+                          <Label className="text-xs text-muted-foreground">{t("fontSizePt")}</Label>
                           <Input
                             type="number"
                             value={selectedElement.fontSize ?? 12}
@@ -586,7 +586,7 @@ export default function LabelDesignerPage() {
                           />
                         </div>
                         <div>
-                          <Label className="text-xs text-muted-foreground">Schriftstärke</Label>
+                          <Label className="text-xs text-muted-foreground">{t("fontWeight")}</Label>
                           <Select
                             value={selectedElement.fontWeight ?? "normal"}
                             onValueChange={(v) =>
@@ -608,7 +608,7 @@ export default function LabelDesignerPage() {
                         </div>
                       </div>
                       <div>
-                        <Label className="text-xs text-muted-foreground">Ausrichtung</Label>
+                        <Label className="text-xs text-muted-foreground">{t("alignment")}</Label>
                         <Select
                           value={selectedElement.textAlign ?? "left"}
                           onValueChange={(v) =>
@@ -623,9 +623,9 @@ export default function LabelDesignerPage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="left">Links</SelectItem>
-                            <SelectItem value="center">Zentriert</SelectItem>
-                            <SelectItem value="right">Rechts</SelectItem>
+                            <SelectItem value="left">{t("alignLeft")}</SelectItem>
+                            <SelectItem value="center">{t("alignCenter")}</SelectItem>
+                            <SelectItem value="right">{t("alignRight")}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -635,7 +635,7 @@ export default function LabelDesignerPage() {
                   {/* Barcode format */}
                   {selectedElement.type === "barcode" && (
                     <div>
-                      <Label className="text-xs text-muted-foreground">Barcode-Format</Label>
+                      <Label className="text-xs text-muted-foreground">{t("barcodeFormat")}</Label>
                       <Select
                         value={selectedElement.barcodeFormat ?? "code128"}
                         onValueChange={(v) =>
@@ -661,7 +661,7 @@ export default function LabelDesignerPage() {
                   {/* Stroke width for line/rectangle */}
                   {(selectedElement.type === "line" || selectedElement.type === "rectangle") && (
                     <div>
-                      <Label className="text-xs text-muted-foreground">Linienstärke (mm)</Label>
+                      <Label className="text-xs text-muted-foreground">{t("strokeWidth")}</Label>
                       <Input
                         type="number"
                         step="0.5"
@@ -682,7 +682,7 @@ export default function LabelDesignerPage() {
                   {/* Image URL */}
                   {selectedElement.type === "image" && (
                     <div>
-                      <Label className="text-xs text-muted-foreground">Bild-URL</Label>
+                      <Label className="text-xs text-muted-foreground">{t("imageUrl")}</Label>
                       <Input
                         value={selectedElement.imageUrl ?? ""}
                         placeholder="https://..."
@@ -714,7 +714,7 @@ export default function LabelDesignerPage() {
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground py-4 text-center">
-                  Wähle ein Element auf der Arbeitsfläche aus, um dessen Eigenschaften zu bearbeiten.
+                  {t("selectElement")}
                 </p>
               )}
             </CardContent>
@@ -726,7 +726,7 @@ export default function LabelDesignerPage() {
       <Dialog open={zplDialog} onOpenChange={setZplDialog}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>ZPL-Code (Zebra Drucker)</DialogTitle>
+            <DialogTitle>{t("zplTitle")}</DialogTitle>
           </DialogHeader>
           <Textarea
             value={zplCode}

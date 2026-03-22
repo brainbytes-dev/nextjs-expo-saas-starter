@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import QRCode from "qrcode"
+import { useTranslations } from "next-intl"
 import {
   IconArrowLeft,
   IconPrinter,
@@ -36,13 +37,13 @@ const LOCATION_TYPE_CONFIG: Record<
     color: string
   }
 > = {
-  warehouse: { icon: IconBuildingWarehouse, label: "Lager", color: "text-primary" },
-  vehicle: { icon: IconTruck, label: "Fahrzeug", color: "text-primary" },
-  site: { icon: IconBuildingFactory, label: "Baustelle", color: "text-primary" },
-  station: { icon: IconAmbulance, label: "Rettungswache", color: "text-destructive" },
-  practice: { icon: IconStethoscope, label: "Praxis", color: "text-secondary" },
-  operating_room: { icon: IconHeartbeat, label: "OP-Saal", color: "text-muted-foreground" },
-  user: { icon: IconUser, label: "Person", color: "text-muted-foreground" },
+  warehouse: { icon: IconBuildingWarehouse, label: "warehouse", color: "text-primary" },
+  vehicle: { icon: IconTruck, label: "vehicle", color: "text-primary" },
+  site: { icon: IconBuildingFactory, label: "site", color: "text-primary" },
+  station: { icon: IconAmbulance, label: "station", color: "text-destructive" },
+  practice: { icon: IconStethoscope, label: "practice", color: "text-secondary" },
+  operating_room: { icon: IconHeartbeat, label: "operating_room", color: "text-muted-foreground" },
+  user: { icon: IconUser, label: "user", color: "text-muted-foreground" },
 }
 
 interface LocationData {
@@ -57,6 +58,8 @@ interface LocationData {
 // Component
 // ---------------------------------------------------------------------------
 export default function LocationQrPage() {
+  const t = useTranslations("locations")
+  const tc = useTranslations("common")
   const router = useRouter()
   const params = useParams<{ id: string }>()
   const id = params.id
@@ -152,7 +155,7 @@ export default function LocationQrPage() {
           onClick={() => router.push(`/dashboard/locations/${id}`)}
         >
           <IconArrowLeft className="size-4" />
-          Zurueck zum Standort
+          {t("backToLocation")}
         </Button>
 
         {/* Print area */}
@@ -185,7 +188,7 @@ export default function LocationQrPage() {
               <div className="flex flex-col items-center gap-1">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <IconQrcode className="size-3.5" />
-                  <span>Scannen fuer Standort-Info</span>
+                  <span>{t("scanForInfo")}</span>
                 </div>
                 <p className="font-mono text-[10px] text-muted-foreground/60 break-all max-w-xs text-center">
                   {qrUrl}
@@ -204,7 +207,7 @@ export default function LocationQrPage() {
         <div className="no-print mx-auto flex items-center gap-3">
           <Button variant="default" onClick={handlePrint}>
             <IconPrinter className="size-4" />
-            Drucken
+            {tc("print")}
           </Button>
           <Button
             variant="outline"
@@ -212,7 +215,7 @@ export default function LocationQrPage() {
             disabled={!qrDataUrl}
           >
             <IconDownload className="size-4" />
-            Als PNG herunterladen
+            {t("downloadPng")}
           </Button>
         </div>
       </div>

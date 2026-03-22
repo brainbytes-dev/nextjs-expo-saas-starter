@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useMemo } from "react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -61,6 +62,7 @@ export function PrintLabelButton({
   size = "sm",
   className,
 }: PrintLabelButtonProps) {
+  const t = useTranslations("printLabel")
   const [open, setOpen] = useState(false)
   const [settings, setSettings] = useState<PrinterSettings>(loadPrinterSettings)
   const [status, setStatus] = useState<"idle" | "printing" | "success" | "error">("idle")
@@ -103,15 +105,15 @@ export function PrintLabelButton({
       }, 1500)
     } catch (err: unknown) {
       setStatus("error")
-      setError(err instanceof Error ? err.message : "Druckfehler")
+      setError(err instanceof Error ? err.message : t("printError"))
     }
   }, [labelData, settings])
 
   const typeLabels: Record<LabelData["type"], string> = {
-    material: "Material",
-    tool: "Werkzeug",
-    location: "Standort",
-    barcode: "Barcode",
+    material: t("typeMaterial"),
+    tool: t("typeTool"),
+    location: t("typeLocation"),
+    barcode: t("typeBarcode"),
   }
 
   return (
@@ -119,7 +121,7 @@ export function PrintLabelButton({
       <DialogTrigger asChild>
         <Button variant={variant} size={size} className={className}>
           <IconPrinter className="mr-1.5 size-4" />
-          Etikett drucken
+          {t("printLabel")}
         </Button>
       </DialogTrigger>
 
@@ -162,7 +164,7 @@ export function PrintLabelButton({
           {/* Printer selection */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs">Drucker</Label>
+              <Label className="text-xs">{t("printer")}</Label>
               <Select
                 value={settings.printerType}
                 onValueChange={(v) =>
@@ -180,7 +182,7 @@ export function PrintLabelButton({
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Grösse</Label>
+              <Label className="text-xs">{t("size")}</Label>
               <Select
                 value={settings.labelSize}
                 onValueChange={(v) =>
@@ -201,7 +203,7 @@ export function PrintLabelButton({
 
           {/* Preview */}
           <div>
-            <Label className="text-xs">Vorschau</Label>
+            <Label className="text-xs">{t("preview")}</Label>
             <pre className="mt-1.5 max-h-28 overflow-auto rounded-md bg-muted/50 p-3 font-mono text-[10px] leading-relaxed">
               {preview}
             </pre>
@@ -219,19 +221,19 @@ export function PrintLabelButton({
           {status === "success" ? (
             <Button disabled className="gap-1.5">
               <IconCheck className="size-4" />
-              Gedruckt
+              {t("printed")}
             </Button>
           ) : (
             <Button onClick={handlePrint} disabled={status === "printing"}>
               {status === "printing" ? (
                 <>
                   <IconLoader2 className="mr-1.5 size-4 animate-spin" />
-                  Druckt...
+                  {t("printing")}
                 </>
               ) : (
                 <>
                   <IconPrinter className="mr-1.5 size-4" />
-                  Drucken
+                  {t("print")}
                 </>
               )}
             </Button>

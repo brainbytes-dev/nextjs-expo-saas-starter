@@ -15,6 +15,7 @@ import {
   IconDeselect,
 } from "@tabler/icons-react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -68,20 +69,21 @@ const ENTITY_OPTIONS: {
   label: string
   icon: React.ComponentType<{ className?: string }>
 }[] = [
-  { value: "material", label: "Materialien", icon: IconPackage },
-  { value: "tool", label: "Werkzeuge", icon: IconTool },
-  { value: "location", label: "Standorte", icon: IconMapPin },
+  { value: "material", label: t("materials"), icon: IconPackage },
+  { value: "tool", label: t("tools"), icon: IconTool },
+  { value: "location", label: t("locations"), icon: IconMapPin },
 ]
 
 const LABEL_SIZES: { value: LabelSize; label: string }[] = [
-  { value: "small", label: "Klein (50x25 mm)" },
-  { value: "large", label: "Gross (100x50 mm)" },
+  { value: "small", label: t("sizeSmall") },
+  { value: "large", label: t("sizeLarge") },
 ]
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 export default function BatchPrintPage() {
+  const t = useTranslations("batchPrint")
   const router = useRouter()
 
   // Steps
@@ -125,7 +127,7 @@ export default function BatchPrintPage() {
             item: Record<string, unknown>
           ): SelectableItem => ({
             id: item.id as string,
-            name: (item.name as string) ?? "Unbenannt",
+            name: (item.name as string) ?? "",
             number: (item.number as string | null) ?? null,
             barcode: (item.barcode as string | null) ?? null,
             type: entityType,
@@ -245,10 +247,10 @@ export default function BatchPrintPage() {
         </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            Etiketten-Massendruck
+            {t("title")}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Mehrere Etiketten auf einmal drucken oder als ZPL herunterladen
+            {t("description")}
           </p>
         </div>
       </div>
@@ -278,10 +280,10 @@ export default function BatchPrintPage() {
           </div>
         ))}
         <span className="ml-2 text-sm text-muted-foreground">
-          {step === 1 && "Typ waehlen"}
-          {step === 2 && "Eintraege waehlen"}
-          {step === 3 && "Vorlage & Groesse"}
-          {step === 4 && "Vorschau & Drucken"}
+          {step === 1 && t("stepSelectType")}
+          {step === 2 && t("stepSelectItems")}
+          {step === 3 && t("stepTemplateSize")}
+          {step === 4 && t("stepPreviewPrint")}
         </span>
       </div>
 
@@ -330,7 +332,7 @@ export default function BatchPrintPage() {
           <CardHeader className="flex flex-row items-center justify-between pb-3">
             <CardTitle className="text-base">
               {ENTITY_OPTIONS.find((o) => o.value === entityType)?.label}{" "}
-              auswaehlen
+              {t("select")}
             </CardTitle>
             <div className="flex items-center gap-2">
               <Button
@@ -362,8 +364,8 @@ export default function BatchPrintPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12" />
-                    <TableHead>Nummer</TableHead>
-                    <TableHead>Name</TableHead>
+                    <TableHead>{t("number")}</TableHead>
+                    <TableHead>{t("name")}</TableHead>
                     <TableHead>Barcode</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -382,7 +384,7 @@ export default function BatchPrintPage() {
                         colSpan={4}
                         className="h-24 text-center text-muted-foreground"
                       >
-                        Keine Eintraege gefunden.
+                        {t("noItems")}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -422,7 +424,7 @@ export default function BatchPrintPage() {
         <div className="grid gap-6 sm:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Etiketten-Groesse</CardTitle>
+              <CardTitle className="text-base">{t("labelSizeTitle")}</CardTitle>
             </CardHeader>
             <CardContent>
               <Select
@@ -445,7 +447,7 @@ export default function BatchPrintPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Druckvorlage</CardTitle>
+              <CardTitle className="text-base">{t("printTemplate")}</CardTitle>
             </CardHeader>
             <CardContent>
               <Select
@@ -483,7 +485,7 @@ export default function BatchPrintPage() {
                 </div>
                 <div>
                   <p className="font-semibold">
-                    {selectedItems.length} Etiketten bereit
+                    {selectedItems.length} {t("labelsReady")}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Groesse:{" "}
@@ -516,7 +518,7 @@ export default function BatchPrintPage() {
             ))}
             {selectedItems.length > 12 && (
               <div className="flex items-center justify-center rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
-                + {selectedItems.length - 12} weitere Etiketten
+                + {selectedItems.length - 12} {t("moreLabels")}
               </div>
             )}
           </div>
@@ -541,8 +543,7 @@ export default function BatchPrintPage() {
               ZPL herunterladen
             </Button>
             <p className="text-xs text-muted-foreground">
-              ZPL-Dateien koennen direkt an Zebra-Etikettendrucker gesendet
-              werden.
+              {t("zplHint")}
             </p>
           </div>
         </div>

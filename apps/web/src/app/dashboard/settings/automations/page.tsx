@@ -42,25 +42,28 @@ interface Condition { field: string; operator: string; value: string | number | 
 interface Action { type: string; config: Record<string, unknown>; }
 interface RuleTemplate { id: string; name: string; description: string; triggerEvent: string; conditions: Condition[]; actions: Action[]; priority: number; }
 
-const TRIGGER_EVENT_LABELS: Record<string, string> = {
-  "stock.changed": "Bestand geändert", "stock.below_reorder": "Unter Meldebestand",
-  "tool.checked_out": "Werkzeug ausgebucht", "tool.overdue": "Werkzeug überfällig",
-  "maintenance.due": "Wartung fällig", "commission.created": "Kommission erstellt",
-  "commission.completed": "Kommission abgeschlossen",
-};
-const CONDITION_FIELD_LABELS: Record<string, string> = {
-  quantity: "Menge (Delta)", newQuantity: "Neue Menge", previousQuantity: "Vorherige Menge",
-  changeType: "Buchungstyp", toolCondition: "Werkzeugzustand", daysOverdue: "Tage überfällig",
-  daysUntilMaintenance: "Tage bis Wartung", materialId: "Material-ID", locationId: "Lager-ID",
-};
-const CONDITION_OPERATOR_LABELS: Record<string, string> = {
-  eq: "gleich", neq: "ungleich", gt: "größer als", lt: "kleiner als",
-  gte: "größer oder gleich", lte: "kleiner oder gleich", contains: "enthält",
-};
-const ACTION_TYPE_LABELS: Record<string, string> = {
-  send_email: "E-Mail senden", send_whatsapp: "WhatsApp senden", create_order: "Bestellung erstellen",
-  create_task: "Aufgabe erstellen", block_checkout: "Ausbuchung sperren", webhook: "Webhook auslösen",
-};
+const TRIGGER_EVENTS = [
+  "stock.changed", "stock.below_reorder",
+  "tool.checked_out", "tool.overdue",
+  "maintenance.due", "commission.created",
+  "commission.completed",
+] as const;
+
+const CONDITION_FIELDS = [
+  "quantity", "newQuantity", "previousQuantity",
+  "changeType", "toolCondition", "daysOverdue",
+  "daysUntilMaintenance", "materialId", "locationId",
+] as const;
+
+const CONDITION_OPERATORS = [
+  "eq", "neq", "gt", "lt", "gte", "lte", "contains",
+] as const;
+
+const ACTION_TYPES = [
+  "send_email", "send_whatsapp", "create_order",
+  "create_task", "block_checkout", "webhook",
+] as const;
+
 const RULE_TEMPLATES: RuleTemplate[] = [
   { id: "tpl_meldebestand", name: "Meldebestand-Warnung", description: "E-Mail wenn Bestand unter Meldebestand fällt.", triggerEvent: "stock.below_reorder", conditions: [], actions: [{ type: "send_email", config: { to: "lager@beispiel.ch", subject: "Meldebestand: {{materialName}}", body: "Material {{materialName}} unter Meldebestand." } }], priority: 10 },
   { id: "tpl_werkzeug_ueberfaellig", name: "Werkzeug überfällig", description: "E-Mail wenn Werkzeug >7 Tage ausgebucht.", triggerEvent: "tool.overdue", conditions: [{ field: "daysOverdue", operator: "gte", value: 7 }], actions: [{ type: "send_email", config: { to: "verwaltung@beispiel.ch", subject: "Überfällig: {{toolName}}", body: "Werkzeug {{toolName}} seit {{daysOverdue}} Tagen ausgebucht." } }], priority: 20 },
@@ -91,13 +94,60 @@ function triggerBadgeColor(event: string): string {
   return "border-border text-muted-foreground";
 }
 
-function getEventLabel(event: string): string {
-  return TRIGGER_EVENT_LABELS[event as TriggerEvent] ?? event;
-}
+const TRIGGER_KEY_MAP: Record<string, string> = {
+  "stock.changed": "triggerStockChanged",
+  "stock.below_reorder": "triggerStockBelowReorder",
+  "tool.checked_out": "triggerToolCheckedOut",
+  "tool.overdue": "triggerToolOverdue",
+  "maintenance.due": "triggerMaintenanceDue",
+  "commission.created": "triggerCommissionCreated",
+  "commission.completed": "triggerCommissionCompleted",
+};
 
-function getActionLabel(type: string): string {
-  return ACTION_TYPE_LABELS[type as ActionType] ?? type;
-}
+const CONDITION_FIELD_KEY_MAP: Record<string, string> = {
+  quantity: "fieldQuantity", newQuantity: "fieldNewQuantity", previousQuantity: "fieldPreviousQuantity",
+  changeType: "fieldChangeType", toolCondition: "fieldToolCondition", daysOverdue: "fieldDaysOverdue",
+  daysUntilMaintenance: "fieldDaysUntilMaintenance", materialId: "fieldMaterialId", locationId: "fieldLocationId",
+};
+
+const OPERATOR_KEY_MAP: Record<string, string> = {
+  eq: "opEq", neq: "opNeq", gt: "opGt", lt: "opLt",
+  gte: "opGte", lte: "opLte", contains: "opContains",
+};
+
+const ACTION_KEY_MAP: Record<string, string> = {
+  send_email: "actionSendEmail", send_whatsapp: "actionSendWhatsapp",
+  create_order: "actionCreateOrder", create_task: "actionCreateTask",
+  block_checkout: "actionBlockCheckout", webhook: "actionWebhook",
+};
+
+const ACTION_CONFIG_FIELD_KEYS: Record<string, { key: string; labelKey: string; placeholder: string }[]> = {
+  send_email: [
+    { key: "to", labelKey: "cfgEmailTo", placeholder: "lager@beispiel.ch" },
+    { key: "subject", labelKey: "cfgEmailSubject", placeholder: "Benachrichtigung: {{materialName}}" },
+    { key: "body", labelKey: "cfgEmailBody", placeholder: "Hallo,\n\nBitte prüfen Sie..." },
+  ],
+  send_whatsapp: [
+    { key: "to", labelKey: "cfgWhatsappTo", placeholder: "+41791234567" },
+    { key: "message", labelKey: "cfgWhatsappMessage", placeholder: "Warnung: {{materialName}} ..." },
+  ],
+  create_order: [
+    { key: "supplierId", labelKey: "cfgSupplierId", placeholder: "supplier-uuid" },
+    { key: "quantity", labelKey: "cfgOrderQuantity", placeholder: "50" },
+  ],
+  create_task: [
+    { key: "title", labelKey: "cfgTaskTitle", placeholder: "Werkzeug einfordern: {{toolName}}" },
+    { key: "assigneeEmail", labelKey: "cfgTaskAssignee", placeholder: "chef@beispiel.ch" },
+    { key: "priority", labelKey: "cfgTaskPriority", placeholder: "high" },
+  ],
+  block_checkout: [
+    { key: "reason", labelKey: "cfgBlockReason", placeholder: "Wartung fällig — Ausbuchung gesperrt." },
+  ],
+  webhook: [
+    { key: "url", labelKey: "cfgWebhookUrl", placeholder: "https://hooks.zapier.com/..." },
+    { key: "secret", labelKey: "cfgWebhookSecret", placeholder: "mein-geheimer-key" },
+  ],
+};
 
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat("de-CH", {
@@ -119,8 +169,9 @@ function ConditionRow({
   onChange: (index: number, c: Condition) => void;
   onRemove: (index: number) => void;
 }) {
-  const fields = Object.keys(CONDITION_FIELD_LABELS) as ConditionField[];
-  const operators = Object.keys(CONDITION_OPERATOR_LABELS) as ConditionOperator[];
+  const t = useTranslations("settings");
+  const fields = CONDITION_FIELDS as unknown as ConditionField[];
+  const operators = CONDITION_OPERATORS as unknown as ConditionOperator[];
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
@@ -129,12 +180,12 @@ function ConditionRow({
         onValueChange={(v) => onChange(index, { ...condition, field: v })}
       >
         <SelectTrigger className="h-8 w-44 text-xs">
-          <SelectValue placeholder="Feld" />
+          <SelectValue placeholder={t("fieldPlaceholder")} />
         </SelectTrigger>
         <SelectContent>
           {fields.map((f) => (
             <SelectItem key={f} value={f} className="text-xs">
-              {CONDITION_FIELD_LABELS[f]}
+              {t(CONDITION_FIELD_KEY_MAP[f] as any)}
             </SelectItem>
           ))}
         </SelectContent>
@@ -147,12 +198,12 @@ function ConditionRow({
         }
       >
         <SelectTrigger className="h-8 w-36 text-xs">
-          <SelectValue placeholder="Operator" />
+          <SelectValue placeholder={t("operatorPlaceholder")} />
         </SelectTrigger>
         <SelectContent>
           {operators.map((op) => (
             <SelectItem key={op} value={op} className="text-xs">
-              {CONDITION_OPERATOR_LABELS[op]}
+              {t(OPERATOR_KEY_MAP[op] as any)}
             </SelectItem>
           ))}
         </SelectContent>
@@ -160,7 +211,7 @@ function ConditionRow({
 
       <Input
         className="h-8 w-36 text-xs"
-        placeholder="Wert"
+        placeholder={t("valuePlaceholder")}
         value={String(condition.value)}
         onChange={(e) => {
           const raw = e.target.value;
@@ -177,41 +228,13 @@ function ConditionRow({
         className="h-8 px-2 text-xs text-destructive hover:text-destructive"
         onClick={() => onRemove(index)}
       >
-        Entfernen
+        {t("remove")}
       </Button>
     </div>
   );
 }
 
 // ─── Action Row ───────────────────────────────────────────────────────────────
-
-const ACTION_CONFIG_FIELDS: Record<ActionType, { key: string; label: string; placeholder: string }[]> = {
-  send_email: [
-    { key: "to", label: "An (E-Mail)", placeholder: "lager@beispiel.ch" },
-    { key: "subject", label: "Betreff", placeholder: "Benachrichtigung: {{materialName}}" },
-    { key: "body", label: "Text", placeholder: "Hallo,\n\nBitte prüfen Sie..." },
-  ],
-  send_whatsapp: [
-    { key: "to", label: "Telefonnummer", placeholder: "+41791234567" },
-    { key: "message", label: "Nachricht", placeholder: "Warnung: {{materialName}} ..." },
-  ],
-  create_order: [
-    { key: "supplierId", label: "Lieferant-ID", placeholder: "supplier-uuid" },
-    { key: "quantity", label: "Bestellmenge", placeholder: "50" },
-  ],
-  create_task: [
-    { key: "title", label: "Aufgabentitel", placeholder: "Werkzeug einfordern: {{toolName}}" },
-    { key: "assigneeEmail", label: "Zugewiesen an (E-Mail)", placeholder: "chef@beispiel.ch" },
-    { key: "priority", label: "Priorität (low/medium/high)", placeholder: "high" },
-  ],
-  block_checkout: [
-    { key: "reason", label: "Sperrgrund", placeholder: "Wartung fällig — Ausbuchung gesperrt." },
-  ],
-  webhook: [
-    { key: "url", label: "Webhook-URL", placeholder: "https://hooks.zapier.com/..." },
-    { key: "secret", label: "Secret (optional)", placeholder: "mein-geheimer-key" },
-  ],
-};
 
 function ActionRow({
   action,
@@ -224,8 +247,9 @@ function ActionRow({
   onChange: (index: number, a: Action) => void;
   onRemove: (index: number) => void;
 }) {
-  const actionTypes = Object.keys(ACTION_TYPE_LABELS) as ActionType[];
-  const configFields = ACTION_CONFIG_FIELDS[action.type] ?? [];
+  const t = useTranslations("settings");
+  const actionTypes = ACTION_TYPES as unknown as ActionType[];
+  const configFields = ACTION_CONFIG_FIELD_KEYS[action.type] ?? [];
 
   return (
     <div className="rounded-md border border-border p-3 space-y-2">
@@ -237,12 +261,12 @@ function ActionRow({
           }
         >
           <SelectTrigger className="h-8 w-44 text-xs">
-            <SelectValue placeholder="Aktion" />
+            <SelectValue placeholder={t("actionPlaceholder")} />
           </SelectTrigger>
           <SelectContent>
-            {actionTypes.map((t) => (
-              <SelectItem key={t} value={t} className="text-xs">
-                {ACTION_TYPE_LABELS[t]}
+            {actionTypes.map((at) => (
+              <SelectItem key={at} value={at} className="text-xs">
+                {t(ACTION_KEY_MAP[at] as any)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -255,14 +279,14 @@ function ActionRow({
           className="h-8 px-2 text-xs text-destructive hover:text-destructive ml-auto"
           onClick={() => onRemove(index)}
         >
-          Entfernen
+          {t("remove")}
         </Button>
       </div>
 
       {configFields.map((f) => (
         <div key={f.key} className="space-y-1">
           <Label className="text-[10px] text-muted-foreground uppercase tracking-widest">
-            {f.label}
+            {t(f.labelKey as any)}
           </Label>
           {f.key === "body" || f.key === "message" ? (
             <textarea
@@ -305,6 +329,7 @@ interface RuleFormDialogProps {
 }
 
 function RuleFormDialog({ orgId, initial, trigger, onSaved }: RuleFormDialogProps) {
+  const t = useTranslations("settings");
   const isEditing = !!initial;
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(initial?.name ?? "");
@@ -320,7 +345,7 @@ function RuleFormDialog({ orgId, initial, trigger, onSaved }: RuleFormDialogProp
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const triggerEvents = Object.keys(TRIGGER_EVENT_LABELS) as TriggerEvent[];
+  const triggerEvents = TRIGGER_EVENTS as unknown as TriggerEvent[];
 
   const handleSave = async () => {
     setError(null);
@@ -342,14 +367,14 @@ function RuleFormDialog({ orgId, initial, trigger, onSaved }: RuleFormDialogProp
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError((data as { error?: string }).error ?? "Fehler beim Speichern");
+        setError((data as { error?: string }).error ?? t("saveError"));
         return;
       }
 
       setOpen(false);
       onSaved();
     } catch {
-      setError("Netzwerkfehler beim Speichern");
+      setError(t("networkSaveError"));
     } finally {
       setSaving(false);
     }
@@ -401,22 +426,20 @@ function RuleFormDialog({ orgId, initial, trigger, onSaved }: RuleFormDialogProp
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Regel bearbeiten" : "Neue Automatisierungsregel"}
+            {isEditing ? t("editRule") : t("newAutomationRule")}
           </DialogTitle>
           <DialogDescription>
-            Definiere wann und was automatisch passieren soll. Verwende{" "}
-            <code className="text-xs font-mono bg-muted px-1 rounded">{"{{feldname}}"}</code>{" "}
-            für dynamische Werte im Text.
+            {t("ruleFormDesc")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5 py-2">
           {/* Name */}
           <div className="space-y-1.5">
-            <Label htmlFor="rule-name">Name</Label>
+            <Label htmlFor="rule-name">{t("ruleName")}</Label>
             <Input
               id="rule-name"
-              placeholder="z.B. Meldebestand-Warnung"
+              placeholder={t("ruleNamePlaceholder")}
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={saving}
@@ -425,7 +448,7 @@ function RuleFormDialog({ orgId, initial, trigger, onSaved }: RuleFormDialogProp
 
           {/* Trigger Event */}
           <div className="space-y-1.5">
-            <Label>Auslösendes Ereignis</Label>
+            <Label>{t("triggerEvent")}</Label>
             <Select
               value={triggerEvent}
               onValueChange={(v) => setTriggerEvent(v as TriggerEvent)}
@@ -437,7 +460,7 @@ function RuleFormDialog({ orgId, initial, trigger, onSaved }: RuleFormDialogProp
               <SelectContent>
                 {triggerEvents.map((ev) => (
                   <SelectItem key={ev} value={ev}>
-                    <span className="text-sm">{TRIGGER_EVENT_LABELS[ev]}</span>
+                    <span className="text-sm">{t(TRIGGER_KEY_MAP[ev] as any)}</span>
                     <span className="ml-2 text-xs text-muted-foreground font-mono">
                       {ev}
                     </span>
@@ -450,7 +473,7 @@ function RuleFormDialog({ orgId, initial, trigger, onSaved }: RuleFormDialogProp
           {/* Conditions */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label>Bedingungen</Label>
+              <Label>{t("conditions")}</Label>
               <Button
                 type="button"
                 variant="outline"
@@ -459,12 +482,12 @@ function RuleFormDialog({ orgId, initial, trigger, onSaved }: RuleFormDialogProp
                 onClick={addCondition}
                 disabled={saving}
               >
-                + Bedingung
+                {t("addCondition")}
               </Button>
             </div>
             {conditions.length === 0 ? (
               <p className="text-xs text-muted-foreground rounded-md border border-dashed border-border px-3 py-2">
-                Keine Bedingungen — Regel feuert bei jedem Ereignis.
+                {t("noConditions")}
               </p>
             ) : (
               <div className="space-y-2">
@@ -486,7 +509,7 @@ function RuleFormDialog({ orgId, initial, trigger, onSaved }: RuleFormDialogProp
           {/* Actions */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label>Aktionen</Label>
+              <Label>{t("actions")}</Label>
               <Button
                 type="button"
                 variant="outline"
@@ -495,12 +518,12 @@ function RuleFormDialog({ orgId, initial, trigger, onSaved }: RuleFormDialogProp
                 onClick={addAction}
                 disabled={saving}
               >
-                + Aktion
+                {t("addAction")}
               </Button>
             </div>
             {actions.length === 0 ? (
               <p className="text-xs text-muted-foreground rounded-md border border-dashed border-border px-3 py-2">
-                Mindestens eine Aktion hinzufügen.
+                {t("noActions")}
               </p>
             ) : (
               <div className="space-y-2">
@@ -522,7 +545,7 @@ function RuleFormDialog({ orgId, initial, trigger, onSaved }: RuleFormDialogProp
           {/* Priority + Active */}
           <div className="flex items-center gap-6">
             <div className="space-y-1.5">
-              <Label htmlFor="rule-priority">Priorität</Label>
+              <Label htmlFor="rule-priority">{t("priorityLabel")}</Label>
               <Input
                 id="rule-priority"
                 type="number"
@@ -534,7 +557,7 @@ function RuleFormDialog({ orgId, initial, trigger, onSaved }: RuleFormDialogProp
                 max={1000}
               />
               <p className="text-[10px] text-muted-foreground">
-                Höher = zuerst ausgeführt
+                {t("priorityHint")}
               </p>
             </div>
 
@@ -546,7 +569,7 @@ function RuleFormDialog({ orgId, initial, trigger, onSaved }: RuleFormDialogProp
                 disabled={saving}
               />
               <Label htmlFor="rule-active" className="text-sm cursor-pointer">
-                Regel aktiv
+                {t("ruleActive")}
               </Label>
             </div>
           </div>
@@ -560,13 +583,13 @@ function RuleFormDialog({ orgId, initial, trigger, onSaved }: RuleFormDialogProp
 
         <DialogFooter>
           <Button variant="outline" onClick={handleClose} disabled={saving}>
-            Abbrechen
+            {t("cancel")}
           </Button>
           <Button
             onClick={handleSave}
             disabled={saving || !name.trim() || actions.length === 0}
           >
-            {saving ? "Speichern..." : isEditing ? "Speichern" : "Erstellen"}
+            {saving ? t("savingEllipsis") : isEditing ? t("save") : t("create")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -585,6 +608,7 @@ function TemplateCard({
   orgId: string;
   onActivated: () => void;
 }) {
+  const t = useTranslations("settings");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -623,7 +647,7 @@ function TemplateCard({
             variant="outline"
             className={`text-[10px] px-1.5 ${triggerBadgeColor(template.triggerEvent)}`}
           >
-            {getEventLabel(template.triggerEvent)}
+            {t(TRIGGER_KEY_MAP[template.triggerEvent] as any)}
           </Badge>
         </div>
         <CardTitle className="text-sm">{template.name}</CardTitle>
@@ -636,7 +660,7 @@ function TemplateCard({
               key={i}
               className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-[10px] font-mono text-muted-foreground"
             >
-              {getActionLabel(a.type)}
+              {t(ACTION_KEY_MAP[a.type] as any)}
             </span>
           ))}
         </div>
@@ -647,7 +671,7 @@ function TemplateCard({
           onClick={activate}
           disabled={loading || done}
         >
-          {done ? "Aktiviert" : loading ? "Aktivieren..." : "Vorlage aktivieren"}
+          {done ? t("activated") : loading ? t("activating") : t("activateTemplate")}
         </Button>
       </CardContent>
     </Card>
@@ -663,6 +687,7 @@ function TestDialog({
   rule: WorkflowRule;
   orgId: string;
 }) {
+  const t = useTranslations("settings");
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{
@@ -685,12 +710,12 @@ function TestDialog({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError((data as { error?: string }).error ?? "Fehler beim Test");
+        setError((data as { error?: string }).error ?? t("testError"));
         return;
       }
       setResult(data);
     } catch {
-      setError("Netzwerkfehler");
+      setError(t("networkError"));
     } finally {
       setLoading(false);
     }
@@ -705,24 +730,22 @@ function TestDialog({
       </DialogTrigger>
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Regeltest: {rule.name}</DialogTitle>
+          <DialogTitle>{t("ruleTestTitle", { name: rule.name })}</DialogTitle>
           <DialogDescription>
-            Simuliert die Regel mit Beispieldaten. Keine echten Aktionen werden
-            ausgeführt.
+            {t("ruleTestDesc")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           {!result && !loading && (
             <p className="text-sm text-muted-foreground">
-              Klicke auf Test starten, um die Bedingungen mit typischen Beispieldaten
-              zu prüfen.
+              {t("ruleTestPrompt")}
             </p>
           )}
 
           {loading && (
             <p className="text-sm text-muted-foreground animate-pulse">
-              Führe Test aus...
+              {t("runningTest")}
             </p>
           )}
 
@@ -743,15 +766,15 @@ function TestDialog({
                 }`}
               >
                 {result.conditionsMatched
-                  ? "Alle Bedingungen erfüllt — Aktionen würden feuern."
-                  : "Bedingungen nicht erfüllt — keine Aktionen."}
+                  ? t("conditionsMatched")
+                  : t("conditionsNotMatched")}
               </div>
 
               {/* Matched conditions */}
               {result.matchedConditions.length > 0 && (
                 <div>
                   <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-2">
-                    Erfüllte Bedingungen
+                    {t("matchedConditions")}
                   </p>
                   {result.matchedConditions.map((c, i) => (
                     <div key={i} className="text-xs text-green-700 font-mono mb-1">
@@ -765,7 +788,7 @@ function TestDialog({
               {result.failedConditions.length > 0 && (
                 <div>
                   <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-2">
-                    Nicht erfüllte Bedingungen
+                    {t("failedConditions")}
                   </p>
                   {result.failedConditions.map((c, i) => (
                     <div key={i} className="text-xs text-red-700 font-mono mb-1">
@@ -779,14 +802,14 @@ function TestDialog({
               {result.actionsWouldFire.length > 0 && (
                 <div>
                   <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-2">
-                    Aktionen die ausgelöst würden
+                    {t("actionsWouldFire")}
                   </p>
                   {result.actionsWouldFire.map((a, i) => (
                     <div
                       key={i}
                       className="text-xs rounded-md border border-border px-3 py-2 mb-2"
                     >
-                      <span className="font-medium">{getActionLabel(a.type)}</span>
+                      <span className="font-medium">{t(ACTION_KEY_MAP[a.type] as any)}</span>
                       {a.type === "send_email" && Boolean(a.config.to) && (
                         <span className="ml-2 text-muted-foreground">
                           an {String(a.config.to)}
@@ -800,7 +823,7 @@ function TestDialog({
               {/* Context used */}
               <div>
                 <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-2">
-                  Verwendeter Kontext
+                  {t("contextUsed")}
                 </p>
                 <pre className="text-[10px] font-mono bg-muted rounded-md p-3 overflow-x-auto max-h-32">
                   {JSON.stringify(result.contextUsed, null, 2)}
@@ -812,10 +835,10 @@ function TestDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            Schliessen
+            {t("close")}
           </Button>
           <Button onClick={runTest} disabled={loading}>
-            {loading ? "Läuft..." : "Test starten"}
+            {loading ? t("running") : t("startTest")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -832,6 +855,7 @@ function DeleteRuleDialog({
   onConfirm: () => void;
   loading: boolean;
 }) {
+  const t = useTranslations("settings");
   const [open, setOpen] = useState(false);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -842,19 +866,19 @@ function DeleteRuleDialog({
           className="text-xs h-7 px-2 text-destructive hover:text-destructive"
           disabled={loading}
         >
-          {loading ? "..." : "Löschen"}
+          {loading ? "..." : t("delete")}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>Regel löschen?</DialogTitle>
+          <DialogTitle>{t("deleteRuleTitle")}</DialogTitle>
           <DialogDescription>
-            Diese Automatisierungsregel wird permanent gelöscht.
+            {t("deleteRuleDesc")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => setOpen(false)} disabled={loading}>
-            Abbrechen
+            {t("cancel")}
           </Button>
           <Button
             variant="destructive"
@@ -864,7 +888,7 @@ function DeleteRuleDialog({
             }}
             disabled={loading}
           >
-            Löschen
+            {t("delete")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -875,7 +899,7 @@ function DeleteRuleDialog({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AutomationsPage() {
-  const ts = useTranslations("settings")
+  const ts = useTranslations("settings");
   const { orgId } = useOrganization();
   const [rules, setRules] = useState<WorkflowRule[]>([]);
   const [loading, setLoading] = useState(true);
@@ -891,15 +915,15 @@ export default function AutomationsPage() {
       const res = await fetch("/api/workflow-rules", {
         headers: { "x-organization-id": orgId },
       });
-      if (!res.ok) throw new Error("Fehler beim Laden");
+      if (!res.ok) throw new Error(ts("loadError"));
       const json = await res.json();
       setRules(json.data ?? []);
     } catch {
-      setPageError("Automatisierungsregeln konnten nicht geladen werden.");
+      setPageError(ts("rulesLoadError"));
     } finally {
       setLoading(false);
     }
-  }, [orgId]);
+  }, [orgId, ts]);
 
   useEffect(() => {
     loadRules();
@@ -955,15 +979,14 @@ export default function AutomationsPage() {
           </p>
           <h1 className="text-2xl font-semibold tracking-tight">{ts("automationsTitle")}</h1>
           <p className="text-sm text-muted-foreground mt-1 max-w-xl">
-            Definiere Regeln, die automatisch E-Mails senden, Aufgaben erstellen oder
-            Ausbuchungen sperren — ausgelöst durch Ereignisse in LogistikApp.
+            {ts("automationsDesc")}
           </p>
         </div>
         {orgId && (
           <RuleFormDialog
             orgId={orgId}
             onSaved={loadRules}
-            trigger={<Button size="sm">+ Neue Regel</Button>}
+            trigger={<Button size="sm">{ts("newRule")}</Button>}
           />
         )}
       </div>
@@ -971,18 +994,17 @@ export default function AutomationsPage() {
       {/* Info box */}
       <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-1">
         <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">
-          Vorlagen
+          {ts("templates")}
         </p>
         <p className="text-sm text-muted-foreground mt-1">
-          Starte mit einer vordefinierten Vorlage oder erstelle eine eigene Regel.
-          Vorlagen können nach der Aktivierung angepasst werden.
+          {ts("templatesDesc")}
         </p>
         {orgId && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
-            {RULE_TEMPLATES.map((t) => (
+            {RULE_TEMPLATES.map((tmpl) => (
               <TemplateCard
-                key={t.id}
-                template={t}
+                key={tmpl.id}
+                template={tmpl}
                 orgId={orgId}
                 onActivated={loadRules}
               />
@@ -994,7 +1016,7 @@ export default function AutomationsPage() {
       {/* State feedback */}
       {loading && (
         <p className="text-sm text-muted-foreground font-mono animate-pulse">
-          Lade Regeln...
+          {ts("loadingRules")}
         </p>
       )}
 
@@ -1007,9 +1029,9 @@ export default function AutomationsPage() {
       {/* Empty state */}
       {!loading && rules.length === 0 && !pageError && (
         <div className="rounded-xl border border-dashed border-border p-10 text-center">
-          <p className="text-sm font-medium mb-1">Noch keine Regeln konfiguriert</p>
+          <p className="text-sm font-medium mb-1">{ts("noRulesYet")}</p>
           <p className="text-xs text-muted-foreground font-mono mb-4">
-            Aktiviere eine Vorlage oder erstelle eine eigene Regel.
+            {ts("noRulesHint")}
           </p>
           {orgId && (
             <RuleFormDialog
@@ -1017,7 +1039,7 @@ export default function AutomationsPage() {
               onSaved={loadRules}
               trigger={
                 <Button variant="outline" size="sm">
-                  Erste Regel erstellen
+                  {ts("createFirstRule")}
                 </Button>
               }
             />
@@ -1029,7 +1051,7 @@ export default function AutomationsPage() {
       {rules.length > 0 && (
         <div className="space-y-3">
           <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">
-            Aktive Regeln ({rules.length})
+            {ts("activeRules", { count: rules.length })}
           </p>
           {rules.map((rule) => (
             <Card key={rule.id} className="overflow-hidden">
@@ -1041,20 +1063,20 @@ export default function AutomationsPage() {
                         variant="outline"
                         className={`text-[10px] px-1.5 ${triggerBadgeColor(rule.triggerEvent)}`}
                       >
-                        {getEventLabel(rule.triggerEvent)}
+                        {ts(TRIGGER_KEY_MAP[rule.triggerEvent] as any)}
                       </Badge>
                       {rule.priority > 0 && (
                         <Badge
                           variant="outline"
                           className="text-[10px] px-1.5 text-muted-foreground"
                         >
-                          Priorität {rule.priority}
+                          {ts("priorityNum", { num: rule.priority })}
                         </Badge>
                       )}
                     </div>
                     <CardTitle className="text-sm">{rule.name}</CardTitle>
                     <CardDescription className="text-xs mt-0.5">
-                      Zuletzt geändert: {formatDate(rule.updatedAt)}
+                      {ts("lastModified", { date: formatDate(rule.updatedAt) })}
                     </CardDescription>
                   </div>
 
@@ -1064,7 +1086,7 @@ export default function AutomationsPage() {
                       checked={rule.isActive}
                       onCheckedChange={() => handleToggle(rule)}
                       disabled={togglingId === rule.id}
-                      aria-label={rule.isActive ? "Regel deaktivieren" : "Regel aktivieren"}
+                      aria-label={rule.isActive ? ts("deactivateRule") : ts("activateRule")}
                     />
 
                     {/* Test button */}
@@ -1078,7 +1100,7 @@ export default function AutomationsPage() {
                         onSaved={loadRules}
                         trigger={
                           <Button variant="outline" size="sm" className="text-xs h-7 px-2">
-                            Bearbeiten
+                            {ts("edit")}
                           </Button>
                         }
                       />
@@ -1098,7 +1120,7 @@ export default function AutomationsPage() {
                 {rule.conditions.length > 0 && (
                   <div className="mb-2">
                     <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest mr-2">
-                      Wenn
+                      {ts("when")}
                     </span>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {rule.conditions.map((c, i) => (
@@ -1116,7 +1138,7 @@ export default function AutomationsPage() {
                 {/* Actions summary */}
                 <div>
                   <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest mr-2">
-                    Dann
+                    {ts("then")}
                   </span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {rule.actions.map((a, i) => (
@@ -1124,7 +1146,7 @@ export default function AutomationsPage() {
                         key={i}
                         className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-[10px] font-mono text-muted-foreground"
                       >
-                        {getActionLabel(a.type)}
+                        {ts(ACTION_KEY_MAP[a.type] as any)}
                         {a.type === "send_email" && a.config.to
                           ? ` → ${String(a.config.to)}`
                           : ""}

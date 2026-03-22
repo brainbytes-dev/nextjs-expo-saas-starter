@@ -206,8 +206,7 @@ export default function RfidSettingsPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">{ts("rfidTitle")}</h1>
         <p className="mt-2 text-muted-foreground">
-          Konfigurieren Sie die Verbindung zu Ihrem UHF-RFID-Reader für
-          automatische Tag-Erkennung und Bestandsverfolgung.
+          {ts("rfidSubtitle")}
         </p>
       </div>
 
@@ -219,7 +218,7 @@ export default function RfidSettingsPage() {
             Verbindungstyp
           </CardTitle>
           <CardDescription>
-            Wählen Sie, wie Ihr RFID-Reader mit LogistikApp verbunden ist.
+            {ts("connectionTypeDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -241,10 +240,9 @@ export default function RfidSettingsPage() {
                 </div>
               )}
               <IconDeviceDesktop className="size-8 text-muted-foreground" />
-              <p className="mt-3 font-semibold">Keyboard-Wedge (USB/Bluetooth)</p>
+              <p className="mt-3 font-semibold">{ts("keyboardWedge")}</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Der Reader tippt den EPC-Code wie eine Tastatur. Funktioniert
-                automatisch mit dem bestehenden Scanner-System.
+                {ts("keyboardWedgeDesc")}
               </p>
             </button>
 
@@ -265,10 +263,9 @@ export default function RfidSettingsPage() {
                 </div>
               )}
               <IconWifi className="size-8 text-muted-foreground" />
-              <p className="mt-3 font-semibold">Netzwerk (WebSocket)</p>
+              <p className="mt-3 font-semibold">{ts("networkWs")}</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Verbindung zu einem festen Reader über das lokale Netzwerk via
-                WebSocket-Endpunkt.
+                {ts("networkWsDesc")}
               </p>
             </button>
           </div>
@@ -280,7 +277,7 @@ export default function RfidSettingsPage() {
               <div className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="rfid-host">Host / IP-Adresse</Label>
+                    <Label htmlFor="rfid-host">{ts("hostIp")}</Label>
                     <Input
                       id="rfid-host"
                       placeholder="192.168.1.100"
@@ -289,7 +286,7 @@ export default function RfidSettingsPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="rfid-port">Port</Label>
+                    <Label htmlFor="rfid-port">{ts("port")}</Label>
                     <Input
                       id="rfid-port"
                       type="number"
@@ -309,7 +306,7 @@ export default function RfidSettingsPage() {
                   ) : (
                     <Button onClick={handleConnect} disabled={connecting}>
                       <IconWifi className="mr-2 size-4" />
-                      {connecting ? "Verbinde..." : "Verbinden"}
+                      {connecting ? ts("connecting") : ts("connect")}
                     </Button>
                   )}
 
@@ -327,10 +324,10 @@ export default function RfidSettingsPage() {
                     />
                     <span className="text-sm text-muted-foreground">
                       {connected
-                        ? "Verbunden"
+                        ? ts("connected")
                         : connecting
-                          ? "Verbinde..."
-                          : "Getrennt"}
+                          ? ts("connecting")
+                          : ts("disconnected")}
                     </span>
                   </div>
                 </div>
@@ -347,10 +344,7 @@ export default function RfidSettingsPage() {
                   Keyboard-Wedge-Modus
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Ihr RFID-Reader arbeitet im HID-Modus und tippt den EPC-Code wie
-                  eine Tastatur. Die Erkennung läuft automatisch über das bestehende
-                  Scanner-System. Stellen Sie sicher, dass der Reader nach jedem
-                  Tag-Read eine Enter-Taste sendet.
+                  {ts("keyboardWedgeModeDesc")}
                 </p>
               </div>
             </>
@@ -363,9 +357,9 @@ export default function RfidSettingsPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Tag-Protokoll</CardTitle>
+              <CardTitle>{ts("tagLog")}</CardTitle>
               <CardDescription>
-                Zuletzt gelesene RFID-Tags in Echtzeit.
+                {ts("tagLogDesc")}
               </CardDescription>
             </div>
             {tagLog.length > 0 && (
@@ -387,14 +381,14 @@ export default function RfidSettingsPage() {
                 <IconAntenna className="size-6 text-muted-foreground" />
               </div>
               <p className="mt-3 text-lg font-medium text-muted-foreground">
-                Warte auf Tags...
+                {ts("waitingForTags")}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 {config.type === "keyboard_wedge"
-                  ? "Scannen Sie einen RFID-Tag mit Ihrem Handheld-Reader."
+                  ? ts("scanRfidTag")
                   : connected
-                    ? "Tags werden automatisch erkannt, sobald sie im Lesebereich sind."
-                    : "Verbinden Sie zuerst den Netzwerk-Reader."}
+                    ? ts("tagsAutoDetected")
+                    : ts("connectReaderFirst")}
               </p>
             </div>
           ) : (
@@ -423,7 +417,7 @@ export default function RfidSettingsPage() {
                       </div>
                       <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
                         {tag.rssi !== 0 && <span>RSSI: {tag.rssi} dBm</span>}
-                        {tag.antennaPort && <span>Antenne: {tag.antennaPort}</span>}
+                        {tag.antennaPort && <span>{ts("antenna")}: {tag.antennaPort}</span>}
                         <span>
                           {new Date(tag.timestamp).toLocaleTimeString("de-CH")}
                         </span>
@@ -433,7 +427,7 @@ export default function RfidSettingsPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => applyTagForMapping(tag.epc)}
-                      title="Tag zuweisen"
+                      title={ts("assignTag")}
                     >
                       Zuweisen
                     </Button>
@@ -448,15 +442,15 @@ export default function RfidSettingsPage() {
       {/* ── Tag zuweisen ── */}
       <Card>
         <CardHeader>
-          <CardTitle>Tag zuweisen</CardTitle>
+          <CardTitle>{ts("assignTag")}</CardTitle>
           <CardDescription>
-            Ordnen Sie einen EPC-Code einem Material, Werkzeug oder Standort zu.
+            {ts("assignTagDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="mapping-epc">EPC-Code</Label>
+              <Label htmlFor="mapping-epc">{ts("epcCode")}</Label>
               <Input
                 id="mapping-epc"
                 placeholder="E2003412012345670000ABCD"
@@ -466,12 +460,12 @@ export default function RfidSettingsPage() {
               />
               {mappingEpc && !isValidEPC(mappingEpc) && (
                 <p className="text-xs text-destructive">
-                  Ungültiges EPC-Format (erwartet: 16-32 Hex-Zeichen)
+                  {ts("invalidEpc")}
                 </p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="mapping-type">Typ</Label>
+              <Label htmlFor="mapping-type">{ts("typeLabel")}</Label>
               <Select
                 value={mappingType}
                 onValueChange={(v) =>
@@ -482,28 +476,28 @@ export default function RfidSettingsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="material">Material</SelectItem>
-                  <SelectItem value="tool">Werkzeug</SelectItem>
-                  <SelectItem value="location">Standort</SelectItem>
+                  <SelectItem value="material">{ts("materialType")}</SelectItem>
+                  <SelectItem value="tool">{ts("toolType")}</SelectItem>
+                  <SelectItem value="location">{ts("locationType")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="mapping-name">Bezeichnung</Label>
+              <Label htmlFor="mapping-name">{ts("designation")}</Label>
               <Input
                 id="mapping-name"
-                placeholder="z.B. Bohrmaschine Hilti TE-70"
+                placeholder=ts("designationPlaceholder")
                 value={mappingAssetName}
                 onChange={(e) => setMappingAssetName(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="mapping-id">Asset-ID (optional)</Label>
+              <Label htmlFor="mapping-id">{ts("assetIdOptional")}</Label>
               <Input
                 id="mapping-id"
-                placeholder="Wird automatisch generiert"
+                placeholder=ts("autoGenerated")
                 value={mappingAssetId}
                 onChange={(e) => setMappingAssetId(e.target.value)}
               />
@@ -523,9 +517,9 @@ export default function RfidSettingsPage() {
       {mappings.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Zugewiesene Tags</CardTitle>
+            <CardTitle>{ts("assignedTags")}</CardTitle>
             <CardDescription>
-              {mappings.length} Tag{mappings.length !== 1 ? "s" : ""} zugewiesen.
+              {ts("tagsAssigned", { count: mappings.length })}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -540,10 +534,10 @@ export default function RfidSettingsPage() {
                       <span className="font-medium">{m.assetName}</span>
                       <Badge variant="outline" className="text-xs capitalize">
                         {m.assetType === "material"
-                          ? "Material"
+                          ? ts("materialType")
                           : m.assetType === "tool"
-                            ? "Werkzeug"
-                            : "Standort"}
+                            ? ts("toolType")
+                            : ts("locationType")}
                       </Badge>
                     </div>
                     <p className="mt-0.5 font-mono text-xs text-muted-foreground truncate">
@@ -554,7 +548,7 @@ export default function RfidSettingsPage() {
                     variant="ghost"
                     size="icon"
                     onClick={() => handleRemoveMapping(m.epc)}
-                    title="Zuweisung entfernen"
+                    title=ts("removeAssignment")
                   >
                     <IconTrash className="size-4 text-destructive" />
                   </Button>
@@ -573,7 +567,7 @@ export default function RfidSettingsPage() {
             Unterstützte Reader
           </CardTitle>
           <CardDescription>
-            LogistikApp unterstützt alle gängigen UHF-RFID-Reader.
+            {ts("supportedReadersDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -582,17 +576,17 @@ export default function RfidSettingsPage() {
               {
                 brand: "Zebra",
                 models: "MC3300, FX7500, FX9600",
-                mode: "USB HID / Netzwerk",
+                mode: "USB HID / Network",
               },
               {
                 brand: "Impinj",
                 models: "Speedway R420, R700, xSpan",
-                mode: "Netzwerk (LLRP)",
+                mode: "Network (LLRP)",
               },
               {
                 brand: "ThingMagic",
                 models: "M6e, Sargas, Izar",
-                mode: "USB HID / Netzwerk",
+                mode: "USB HID / Network",
               },
             ].map((r) => (
               <div key={r.brand} className="rounded-lg border bg-muted/30 p-4">
@@ -608,10 +602,7 @@ export default function RfidSettingsPage() {
               Hinweis
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Im <strong>Keyboard-Wedge-Modus</strong> wird jeder UHF-RFID-Reader
-              unterstützt, der den EPC-Code als Tastatureingabe sendet. Für{" "}
-              <strong>Netzwerk-Reader</strong> wird ein lokaler Gateway-Agent
-              benötigt, der das LLRP-Protokoll in WebSocket-Events übersetzt.
+              {ts("rfidNoteText")}
             </p>
           </div>
         </CardContent>

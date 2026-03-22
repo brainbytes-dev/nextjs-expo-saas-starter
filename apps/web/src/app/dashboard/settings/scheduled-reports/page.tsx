@@ -58,18 +58,11 @@ interface ScheduledReport {
 // ---------------------------------------------------------------------------
 // Label helpers
 // ---------------------------------------------------------------------------
-const REPORT_TYPE_LABELS: Record<string, string> = {
-  inventory: "Inventarbericht",
-  tools: "Werkzeugbericht",
-  movements: "Bewegungsbericht",
-  commissions: "Kommissionsbericht",
-}
+// Labels moved to translations
+const REPORT_TYPE_LABELS: Record<string, string> = {}
 
-const SCHEDULE_LABELS: Record<string, string> = {
-  daily: "Täglich",
-  weekly: "Wöchentlich",
-  monthly: "Monatlich",
-}
+// Labels moved to translations
+const SCHEDULE_LABELS: Record<string, string> = {}
 
 const FORMAT_LABELS: Record<string, string> = {
   csv: "CSV",
@@ -162,7 +155,7 @@ export default function ScheduledReportsPage() {
       .filter((e) => e.includes("@"))
 
     if (recipients.length === 0) {
-      setCreateError("Mindestens eine gültige E-Mail-Adresse erforderlich.")
+      setCreateError(ts("minOneEmail"))
       return
     }
 
@@ -180,7 +173,7 @@ export default function ScheduledReportsPage() {
       })
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
-        throw new Error(body.error ?? "Fehler beim Erstellen")
+        throw new Error(body.error ?? "Error")
       }
       const created = await res.json()
       setReports((prev) => [...prev, created])
@@ -192,7 +185,7 @@ export default function ScheduledReportsPage() {
         recipientsInput: "",
       })
     } catch (err) {
-      setCreateError(err instanceof Error ? err.message : "Unbekannter Fehler")
+      setCreateError(err instanceof Error ? err.message : "Error")
     } finally {
       setCreating(false)
     }
@@ -212,7 +205,7 @@ export default function ScheduledReportsPage() {
         </div>
         <Button size="sm" onClick={() => setCreateOpen(true)}>
           <IconPlus className="size-4" />
-          Neuer Bericht
+          {ts("newReportBtn")}
         </Button>
       </div>
 
@@ -236,7 +229,7 @@ export default function ScheduledReportsPage() {
               onClick={() => setCreateOpen(true)}
             >
               <IconPlus className="size-4" />
-              Ersten Bericht erstellen
+              {ts("createFirstReportBtn")}
             </Button>
           </CardContent>
         ) : (
@@ -256,12 +249,12 @@ export default function ScheduledReportsPage() {
               {reports.map((report) => (
                 <TableRow key={report.id}>
                   <TableCell className="font-medium">
-                    {REPORT_TYPE_LABELS[report.reportType] ?? report.reportType}
+                    {report.reportType === "inventory" ? ts("inventoryReport") : report.reportType === "tools" ? ts("toolsReport") : report.reportType === "movements" ? ts("movementsReport") : report.reportType === "commissions" ? ts("commissionsReport") : report.reportType}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1.5">
                       <IconCalendar className="size-3.5 text-muted-foreground" />
-                      {SCHEDULE_LABELS[report.schedule] ?? report.schedule}
+                      {report.schedule === "daily" ? ts("daily") : report.schedule === "weekly" ? ts("weekly") : report.schedule === "monthly" ? ts("monthly") : report.schedule}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -326,10 +319,10 @@ export default function ScheduledReportsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="inventory">Inventarbericht</SelectItem>
-                  <SelectItem value="tools">Werkzeugbericht</SelectItem>
-                  <SelectItem value="movements">Bewegungsbericht</SelectItem>
-                  <SelectItem value="commissions">Kommissionsbericht</SelectItem>
+                  <SelectItem value="inventory">{ts("inventoryReport")}</SelectItem>
+                  <SelectItem value="tools">{ts("toolsReport")}</SelectItem>
+                  <SelectItem value="movements">{ts("movementsReport")}</SelectItem>
+                  <SelectItem value="commissions">{ts("commissionsReport")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -345,9 +338,9 @@ export default function ScheduledReportsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="daily">Täglich</SelectItem>
-                  <SelectItem value="weekly">Wöchentlich</SelectItem>
-                  <SelectItem value="monthly">Monatlich</SelectItem>
+                  <SelectItem value="daily">{ts("daily")}</SelectItem>
+                  <SelectItem value="weekly">{ts("weekly")}</SelectItem>
+                  <SelectItem value="monthly">{ts("monthly")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -381,7 +374,7 @@ export default function ScheduledReportsPage() {
                 }
               />
               <p className="text-xs text-muted-foreground">
-                Eine E-Mail-Adresse pro Zeile oder durch Komma getrennt.
+                {ts("recipientsHint")}
               </p>
             </div>
 

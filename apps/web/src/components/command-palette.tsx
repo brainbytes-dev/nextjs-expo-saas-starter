@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
@@ -22,67 +22,6 @@ import {
 } from "@tabler/icons-react"
 import { getRecentItems, getFavorites, type RecentItem, type FavoriteItem } from "@/lib/favorites"
 
-// Static navigation items
-const NAV_ITEMS = [
-  // Navigation
-  { id: "dashboard", label: "Dashboard", href: "/dashboard", icon: IconLayoutDashboard, group: "Navigation" },
-  { id: "materials", label: "Materialien", href: "/dashboard/materials", icon: IconPackage, group: "Navigation" },
-  { id: "tools", label: "Werkzeuge", href: "/dashboard/tools", icon: IconTool, group: "Navigation" },
-  { id: "keys", label: "Schlüssel", href: "/dashboard/keys", icon: IconKey, group: "Navigation" },
-  { id: "locations", label: "Standorte", href: "/dashboard/locations", icon: IconMapPin, group: "Navigation" },
-  { id: "tasks", label: "Aufgaben", href: "/dashboard/tasks", icon: IconChecklist, group: "Navigation" },
-  { id: "calendar", label: "Kalender", href: "/dashboard/calendar", icon: IconCalendar, group: "Navigation" },
-  { id: "reports", label: "Berichte", href: "/dashboard/reports", icon: IconReportAnalytics, group: "Navigation" },
-  { id: "map", label: "Karte", href: "/dashboard/map", icon: IconMap, group: "Navigation" },
-
-  // Betrieb
-  { id: "commissions", label: "Kommissionen", href: "/dashboard/commissions", icon: IconClipboardList, group: "Betrieb" },
-  { id: "orders", label: "Offene Bestellungen", href: "/dashboard/orders", icon: IconFileInvoice, group: "Betrieb" },
-  { id: "deliveries", label: "Lieferverfolgung", href: "/dashboard/deliveries", icon: IconTruck, group: "Betrieb" },
-  { id: "cart", label: "Warenkorb", href: "/dashboard/cart", icon: IconShoppingCart, group: "Betrieb" },
-  { id: "transfers", label: "Umbuchungen", href: "/dashboard/transfers", icon: IconArrowsTransferDown, group: "Betrieb" },
-  { id: "inventory", label: "Inventur", href: "/dashboard/inventory", icon: IconClipboardCheck, group: "Betrieb" },
-  { id: "reservations", label: "Reservierungen", href: "/dashboard/reservations", icon: IconCalendarEvent, group: "Betrieb" },
-  { id: "warranties", label: "Garantieansprüche", href: "/dashboard/warranty-claims", icon: IconShieldCheck, group: "Betrieb" },
-  { id: "recurring", label: "Wiederkehrende Bestellungen", href: "/dashboard/recurring-orders", icon: IconRepeat, group: "Betrieb" },
-
-  // Planung & Analyse
-  { id: "time-tracking", label: "Zeiterfassung", href: "/dashboard/time-tracking", icon: IconClock, group: "Planung" },
-  { id: "kanban", label: "Kanban", href: "/dashboard/kanban", icon: IconLayoutKanban, group: "Planung" },
-  { id: "shift", label: "Schichtübergabe", href: "/dashboard/shift-handover", icon: IconClipboardText, group: "Planung" },
-  { id: "utilization", label: "Geräte-Auslastung", href: "/dashboard/utilization", icon: IconChartBar, group: "Planung" },
-  { id: "maintenance", label: "KI-Wartungsprognose", href: "/dashboard/maintenance-ai", icon: IconBrain, group: "Planung" },
-  { id: "supply-chain", label: "Lieferkette", href: "/dashboard/supply-chain", icon: IconGitBranch, group: "Planung" },
-  { id: "stock-adjust", label: "Bestandsoptimierung", href: "/dashboard/stock-adjust", icon: IconAdjustments, group: "Planung" },
-  { id: "budgets", label: "Budgets", href: "/dashboard/budgets", icon: IconWallet, group: "Planung" },
-
-  // Werkzeuge
-  { id: "barcode", label: "Barcode-Generator", href: "/dashboard/barcode-generator", icon: IconBarcode, group: "Werkzeuge" },
-  { id: "label-designer", label: "Etiketten-Designer", href: "/dashboard/label-designer", icon: IconRuler, group: "Werkzeuge" },
-  { id: "batch-print", label: "Massendruck", href: "/dashboard/batch-print", icon: IconPrinter, group: "Werkzeuge" },
-  { id: "import", label: "Datenimport", href: "/dashboard/import", icon: IconUpload, group: "Werkzeuge" },
-  { id: "migration", label: "Migration", href: "/dashboard/migration", icon: IconTransfer, group: "Werkzeuge" },
-  { id: "tv", label: "TV-Modus", href: "/tv", icon: IconDeviceTv, group: "Werkzeuge" },
-
-  // Einstellungen
-  { id: "settings", label: "Einstellungen", href: "/dashboard/settings", icon: IconSettings, group: "Einstellungen" },
-  { id: "portals", label: "Externe Portale", href: "/dashboard/portals", icon: IconLink, group: "Einstellungen" },
-  { id: "scanner", label: "Handscanner", href: "/dashboard/settings/scanner", icon: IconBarcode, group: "Einstellungen" },
-  { id: "printer", label: "Etikettendrucker", href: "/dashboard/settings/printer", icon: IconPrinter, group: "Einstellungen" },
-  { id: "team", label: "Team", href: "/dashboard/settings/team", icon: IconUsers, group: "Einstellungen" },
-  { id: "roles", label: "Rollen", href: "/dashboard/settings/roles", icon: IconShield, group: "Einstellungen" },
-  { id: "plugins", label: "Plugins", href: "/dashboard/settings/plugins", icon: IconPuzzle, group: "Einstellungen" },
-
-  // Aktionen
-  { id: "new-material", label: "Neues Material", href: "/dashboard/materials/new", icon: IconPlus, group: "Aktionen" },
-  { id: "new-tool", label: "Neues Werkzeug", href: "/dashboard/tools/new", icon: IconPlus, group: "Aktionen" },
-  { id: "new-location", label: "Neuer Standort", href: "/dashboard/locations/new", icon: IconPlus, group: "Aktionen" },
-]
-
-// Group order — static groups first, dynamic groups appended at runtime
-const STATIC_GROUP_ORDER = ["Navigation", "Betrieb", "Planung", "Werkzeuge", "Einstellungen", "Aktionen"]
-const DYNAMIC_GROUPS = ["Zuletzt besucht", "Favoriten"]
-
 interface PaletteItem {
   id: string
   label: string
@@ -100,6 +39,69 @@ export function CommandPalette() {
   const [favorites, setFavorites] = useState<FavoriteItem[]>([])
   const router = useRouter()
   const shortcutsDialog = useShortcutsDialog()
+
+  // Build translated navigation items
+  const NAV_ITEMS: PaletteItem[] = useMemo(() => [
+    // Navigation
+    { id: "dashboard", label: t("dashboard"), href: "/dashboard", icon: IconLayoutDashboard, group: t("navigation") },
+    { id: "materials", label: t("materials"), href: "/dashboard/materials", icon: IconPackage, group: t("navigation") },
+    { id: "tools", label: t("tools"), href: "/dashboard/tools", icon: IconTool, group: t("navigation") },
+    { id: "keys", label: t("keys"), href: "/dashboard/keys", icon: IconKey, group: t("navigation") },
+    { id: "locations", label: t("locations"), href: "/dashboard/locations", icon: IconMapPin, group: t("navigation") },
+    { id: "tasks", label: t("tasks"), href: "/dashboard/tasks", icon: IconChecklist, group: t("navigation") },
+    { id: "calendar", label: t("calendar"), href: "/dashboard/calendar", icon: IconCalendar, group: t("navigation") },
+    { id: "reports", label: t("reports"), href: "/dashboard/reports", icon: IconReportAnalytics, group: t("navigation") },
+    { id: "map", label: t("map"), href: "/dashboard/map", icon: IconMap, group: t("navigation") },
+
+    // Operations
+    { id: "commissions", label: t("commissions"), href: "/dashboard/commissions", icon: IconClipboardList, group: t("operations") },
+    { id: "orders", label: t("openOrders"), href: "/dashboard/orders", icon: IconFileInvoice, group: t("operations") },
+    { id: "deliveries", label: t("deliveryTracking"), href: "/dashboard/deliveries", icon: IconTruck, group: t("operations") },
+    { id: "cart", label: t("cart"), href: "/dashboard/cart", icon: IconShoppingCart, group: t("operations") },
+    { id: "transfers", label: t("transfers"), href: "/dashboard/transfers", icon: IconArrowsTransferDown, group: t("operations") },
+    { id: "inventory", label: t("inventory"), href: "/dashboard/inventory", icon: IconClipboardCheck, group: t("operations") },
+    { id: "reservations", label: t("reservations"), href: "/dashboard/reservations", icon: IconCalendarEvent, group: t("operations") },
+    { id: "warranties", label: t("warrantyClaims"), href: "/dashboard/warranty-claims", icon: IconShieldCheck, group: t("operations") },
+    { id: "recurring", label: t("recurringOrders"), href: "/dashboard/recurring-orders", icon: IconRepeat, group: t("operations") },
+
+    // Planning
+    { id: "time-tracking", label: t("timeTracking"), href: "/dashboard/time-tracking", icon: IconClock, group: t("planning") },
+    { id: "kanban", label: t("kanban"), href: "/dashboard/kanban", icon: IconLayoutKanban, group: t("planning") },
+    { id: "shift", label: t("shiftHandover"), href: "/dashboard/shift-handover", icon: IconClipboardText, group: t("planning") },
+    { id: "utilization", label: t("utilization"), href: "/dashboard/utilization", icon: IconChartBar, group: t("planning") },
+    { id: "maintenance", label: t("maintenanceAi"), href: "/dashboard/maintenance-ai", icon: IconBrain, group: t("planning") },
+    { id: "supply-chain", label: t("supplyChain"), href: "/dashboard/supply-chain", icon: IconGitBranch, group: t("planning") },
+    { id: "stock-adjust", label: t("stockOptimization"), href: "/dashboard/stock-adjust", icon: IconAdjustments, group: t("planning") },
+    { id: "budgets", label: t("budgets"), href: "/dashboard/budgets", icon: IconWallet, group: t("planning") },
+
+    // Tools group
+    { id: "barcode", label: t("barcodeGenerator"), href: "/dashboard/barcode-generator", icon: IconBarcode, group: t("toolsGroup") },
+    { id: "label-designer", label: t("labelDesigner"), href: "/dashboard/label-designer", icon: IconRuler, group: t("toolsGroup") },
+    { id: "batch-print", label: t("batchPrint"), href: "/dashboard/batch-print", icon: IconPrinter, group: t("toolsGroup") },
+    { id: "import", label: t("dataImport"), href: "/dashboard/import", icon: IconUpload, group: t("toolsGroup") },
+    { id: "migration", label: t("migration"), href: "/dashboard/migration", icon: IconTransfer, group: t("toolsGroup") },
+    { id: "tv", label: t("tvMode"), href: "/tv", icon: IconDeviceTv, group: t("toolsGroup") },
+
+    // Settings
+    { id: "settings", label: t("settings"), href: "/dashboard/settings", icon: IconSettings, group: t("settingsGroup") },
+    { id: "portals", label: t("externalPortals"), href: "/dashboard/portals", icon: IconLink, group: t("settingsGroup") },
+    { id: "scanner", label: t("scanner"), href: "/dashboard/settings/scanner", icon: IconBarcode, group: t("settingsGroup") },
+    { id: "printer", label: t("printer"), href: "/dashboard/settings/printer", icon: IconPrinter, group: t("settingsGroup") },
+    { id: "team", label: t("team"), href: "/dashboard/settings/team", icon: IconUsers, group: t("settingsGroup") },
+    { id: "roles", label: t("roles"), href: "/dashboard/settings/roles", icon: IconShield, group: t("settingsGroup") },
+    { id: "plugins", label: t("plugins"), href: "/dashboard/settings/plugins", icon: IconPuzzle, group: t("settingsGroup") },
+
+    // Actions
+    { id: "new-material", label: t("newMaterial"), href: "/dashboard/materials/new", icon: IconPlus, group: t("actions") },
+    { id: "new-tool", label: t("newTool"), href: "/dashboard/tools/new", icon: IconPlus, group: t("actions") },
+    { id: "new-location", label: t("newLocation"), href: "/dashboard/locations/new", icon: IconPlus, group: t("actions") },
+  ], [t])
+
+  // Group order — static groups first, dynamic groups appended at runtime
+  const STATIC_GROUP_ORDER = useMemo(() => [
+    t("navigation"), t("operations"), t("planning"), t("toolsGroup"), t("settingsGroup"), t("actions")
+  ], [t])
+  const DYNAMIC_GROUPS = useMemo(() => [t("recentlyVisited"), t("favorites")], [t])
 
   // Keyboard shortcuts (g+h, g+m, c+t, etc.) — only active when palette is closed
   useKeyboardShortcuts((shortcut) => {
@@ -147,23 +149,23 @@ export function CommandPalette() {
   }
 
   // Build full item list including dynamic groups
-  const allItems: PaletteItem[] = [
+  const allItems: PaletteItem[] = useMemo(() => [
     ...NAV_ITEMS,
     ...recentItems.map((r) => ({
       id: `recent-${r.id}`,
       label: r.name,
       href: r.url,
       icon: IconClock,
-      group: "Zuletzt besucht",
+      group: t("recentlyVisited"),
     })),
     ...favorites.map((f) => ({
       id: `fav-${f.id}`,
       label: f.name,
       href: f.url,
       icon: IconStar,
-      group: "Favoriten",
+      group: t("favorites"),
     })),
-  ]
+  ], [NAV_ITEMS, recentItems, favorites, t])
 
   // Filter items
   const filtered = query.trim() === ""
@@ -229,7 +231,7 @@ export function CommandPalette() {
         showCloseButton={false}
         className="p-0 gap-0 max-w-[520px] overflow-hidden border-border/60 shadow-2xl"
       >
-        <VisuallyHidden><DialogTitle>Befehlspalette</DialogTitle></VisuallyHidden>
+        <VisuallyHidden><DialogTitle>{t("dialogTitle")}</DialogTitle></VisuallyHidden>
         {/* Search input row */}
         <div className="flex items-center gap-3 px-4 border-b border-border/60 bg-background">
           <IconSearch className="size-[15px] text-muted-foreground/70 shrink-0" strokeWidth={1.75} />
@@ -250,7 +252,7 @@ export function CommandPalette() {
           {filtered.length === 0 ? (
             <div className="py-12 text-center">
               <p className="text-sm font-mono text-muted-foreground/50">
-                Keine Ergebnisse für{" "}
+                {t("noResults")}{" "}
                 <span className="text-muted-foreground">&ldquo;{query}&rdquo;</span>
               </p>
             </div>
@@ -334,7 +336,7 @@ export function CommandPalette() {
             <kbd className="inline-flex h-4 items-center gap-px text-[9px] font-mono text-muted-foreground/50 border border-border/50 rounded-sm px-1 leading-none">
               ⌘K
             </kbd>
-            <span className="text-[9px] font-mono text-muted-foreground/40 tracking-wide">toggle</span>
+            <span className="text-[9px] font-mono text-muted-foreground/40 tracking-wide">{t("toggle")}</span>
           </div>
         </div>
       </DialogContent>

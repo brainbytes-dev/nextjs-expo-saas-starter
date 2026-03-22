@@ -105,20 +105,6 @@ function truncateUuid(uuid: string): string {
   return `${uuid.slice(0, 8)}...${uuid.slice(-4)}`
 }
 
-function formatLastSeen(dateStr: string | null): string {
-  if (!dateStr) return "Nie"
-  const d = new Date(dateStr)
-  const now = new Date()
-  const diffMs = now.getTime() - d.getTime()
-  const diffMin = Math.floor(diffMs / 60000)
-  if (diffMin < 1) return "Gerade eben"
-  if (diffMin < 60) return `Vor ${diffMin} Min.`
-  const diffH = Math.floor(diffMin / 60)
-  if (diffH < 24) return `Vor ${diffH} Std.`
-  const diffD = Math.floor(diffH / 24)
-  return `Vor ${diffD} Tag${diffD > 1 ? "en" : ""}`
-}
-
 function BatteryIndicator({ level }: { level: number | null }) {
   if (level === null) {
     return <span className="text-muted-foreground text-sm">--</span>
@@ -289,7 +275,7 @@ export default function BeaconsPage() {
 
   const handleDelete = useCallback(
     async (id: string) => {
-      if (!confirm("Beacon wirklich loeschen?")) return
+      if (!confirm(t("confirmDelete"))) return
       try {
         await fetch(`/api/ble-beacons/${id}`, { method: "DELETE" })
         fetchBeacons()
@@ -297,7 +283,7 @@ export default function BeaconsPage() {
         console.error("Delete beacon error:", err)
       }
     },
-    [fetchBeacons]
+    [fetchBeacons, t]
   )
 
   const handleToggleActive = useCallback(
@@ -316,22 +302,40 @@ export default function BeaconsPage() {
     [fetchBeacons]
   )
 
+  // Format last seen with translations
+  const formatLastSeen = useCallback(
+    (dateStr: string | null): string => {
+      if (!dateStr) return t("never")
+      const d = new Date(dateStr)
+      const now = new Date()
+      const diffMs = now.getTime() - d.getTime()
+      const diffMin = Math.floor(diffMs / 60000)
+      if (diffMin < 1) return t("justNow")
+      if (diffMin < 60) return t("minutesAgo", { count: diffMin })
+      const diffH = Math.floor(diffMin / 60)
+      if (diffH < 24) return t("hoursAgo", { count: diffH })
+      const diffD = Math.floor(diffH / 24)
+      return t("daysAgo", { count: diffD })
+    },
+    [t]
+  )
+
   // Table columns
   const columns = useMemo<ColumnDef<BeaconRow>[]>(
     () => [
       {
         accessorKey: "name",
-        header: "Name",
+        header: t("nameLabel"),
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <IconBluetooth className="h-4 w-4 text-blue-500" />
-            <span className="font-medium">{row.original.name ?? "Unbenannt"}</span>
+            <span className="font-medium">{row.original.name ?? t("unnamed")}</span>
           </div>
         ),
       },
       {
         accessorKey: "uuid",
-        header: "UUID",
+        header: t("uuid"),
         cell: ({ row }) => (
           <code className="text-muted-foreground text-xs" title={row.original.uuid}>
             {truncateUuid(row.original.uuid)}
@@ -340,7 +344,7 @@ export default function BeaconsPage() {
       },
       {
         id: "majorMinor",
-        header: "Major / Minor",
+        header: t("majorMinor"),
         cell: ({ row }) => (
           <span className="text-sm">
             {row.original.major ?? "--"} / {row.original.minor ?? "--"}
@@ -349,7 +353,7 @@ export default function BeaconsPage() {
       },
       {
         accessorKey: "locationName",
-        header: "Standort",
+        header: t("locationCol"),
         cell: ({ row }) =>
           row.original.locationName ? (
             <div className="flex items-center gap-1">
@@ -362,26 +366,22 @@ export default function BeaconsPage() {
       },
       {
         accessorKey: "entityType",
-        header: "Entitaet",
+        header: t("entityCol"),
         cell: ({ row }) => {
-          const t = row.original.entityType
-          if (!t) return <span className="text-muted-foreground text-sm">--</span>
-          const labels: Record<string, string> = {
-            tool: "Werkzeug",
-            location: "Standort",
-            zone: "Zone",
-          }
-          return <Badge variant="outline">{labels[t] ?? t}</Badge>
+          const et = row.original.entityType
+          if (!et) return <span className="text-muted-foreground text-sm">--</span>
+          const key = `entityTypes.${et}` as const
+          return <Badge variant="outline">{t.has(key) ? t(key) : et}</Badge>
         },
       },
       {
         accessorKey: "batteryLevel",
-        header: "Batterie",
+        header: t("battery"),
         cell: ({ row }) => <BatteryIndicator level={row.original.batteryLevel} />,
       },
       {
         accessorKey: "lastSeenAt",
-        header: "Zuletzt gesehen",
+        header: t("lastSeenCol"),
         cell: ({ row }) => (
           <span className="text-muted-foreground text-sm">
             {formatLastSeen(row.original.lastSeenAt)}
@@ -390,12 +390,12 @@ export default function BeaconsPage() {
       },
       {
         accessorKey: "isActive",
-        header: "Status",
+        header: t("statusCol"),
         cell: ({ row }) =>
           row.original.isActive ? (
-            <Badge className="bg-green-500/10 text-green-600 border-green-500/20">Aktiv</Badge>
+            <Badge className="bg-green-500/10 text-green-600 border-green-500/20">{t("active")}</Badge>
           ) : (
-            <Badge variant="secondary">Inaktiv</Badge>
+            <Badge variant="secondary">{t("inactive")}</Badge>
           ),
       },
       {
@@ -411,10 +411,10 @@ export default function BeaconsPage() {
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => openEditDialog(row.original)}>
                 <IconEdit className="mr-2 h-4 w-4" />
-                Bearbeiten
+                {t("edit")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleToggleActive(row.original)}>
-                {row.original.isActive ? "Deaktivieren" : "Aktivieren"}
+                {row.original.isActive ? t("deactivate") : t("activate")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -422,14 +422,14 @@ export default function BeaconsPage() {
                 onClick={() => handleDelete(row.original.id)}
               >
                 <IconTrash className="mr-2 h-4 w-4" />
-                Loeschen
+                {t("deleteLabel")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ),
       },
     ],
-    [openEditDialog, handleDelete, handleToggleActive]
+    [openEditDialog, handleDelete, handleToggleActive, t, formatLastSeen]
   )
 
   const table = useReactTable({
@@ -463,7 +463,7 @@ export default function BeaconsPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground text-sm">
-            Verwalte und ueberwache alle registrierten BLE-Beacons deiner Organisation.
+            {t("subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -472,7 +472,7 @@ export default function BeaconsPage() {
           </Button>
           <Button onClick={openCreateDialog}>
             <IconPlus className="mr-2 h-4 w-4" />
-            Neuen Beacon registrieren
+            {t("newBeacon")}
           </Button>
         </div>
       </div>
@@ -490,7 +490,7 @@ export default function BeaconsPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Niedriger Akku</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("lowBattery")}</CardTitle>
             <IconBattery1 className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
@@ -499,7 +499,7 @@ export default function BeaconsPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Standorte abgedeckt</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("coveredLocations")}</CardTitle>
             <IconMapPin className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
@@ -513,7 +513,7 @@ export default function BeaconsPage() {
         <div className="relative flex-1 max-w-sm">
           <IconSearch className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
           <Input
-            placeholder="Beacon suchen..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -557,7 +557,7 @@ export default function BeaconsPage() {
                   <div className="flex flex-col items-center gap-2">
                     <IconBluetooth className="text-muted-foreground h-8 w-8" />
                     <p className="text-muted-foreground text-sm">
-                      {search ? "Keine Beacons gefunden." : "Noch keine Beacons registriert."}
+                      {search ? t("noBeaconsSearch") : t("noBeaconsYet")}
                     </p>
                   </div>
                 </TableCell>
@@ -582,26 +582,26 @@ export default function BeaconsPage() {
         <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle>
-              {editBeacon ? "Beacon bearbeiten" : "Neuen Beacon registrieren"}
+              {editBeacon ? t("editBeacon") : t("newBeacon")}
             </DialogTitle>
             <DialogDescription>
               {editBeacon
-                ? "Aktualisiere die Beacon-Informationen."
-                : "Registriere einen neuen BLE-Beacon in deiner Organisation."}
+                ? t("editBeaconDesc")
+                : t("newBeaconDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="beacon-name">Name</Label>
+              <Label htmlFor="beacon-name">{t("nameLabel")}</Label>
               <Input
                 id="beacon-name"
-                placeholder="z.B. Lager Eingang A"
+                placeholder={t("namePlaceholder")}
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="beacon-uuid">Beacon UUID *</Label>
+              <Label htmlFor="beacon-uuid">{t("uuidRequired")}</Label>
               <Input
                 id="beacon-uuid"
                 placeholder="e.g. 2D7A9F0C-E0E8-4CC9-A71B-A21DB2D034A1"
@@ -611,7 +611,7 @@ export default function BeaconsPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="beacon-major">Major</Label>
+                <Label htmlFor="beacon-major">{t("major")}</Label>
                 <Input
                   id="beacon-major"
                   type="number"
@@ -621,7 +621,7 @@ export default function BeaconsPage() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="beacon-minor">Minor</Label>
+                <Label htmlFor="beacon-minor">{t("minor")}</Label>
                 <Input
                   id="beacon-minor"
                   type="number"
@@ -632,13 +632,13 @@ export default function BeaconsPage() {
               </div>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="beacon-location">Standort</Label>
+              <Label htmlFor="beacon-location">{t("locationLabel")}</Label>
               <Select value={formLocationId} onValueChange={setFormLocationId}>
                 <SelectTrigger id="beacon-location">
-                  <SelectValue placeholder="Standort waehlen..." />
+                  <SelectValue placeholder={t("selectLocation")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Kein Standort</SelectItem>
+                  <SelectItem value="">{t("noLocation")}</SelectItem>
                   {locations.map((loc) => (
                     <SelectItem key={loc.id} value={loc.id}>
                       {loc.name}
@@ -649,24 +649,24 @@ export default function BeaconsPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="beacon-entity-type">Entitaets-Typ</Label>
+                <Label htmlFor="beacon-entity-type">{t("entityTypeLabel")}</Label>
                 <Select value={formEntityType} onValueChange={setFormEntityType}>
                   <SelectTrigger id="beacon-entity-type">
-                    <SelectValue placeholder="Typ waehlen..." />
+                    <SelectValue placeholder={t("selectType")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Keiner</SelectItem>
-                    <SelectItem value="tool">Werkzeug</SelectItem>
-                    <SelectItem value="location">Standort</SelectItem>
-                    <SelectItem value="zone">Zone</SelectItem>
+                    <SelectItem value="">{t("noneType")}</SelectItem>
+                    <SelectItem value="tool">{t("entityTypes.tool")}</SelectItem>
+                    <SelectItem value="location">{t("entityTypes.location")}</SelectItem>
+                    <SelectItem value="zone">{t("entityTypes.zone")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="beacon-entity-id">Entitaets-ID</Label>
+                <Label htmlFor="beacon-entity-id">{t("entityIdLabel")}</Label>
                 <Input
                   id="beacon-entity-id"
-                  placeholder="UUID der Entitaet"
+                  placeholder={t("entityIdPlaceholder")}
                   value={formEntityId}
                   onChange={(e) => setFormEntityId(e.target.value)}
                 />
@@ -675,10 +675,10 @@ export default function BeaconsPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Abbrechen
+              {t("cancel")}
             </Button>
             <Button onClick={handleSave} disabled={saving || !formUuid}>
-              {saving ? "Speichern..." : editBeacon ? "Aktualisieren" : "Registrieren"}
+              {saving ? t("saving") : editBeacon ? t("update") : t("register")}
             </Button>
           </DialogFooter>
         </DialogContent>

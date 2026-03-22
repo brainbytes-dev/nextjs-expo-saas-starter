@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect, useRef } from "react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import {
   IconScale,
@@ -40,6 +41,7 @@ export function ScaleWidget({
   className,
   compact = false,
 }: ScaleWidgetProps) {
+  const t = useTranslations("scale")
   const [device, setDevice] = useState<BluetoothDevice | null>(null)
   const [connected, setConnected] = useState(false)
   const [connecting, setConnecting] = useState(false)
@@ -81,7 +83,7 @@ export function ScaleWidget({
         // Notifications will update the value
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Verbindungsfehler")
+      setError(err instanceof Error ? err.message : t("connectionError"))
       setDevice(null)
       setConnected(false)
     } finally {
@@ -132,7 +134,7 @@ export function ScaleWidget({
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <IconBluetoothOff className="size-4" />
           <span>
-            Web Bluetooth nicht verfügbar. Bitte verwenden Sie Google Chrome.
+            {t("bluetoothUnavailable")}
           </span>
         </div>
       </div>
@@ -158,7 +160,7 @@ export function ScaleWidget({
           />
           {!compact && (
             <p className="text-sm text-muted-foreground">
-              Bluetooth-Waage verbinden
+              {t("connectScale")}
             </p>
           )}
           <Button
@@ -170,12 +172,12 @@ export function ScaleWidget({
             {connecting ? (
               <>
                 <IconLoader2 className="mr-1.5 size-4 animate-spin" />
-                Verbinde...
+                {t("connecting")}
               </>
             ) : (
               <>
                 <IconBluetooth className="mr-1.5 size-4" />
-                Waage verbinden
+                {t("connect")}
               </>
             )}
           </Button>
@@ -208,7 +210,7 @@ export function ScaleWidget({
           type="button"
           onClick={handleDisconnect}
           className="rounded p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          title="Waage trennen"
+          title={t("disconnect")}
         >
           <IconX className="size-3.5" />
         </button>
@@ -230,10 +232,10 @@ export function ScaleWidget({
           </span>
         </div>
         {reading && !reading.stable && (
-          <p className="mt-1 text-xs text-amber-600">Messung läuft...</p>
+          <p className="mt-1 text-xs text-amber-600">{t("measuring")}</p>
         )}
         {reading?.stable && (
-          <p className="mt-1 text-xs text-green-600">Stabil</p>
+          <p className="mt-1 text-xs text-green-600">{t("stable")}</p>
         )}
       </div>
 
@@ -249,12 +251,12 @@ export function ScaleWidget({
           {applied ? (
             <>
               <IconCheck className="mr-1.5 size-4" />
-              Übernommen
+              {t("applied")}
             </>
           ) : (
             <>
               <IconScale className="mr-1.5 size-4" />
-              Gewicht übernehmen
+              {t("applyWeight")}
             </>
           )}
         </Button>

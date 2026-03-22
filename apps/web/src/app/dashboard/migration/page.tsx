@@ -32,89 +32,6 @@ interface BexioPreview {
   contacts?: Array<{ name: string; email: string | null }>
 }
 
-const SOURCE_SYSTEMS: {
-  id: SourceSystem
-  name: string
-  short: string
-  color: string
-  desc: string
-  status: "live" | "csv" | "soon"
-}[] = [
-  {
-    id: "excel",
-    name: "Excel / CSV",
-    short: "XLS",
-    color: "#217346",
-    desc: "Importieren Sie beliebige CSV- oder Excel-Dateien",
-    status: "live",
-  },
-  {
-    id: "bexio",
-    name: "bexio",
-    short: "BX",
-    color: "#0073E6",
-    desc: "Artikel und Kontakte direkt aus bexio importieren",
-    status: "live",
-  },
-  {
-    id: "proffix",
-    name: "PROFFIX",
-    short: "PF",
-    color: "#E30613",
-    desc: "Daten aus PROFFIX Px5 exportieren und importieren",
-    status: "csv",
-  },
-  {
-    id: "sap",
-    name: "SAP Business One",
-    short: "SAP",
-    color: "#0FAAFF",
-    desc: "SAP B1 Stammdaten als CSV exportieren",
-    status: "csv",
-  },
-  {
-    id: "other",
-    name: "Andere Software",
-    short: "?",
-    color: "#666666",
-    desc: "Daten als CSV exportieren und mit unserem Assistenten importieren",
-    status: "csv",
-  },
-]
-
-// ─── CSV export instructions per system ─────────────────────────────────────
-
-const EXPORT_INSTRUCTIONS: Record<string, { steps: string[]; tip: string }> = {
-  proffix: {
-    steps: [
-      'Öffnen Sie PROFFIX Px5 und navigieren Sie zu "Stammdaten > Artikel"',
-      'Wählen Sie "Datei > Exportieren > CSV-Export"',
-      "Exportieren Sie Artikel, Adressen und Lagerorte als separate CSV-Dateien",
-      "Laden Sie die CSV-Dateien in unseren Import-Assistenten hoch",
-    ],
-    tip: "PROFFIX exportiert standardmässig mit Semikolon als Trennzeichen — perfekt für unseren Import.",
-  },
-  sap: {
-    steps: [
-      'Öffnen Sie SAP Business One und gehen Sie zu "Lagerverwaltung > Artikelstammdaten"',
-      'Nutzen Sie "Werkzeuge > Exportieren > Microsoft Excel"',
-      "Speichern Sie die Excel-Datei als CSV (UTF-8)",
-      "Wiederholen Sie den Vorgang für Geschäftspartner und Lagerorte",
-      "Laden Sie die CSV-Dateien in unseren Import-Assistenten hoch",
-    ],
-    tip: "Achten Sie darauf, UTF-8 als Zeichensatz zu wählen, damit Umlaute korrekt importiert werden.",
-  },
-  other: {
-    steps: [
-      "Exportieren Sie Ihre Daten als CSV- oder Excel-Datei aus Ihrem aktuellen System",
-      "Stellen Sie sicher, dass mindestens eine Spalte den Artikelnamen enthält",
-      "Laden Sie die Datei in unseren Import-Assistenten hoch",
-      "Unser KI-gestütztes Mapping erkennt die Spalten automatisch",
-    ],
-    tip: "Die meisten Systeme bieten unter 'Export' oder 'Berichte' eine CSV-Export-Option.",
-  },
-}
-
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function MigrationPage() {
@@ -130,6 +47,88 @@ export default function MigrationPage() {
   const [bexioImporting, setBexioImporting] = useState(false)
   const [bexioResult, setBexioResult] = useState<Record<string, { imported: number; skipped: number }> | null>(null)
   const [bexioImportTypes, setBexioImportTypes] = useState<("articles" | "contacts")[]>(["articles", "contacts"])
+
+  const SOURCE_SYSTEMS: {
+    id: SourceSystem
+    name: string
+    short: string
+    color: string
+    desc: string
+    status: "live" | "csv" | "soon"
+  }[] = [
+    {
+      id: "excel",
+      name: t("systemExcel"),
+      short: "XLS",
+      color: "#217346",
+      desc: t("systemExcelDesc"),
+      status: "live",
+    },
+    {
+      id: "bexio",
+      name: t("systemBexio"),
+      short: "BX",
+      color: "#0073E6",
+      desc: t("systemBexioDesc"),
+      status: "live",
+    },
+    {
+      id: "proffix",
+      name: t("systemProffix"),
+      short: "PF",
+      color: "#E30613",
+      desc: t("systemProffixDesc"),
+      status: "csv",
+    },
+    {
+      id: "sap",
+      name: t("systemSap"),
+      short: "SAP",
+      color: "#0FAAFF",
+      desc: t("systemSapDesc"),
+      status: "csv",
+    },
+    {
+      id: "other",
+      name: t("systemOther"),
+      short: "?",
+      color: "#666666",
+      desc: t("systemOtherDesc"),
+      status: "csv",
+    },
+  ]
+
+  // ── CSV export instructions per system
+  const EXPORT_INSTRUCTIONS: Record<string, { steps: string[]; tip: string }> = {
+    proffix: {
+      steps: [
+        'Öffnen Sie PROFFIX Px5 und navigieren Sie zu "Stammdaten > Artikel"',
+        'Wählen Sie "Datei > Exportieren > CSV-Export"',
+        "Exportieren Sie Artikel, Adressen und Lagerorte als separate CSV-Dateien",
+        "Laden Sie die CSV-Dateien in unseren Import-Assistenten hoch",
+      ],
+      tip: "PROFFIX exportiert standardmässig mit Semikolon als Trennzeichen — perfekt für unseren Import.",
+    },
+    sap: {
+      steps: [
+        'Öffnen Sie SAP Business One und gehen Sie zu "Lagerverwaltung > Artikelstammdaten"',
+        'Nutzen Sie "Werkzeuge > Exportieren > Microsoft Excel"',
+        "Speichern Sie die Excel-Datei als CSV (UTF-8)",
+        "Wiederholen Sie den Vorgang für Geschäftspartner und Lagerorte",
+        "Laden Sie die CSV-Dateien in unseren Import-Assistenten hoch",
+      ],
+      tip: "Achten Sie darauf, UTF-8 als Zeichensatz zu wählen, damit Umlaute korrekt importiert werden.",
+    },
+    other: {
+      steps: [
+        "Exportieren Sie Ihre Daten als CSV- oder Excel-Datei aus Ihrem aktuellen System",
+        "Stellen Sie sicher, dass mindestens eine Spalte den Artikelnamen enthält",
+        "Laden Sie die Datei in unseren Import-Assistenten hoch",
+        "Unser KI-gestütztes Mapping erkennt die Spalten automatisch",
+      ],
+      tip: "Die meisten Systeme bieten unter 'Export' oder 'Berichte' eine CSV-Export-Option.",
+    },
+  }
 
   // ── bexio connection ──────────────────────────────────────────────────────
 
@@ -151,14 +150,14 @@ export default function MigrationPage() {
 
       if (!res.ok) {
         const data = await res.json()
-        setBexioError(data.error || "Verbindung fehlgeschlagen")
+        setBexioError(data.error || t("connectionFailed"))
         return
       }
 
       const data = await res.json()
       setBexioPreview(data.preview)
     } catch {
-      setBexioError("Netzwerkfehler")
+      setBexioError(t("networkError"))
     } finally {
       setBexioLoading(false)
     }
@@ -181,14 +180,14 @@ export default function MigrationPage() {
 
       if (!res.ok) {
         const data = await res.json()
-        setBexioError(data.error || "Import fehlgeschlagen")
+        setBexioError(data.error || t("importFailed"))
         return
       }
 
       const data = await res.json()
       setBexioResult(data.result)
     } catch {
-      setBexioError("Netzwerkfehler")
+      setBexioError(t("networkError"))
     } finally {
       setBexioImporting(false)
     }
@@ -218,7 +217,7 @@ export default function MigrationPage() {
         <div>
           <h1 className="text-2xl font-bold">{t("title")}</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Importieren Sie Ihre bestehenden Daten in wenigen Minuten
+            {t("description")}
           </p>
         </div>
         <Button
@@ -236,7 +235,7 @@ export default function MigrationPage() {
           }}
         >
           <IconArrowLeft className="size-4 mr-2" />
-          {selectedSource ? "Zurück zur Auswahl" : "Zurück"}
+          {selectedSource ? t("backToSelection") : t("back")}
         </Button>
       </div>
 
@@ -245,10 +244,10 @@ export default function MigrationPage() {
         <>
           <div>
             <h2 className="text-lg font-semibold mb-1">
-              Von welchem System kommen Sie?
+              {t("sourceQuestion")}
             </h2>
             <p className="text-sm text-muted-foreground">
-              Wählen Sie Ihre aktuelle Software, um den besten Migrationspfad zu sehen
+              {t("sourceDescription")}
             </p>
           </div>
 
@@ -278,12 +277,12 @@ export default function MigrationPage() {
                         <h3 className="font-semibold">{system.name}</h3>
                         {system.status === "live" && (
                           <Badge variant="default" className="text-[10px] px-1.5 py-0">
-                            Direkt
+                            {t("direct")}
                           </Badge>
                         )}
                         {system.status === "csv" && (
                           <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                            Via CSV
+                            {t("viaCsv")}
                           </Badge>
                         )}
                       </div>
@@ -303,7 +302,7 @@ export default function MigrationPage() {
             <CardHeader>
               <CardTitle className="text-base">{t("csvTemplates")}</CardTitle>
               <CardDescription>
-                Nutzen Sie unsere Vorlagen, um Ihre Daten im richtigen Format vorzubereiten
+                {t("csvTemplatesDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -335,15 +334,14 @@ export default function MigrationPage() {
               <CardHeader>
                 <CardTitle>{t("connectBexio")}</CardTitle>
                 <CardDescription>
-                  Geben Sie Ihren bexio API-Token ein, um Ihre Daten zu importieren.
-                  Den Token finden Sie unter{" "}
+                  {t("bexioApiDesc")}{" "}
                   <a
                     href="https://office.bexio.com/index.php/admin/apiTokens"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-primary hover:underline inline-flex items-center gap-1"
                   >
-                    bexio Einstellungen
+                    {t("bexioSettings")}
                     <IconExternalLink className="size-3" />
                   </a>
                 </CardDescription>
@@ -351,11 +349,11 @@ export default function MigrationPage() {
               <CardContent className="space-y-4">
                 <div>
                   <label className="text-sm font-medium mb-2 block">
-                    API-Token
+                    {t("apiToken")}
                   </label>
                   <Input
                     type="password"
-                    placeholder="Ihr bexio API-Token..."
+                    placeholder={t("bexioTokenPlaceholder")}
                     value={bexioToken}
                     onChange={(e) => setBexioToken(e.target.value)}
                   />
@@ -363,7 +361,7 @@ export default function MigrationPage() {
 
                 <div>
                   <label className="text-sm font-medium mb-2 block">
-                    Was importieren?
+                    {t("whatToImportQ")}
                   </label>
                   <div className="flex gap-2">
                     {(["articles", "contacts"] as const).map((type) => (
@@ -388,7 +386,7 @@ export default function MigrationPage() {
                         ) : (
                           <IconTruck className="size-4" />
                         )}
-                        {type === "articles" ? "Artikel" : "Kontakte"}
+                        {type === "articles" ? t("articles") : t("contacts")}
                       </button>
                     ))}
                   </div>
@@ -408,7 +406,7 @@ export default function MigrationPage() {
                   {bexioLoading ? (
                     <IconLoader2 className="size-4 mr-2 animate-spin" />
                   ) : null}
-                  Verbinden und Vorschau laden
+                  {t("connectPreview")}
                 </Button>
               </CardContent>
             </Card>
@@ -419,9 +417,9 @@ export default function MigrationPage() {
             <div className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Vorschau</CardTitle>
+                  <CardTitle className="text-base">{t("preview")}</CardTitle>
                   <CardDescription>
-                    Diese Daten werden aus bexio importiert
+                    {t("previewDesc")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -429,17 +427,17 @@ export default function MigrationPage() {
                     <div>
                       <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
                         <IconPackage className="size-4" />
-                        Artikel ({bexioPreview.articles.length})
+                        {t("articles")} ({bexioPreview.articles.length})
                       </h3>
                       <div className="rounded-lg border overflow-hidden">
                         <table className="w-full text-sm">
                           <thead>
                             <tr className="border-b bg-muted/50">
                               <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground">
-                                Name
+                                {t("nameCol")}
                               </th>
                               <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground">
-                                Nummer
+                                {t("number")}
                               </th>
                             </tr>
                           </thead>
@@ -456,7 +454,7 @@ export default function MigrationPage() {
                         </table>
                         {bexioPreview.articles.length > 10 && (
                           <p className="text-xs text-muted-foreground text-center py-2">
-                            ... und {bexioPreview.articles.length - 10} weitere
+                            {t("andMore", { count: bexioPreview.articles.length - 10 })}
                           </p>
                         )}
                       </div>
@@ -467,17 +465,17 @@ export default function MigrationPage() {
                     <div>
                       <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
                         <IconTruck className="size-4" />
-                        Kontakte ({bexioPreview.contacts.length})
+                        {t("contacts")} ({bexioPreview.contacts.length})
                       </h3>
                       <div className="rounded-lg border overflow-hidden">
                         <table className="w-full text-sm">
                           <thead>
                             <tr className="border-b bg-muted/50">
                               <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground">
-                                Name
+                                {t("nameCol")}
                               </th>
                               <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground">
-                                E-Mail
+                                {t("emailCol")}
                               </th>
                             </tr>
                           </thead>
@@ -503,7 +501,7 @@ export default function MigrationPage() {
                   {bexioImporting ? (
                     <IconLoader2 className="size-4 mr-2 animate-spin" />
                   ) : null}
-                  Jetzt importieren
+                  {t("importNow")}
                 </Button>
                 <Button
                   variant="ghost"
@@ -512,7 +510,7 @@ export default function MigrationPage() {
                     setBexioToken("")
                   }}
                 >
-                  Abbrechen
+                  {t("cancel")}
                 </Button>
               </div>
             </div>
@@ -527,20 +525,20 @@ export default function MigrationPage() {
                     <IconCheck className="size-6 text-green-600" />
                   </div>
                   <div>
-                    <p className="text-lg font-bold">bexio-Import abgeschlossen</p>
+                    <p className="text-lg font-bold">{t("bexioImportDone")}</p>
                   </div>
                 </div>
 
                 <div className="space-y-2 mb-6">
                   {bexioResult.articles && (
                     <p className="text-sm">
-                      <strong>Artikel:</strong> {bexioResult.articles.imported} importiert,{" "}
+                      <strong>{t("articles")}:</strong> {bexioResult.articles.imported} importiert,{" "}
                       {bexioResult.articles.skipped} übersprungen
                     </p>
                   )}
                   {bexioResult.contacts && (
                     <p className="text-sm">
-                      <strong>Kontakte:</strong> {bexioResult.contacts.imported} importiert,{" "}
+                      <strong>{t("contacts")}:</strong> {bexioResult.contacts.imported} importiert,{" "}
                       {bexioResult.contacts.skipped} übersprungen
                     </p>
                   )}
@@ -548,14 +546,14 @@ export default function MigrationPage() {
 
                 <div className="flex gap-3">
                   <Button size="sm" onClick={() => router.push("/dashboard/materials")}>
-                    Zu Materialien
+                    {t("toMaterials")}
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => router.push("/dashboard/suppliers")}
                   >
-                    Zu Lieferanten
+                    {t("toSuppliers")}
                   </Button>
                 </div>
               </CardContent>
@@ -570,11 +568,10 @@ export default function MigrationPage() {
           <Card>
             <CardHeader>
               <CardTitle>
-                Daten aus{" "}
-                {SOURCE_SYSTEMS.find((s) => s.id === selectedSource)?.name} exportieren
+                {t("exportData", { system: SOURCE_SYSTEMS.find((s) => s.id === selectedSource)?.name ?? "" })}
               </CardTitle>
               <CardDescription>
-                Folgen Sie diesen Schritten, um Ihre Daten vorzubereiten
+                {t("followSteps")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -591,7 +588,7 @@ export default function MigrationPage() {
 
               {EXPORT_INSTRUCTIONS[selectedSource]?.tip && (
                 <div className="mt-6 rounded-lg bg-muted p-4 text-sm text-muted-foreground">
-                  <strong>Tipp:</strong> {EXPORT_INSTRUCTIONS[selectedSource]?.tip}
+                  <strong>{t("tip")}:</strong> {EXPORT_INSTRUCTIONS[selectedSource]?.tip}
                 </div>
               )}
             </CardContent>
@@ -600,9 +597,9 @@ export default function MigrationPage() {
           {/* Template downloads */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">CSV-Vorlagen</CardTitle>
+              <CardTitle className="text-base">{t("csvTemplatesLabel")}</CardTitle>
               <CardDescription>
-                Optional: Verwenden Sie unsere Vorlagen als Orientierung
+                {t("csvTemplatesOptional")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -631,7 +628,7 @@ export default function MigrationPage() {
             className="w-full sm:w-auto"
           >
             <IconFileSpreadsheet className="size-4 mr-2" />
-            Zum Import-Assistenten
+            {t("toImportWizard")}
             <IconArrowRight className="size-4 ml-2" />
           </Button>
         </div>

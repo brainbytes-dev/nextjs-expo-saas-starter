@@ -25,77 +25,7 @@ interface Plan {
   isEnterprise?: boolean
 }
 
-const plans: Plan[] = [
-  {
-    id: "starter",
-    name: "Starter",
-    description: "Für kleine Teams und Einsteiger.",
-    priceMonthly: 59,
-    priceYearly: 49,
-    features: [
-      "Bis 5 Benutzer",
-      "Bis 3 Standorte",
-      "Bis 500 Artikel",
-      "Material- & Werkzeugverwaltung",
-      "Barcode-Scanner (Kamera + Handscanner)",
-      "Kommissionen & Warenkorb",
-      "Mobile App (iOS & Android)",
-      "E-Mail-Support",
-    ],
-    priceIdMonthly: process.env.NEXT_PUBLIC_STRIPE_STARTER_MONTHLY ?? "",
-    priceIdYearly: process.env.NEXT_PUBLIC_STRIPE_STARTER_YEARLY ?? "",
-  },
-  {
-    id: "professional",
-    name: "Professional",
-    description: "Für wachsende Betriebe mit Vollausstattung.",
-    priceMonthly: 199,
-    priceYearly: 169,
-    features: [
-      "Alles aus Starter, plus:",
-      "Bis 25 Benutzer",
-      "Unbegrenzte Standorte & Artikel",
-      "Zeiterfassung mit Live-Timer",
-      "Lieferverfolgung (Kanban)",
-      "Garantieansprüche-Workflow",
-      "Bestandsoptimierung (KI)",
-      "Kunden- & Lieferanten-Portal",
-      "Erweiterte Berichte & PDF",
-      "KI-Fotorkennung & Prognose",
-      "Offline-Modus",
-      "Prioritäts-Support",
-    ],
-    priceIdMonthly: process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY ?? "",
-    priceIdYearly: process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY ?? "",
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise",
-    description: "Für Unternehmen mit individuellen Anforderungen.",
-    priceMonthly: 699,
-    priceYearly: 599,
-    isEnterprise: true,
-    features: [
-      "Alles aus Professional, plus:",
-      "Unbegrenzte Benutzer",
-      "UHF RFID Reader-Support",
-      "Workflow Engine & Automatisierungen",
-      "Public API & Webhooks",
-      "Custom Branding (Logo & Farben)",
-      "SSO / SAML / Azure AD",
-      "Etikettendrucker (Zebra ZPL)",
-      "Multi-Company Reporting",
-      "SLA-Garantie 99.9%",
-      "Prioritäts-Support",
-      "Zugang zu allen zukünftigen Features",
-      "…und vieles mehr",
-    ],
-  },
-]
 
-// ---------------------------------------------------------------------------
-// Stripe configured check
-// ---------------------------------------------------------------------------
 const stripeConfigured = Boolean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 
 // ---------------------------------------------------------------------------
@@ -103,6 +33,41 @@ const stripeConfigured = Boolean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 // ---------------------------------------------------------------------------
 export default function BillingPage() {
   const t = useTranslations("billingPage")
+  const plans: Plan[] = [
+    {
+      id: "starter",
+      name: t("starterName"),
+      description: t("starterDesc"),
+      priceMonthly: 59,
+      priceYearly: 49,
+      features: Array.from({length: 8}, (_, i) => t(`feat_starter_${i}`)),
+      priceIdMonthly: process.env.NEXT_PUBLIC_STRIPE_STARTER_MONTHLY ?? "",
+      priceIdYearly: process.env.NEXT_PUBLIC_STRIPE_STARTER_YEARLY ?? "",
+    },
+    {
+      id: "professional",
+      name: t("professionalName"),
+      description: t("professionalDesc"),
+      priceMonthly: 199,
+      priceYearly: 169,
+      features: Array.from({length: 12}, (_, i) => t(`feat_pro_${i}`)),
+      priceIdMonthly: process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY ?? "",
+      priceIdYearly: process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY ?? "",
+    },
+    {
+      id: "enterprise",
+      name: t("enterpriseName"),
+      description: t("enterpriseDesc"),
+      priceMonthly: 699,
+      priceYearly: 599,
+      isEnterprise: true,
+      features: Array.from({length: 13}, (_, i) => t(`feat_ent_${i}`)),
+    },
+  ]
+  
+  // ---------------------------------------------------------------------------
+  // Stripe configured check
+  // ---------------------------------------------------------------------------
   const { data: session } = useSession()
   const [isLoading, setIsLoading] = useState(false)
   const [actionPlanId, setActionPlanId] = useState<string | null>(null)
@@ -136,7 +101,7 @@ export default function BillingPage() {
       const { url } = await createPortalSession()
       if (url) window.location.href = url
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Fehler beim Öffnen des Kundenportals.")
+      setError(err instanceof Error ? err.message : t("portalError"))
     } finally {
       setIsLoading(false)
     }
@@ -147,7 +112,7 @@ export default function BillingPage() {
     const priceId =
       billingInterval === "yearly" ? plan.priceIdYearly : plan.priceIdMonthly
     if (!priceId) {
-      setError("Stripe ist nicht konfiguriert.")
+      setError(t("stripeNotConfiguredError"))
       return
     }
     setActionPlanId(plan.id)
@@ -156,7 +121,7 @@ export default function BillingPage() {
       const { url } = await createCheckoutSession(priceId)
       if (url) window.location.href = url
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Fehler beim Erstellen der Checkout-Sitzung.")
+      setError(err instanceof Error ? err.message : t("checkoutError"))
     } finally {
       setActionPlanId(null)
     }
@@ -171,16 +136,15 @@ export default function BillingPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
         <p className="text-muted-foreground mt-2">
-          Verwalte dein Abonnement und deine Rechnungsinformationen.
+          {t("description")}
         </p>
       </div>
 
       {/* ── Stripe not configured banner ── */}
       {!stripeConfigured && (
         <div className="rounded-md border border-amber-400/40 bg-amber-50 dark:bg-amber-950/30 p-4 text-sm text-amber-800 dark:text-amber-300">
-          <strong>Stripe nicht konfiguriert.</strong> Die Pläne werden zur Vorschau angezeigt.
-          Füge <code className="font-mono text-xs">NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY</code> zu deiner{" "}
-          <code className="font-mono text-xs">.env</code> hinzu, um Zahlungen zu aktivieren.
+          <strong>{t("stripeNotConfigured")}</strong> {t("stripePreview")}{" "}
+          {t("stripeNotConfiguredHelp", { key: "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY", file: ".env" })}
         </div>
       )}
 
@@ -189,8 +153,7 @@ export default function BillingPage() {
         <CardHeader>
           <CardTitle>{t("currentPlan")}</CardTitle>
           <CardDescription>
-            Du nutzt derzeit den{" "}
-            <span className="capitalize font-medium">{currentPlan}</span>-Plan.
+            {t("currentPlanUsing", { plan: currentPlan })}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -199,8 +162,8 @@ export default function BillingPage() {
               <p className="font-semibold text-lg capitalize">{currentPlan}</p>
               <p className="text-sm text-muted-foreground">
                 {currentPlan === "starter"
-                  ? "Upgrade für mehr Funktionen verfügbar."
-                  : "Dein Abonnement ist aktiv."}
+                  ? t("upgradeAvailable")
+                  : t("subscriptionActive")}
               </p>
             </div>
             <Badge variant="secondary" className="capitalize">
@@ -212,7 +175,7 @@ export default function BillingPage() {
 
           {currentPlan !== "starter" && (
             <Button onClick={handleManageSubscription} disabled={isLoading}>
-              {isLoading ? "Lade…" : "Abonnement verwalten"}
+              {isLoading ? t("loading") : t("manageSubscription")}
             </Button>
           )}
 
@@ -239,7 +202,7 @@ export default function BillingPage() {
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            Monatlich
+            {t("monthly")}
           </button>
           <button
             type="button"
@@ -250,7 +213,7 @@ export default function BillingPage() {
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            Jährlich
+            {t("yearly")}
             <span className="ml-1.5 rounded-full bg-green-100 px-1.5 py-0.5 text-[10px] font-semibold text-green-700 dark:bg-green-900 dark:text-green-300">
               –15%
             </span>
@@ -280,7 +243,7 @@ export default function BillingPage() {
                     <CardDescription>{plan.description}</CardDescription>
                   </div>
                   {isCurrentPlan && (
-                    <Badge variant="default">Aktueller Plan</Badge>
+                    <Badge variant="default">{t("currentPlanBadge")}</Badge>
                   )}
                 </div>
               </CardHeader>
@@ -289,16 +252,16 @@ export default function BillingPage() {
                 {/* Price */}
                 <div>
                   {plan.isEnterprise ? (
-                    <p className="text-3xl font-bold">Auf Anfrage</p>
+                    <p className="text-3xl font-bold">{t("onRequest")}</p>
                   ) : (
                     <>
                       <p className="text-3xl font-bold">
                         CHF {price}
-                        <span className="text-base font-normal text-muted-foreground">/Mo</span>
+                        <span className="text-base font-normal text-muted-foreground">{t("perMonth")}</span>
                       </p>
                       {billingInterval === "yearly" && (
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          Jährlich abgerechnet (CHF {price * 12}/Jahr)
+                          {t("billedYearly", { amount: price * 12 })}
                         </p>
                       )}
                     </>
@@ -336,11 +299,11 @@ export default function BillingPage() {
                       onClick={handleManageSubscription}
                       disabled={isLoading}
                     >
-                      {isLoading ? "Lade…" : "Verwalten"}
+                      {isLoading ? t("loading") : t("manage")}
                     </Button>
                   ) : (
                     <Button disabled className="w-full">
-                      Aktueller Plan
+                      {t("currentPlanBadge")}
                     </Button>
                   )
                 ) : plan.isEnterprise ? (
@@ -359,12 +322,12 @@ export default function BillingPage() {
                     onClick={() => handleUpgrade(plan)}
                   >
                     {actionPlanId === plan.id
-                      ? "Lade…"
+                      ? t("loading")
                       : isUpgrade
-                        ? "Upgrade"
+                        ? t("upgrade")
                         : isDowngrade
-                          ? "Downgrade"
-                          : "Wechseln"}
+                          ? t("downgrade")
+                          : t("switchPlan")}
                   </Button>
                 )}
               </CardContent>
@@ -379,19 +342,19 @@ export default function BillingPage() {
       <Card>
         <CardHeader>
           <CardTitle>{t("invoices")}</CardTitle>
-          <CardDescription>Vergangene Rechnungen und Zahlungen einsehen.</CardDescription>
+          <CardDescription>{t("invoicesDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           {currentPlan === "starter" ? (
             <div className="py-8 text-center">
               <p className="text-muted-foreground">
-                Noch keine Rechnungen vorhanden. Upgrade für Rechnungshistorie.
+                {t("noInvoices")}
               </p>
             </div>
           ) : (
             <div className="py-6 text-center">
               <Button onClick={handleManageSubscription} variant="outline" disabled={isLoading}>
-                {isLoading ? "Lade…" : "Rechnungen im Kundenportal anzeigen"}
+                {isLoading ? t("loading") : t("viewInPortal")}
               </Button>
             </div>
           )}
@@ -402,20 +365,20 @@ export default function BillingPage() {
       <Card>
         <CardHeader>
           <CardTitle>{t("paymentMethods")}</CardTitle>
-          <CardDescription>Zahlungsinformationen verwalten.</CardDescription>
+          <CardDescription>{t("paymentMethodsDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="py-8 text-center">
             <p className="text-muted-foreground mb-4">
-              Noch keine Zahlungsmethode hinterlegt.
+              {t("noPaymentMethod")}
             </p>
             {stripeConfigured ? (
               <Button onClick={handleManageSubscription} variant="outline" disabled={isLoading}>
-                {isLoading ? "Lade…" : "Im Kundenportal verwalten"}
+                {isLoading ? t("loading") : t("manageInPortal")}
               </Button>
             ) : (
               <Button disabled variant="outline">
-                Stripe nicht konfiguriert
+                {t("stripeNotConfigured")}
               </Button>
             )}
           </div>

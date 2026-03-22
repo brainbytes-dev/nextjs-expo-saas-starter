@@ -333,7 +333,7 @@ export default function CustomizeDashboardPage() {
       <div className="flex items-start justify-between gap-4 px-4 lg:px-6">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/dashboard" aria-label="Zurück zum Dashboard">
+            <Link href="/dashboard" aria-label={t("backToDashboard")}>
               <IconArrowLeft className="size-4" />
             </Link>
           </Button>
@@ -343,7 +343,7 @@ export default function CustomizeDashboardPage() {
               Dashboard anpassen
             </h1>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              Widgets verschieben, skalieren und hinzufügen
+              {t("description")}
             </p>
           </div>
         </div>
@@ -388,8 +388,7 @@ export default function CustomizeDashboardPage() {
                   Auf Standard zurücksetzen?
                 </DialogTitle>
                 <DialogDescription>
-                  Das aktuelle Layout wird gelöscht und durch das Standard-Dashboard ersetzt.
-                  Diese Aktion kann nicht rückgängig gemacht werden.
+                  {t("resetDescription")}
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
@@ -415,8 +414,7 @@ export default function CustomizeDashboardPage() {
 
       {/* ── Hint bar ─────────────────────────────────────────────────── */}
       <div className="mx-4 lg:mx-6 rounded-lg border border-dashed bg-muted/30 px-4 py-2.5 text-xs text-muted-foreground">
-        Widgets können per Drag-and-Drop verschoben und an den Ecken skaliert werden.
-        Klicke auf <strong>X</strong>, um ein Widget zu entfernen. Speichere anschliessend das Layout.
+        {t("hintText")}
       </div>
 
       {/* ── Grid ─────────────────────────────────────────────────────── */}
@@ -447,7 +445,7 @@ export default function CustomizeDashboardPage() {
                 <button
                   onClick={() => handleRemove(item.id)}
                   className="absolute right-2 top-2 z-20 flex size-6 items-center justify-center rounded-full bg-background/80 text-muted-foreground shadow opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
-                  aria-label="Widget entfernen"
+                  aria-label={t("removeWidget")}
                 >
                   <IconX className="size-3.5" />
                 </button>

@@ -130,7 +130,7 @@ export default function NewMaterialPage() {
 
   const validate = useCallback((): boolean => {
     const errs: Partial<Record<keyof FormState, string>> = {}
-    if (!form.name.trim()) errs.name = "Name ist erforderlich"
+    if (!form.name.trim()) errs.name = t("nameRequired")
     setErrors(errs)
     return Object.keys(errs).length === 0
   }, [form])
@@ -210,7 +210,7 @@ export default function NewMaterialPage() {
           {/* AI Photo Recognition */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">KI-Erkennung aus Foto</CardTitle>
+              <CardTitle className="text-base">{t("aiRecognition")}</CardTitle>
             </CardHeader>
             <CardContent>
               <AiPhotoRecognize onRecognized={handleRecognized} />
@@ -220,7 +220,7 @@ export default function NewMaterialPage() {
           {/* Basic info */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Grunddaten</CardTitle>
+              <CardTitle className="text-base">{t("basicData")}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-5 sm:grid-cols-2">
               {/* Name */}
@@ -232,7 +232,7 @@ export default function NewMaterialPage() {
                   id="name"
                   value={form.name}
                   onChange={(e) => updateField("name", e.target.value)}
-                  placeholder="z.B. Infusionslösung NaCl 0.9%"
+                  placeholder={t("namePlaceholder")}
                   aria-invalid={!!errors.name}
                 />
                 {errors.name && (
@@ -247,7 +247,7 @@ export default function NewMaterialPage() {
                   id="number"
                   value={form.number}
                   onChange={(e) => updateField("number", e.target.value)}
-                  placeholder="z.B. MAT-001"
+                  placeholder={t("numberPlaceholder")}
                 />
               </div>
 
@@ -262,16 +262,16 @@ export default function NewMaterialPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Stk">Stück (Stk)</SelectItem>
-                    <SelectItem value="Pkg">Packung (Pkg)</SelectItem>
-                    <SelectItem value="Fl">Flasche (Fl)</SelectItem>
-                    <SelectItem value="Rll">Rolle (Rll)</SelectItem>
-                    <SelectItem value="Set">Set</SelectItem>
-                    <SelectItem value="m">Meter (m)</SelectItem>
-                    <SelectItem value="kg">Kilogramm (kg)</SelectItem>
-                    <SelectItem value="l">Liter (l)</SelectItem>
-                    <SelectItem value="ml">Milliliter (ml)</SelectItem>
-                    <SelectItem value="Paar">Paar</SelectItem>
+                    <SelectItem value="Stk">{t("unitPiece")}</SelectItem>
+                    <SelectItem value="Pkg">{t("unitPackage")}</SelectItem>
+                    <SelectItem value="Fl">{t("unitBottle")}</SelectItem>
+                    <SelectItem value="Rll">{t("unitRoll")}</SelectItem>
+                    <SelectItem value="Set">{t("unitSet")}</SelectItem>
+                    <SelectItem value="m">{t("unitMeter")}</SelectItem>
+                    <SelectItem value="kg">{t("unitKg")}</SelectItem>
+                    <SelectItem value="l">{t("unitLiter")}</SelectItem>
+                    <SelectItem value="ml">{t("unitMl")}</SelectItem>
+                    <SelectItem value="Paar">{t("unitPair")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -312,7 +312,7 @@ export default function NewMaterialPage() {
           {/* Inventory & Location */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Bestand &amp; Lagerort</CardTitle>
+              <CardTitle className="text-base">{t("stockAndLocation")}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-5 sm:grid-cols-2">
               {/* Haupt Lagerort */}
@@ -362,7 +362,7 @@ export default function NewMaterialPage() {
                   onChange={(e) => updateField("expiryDate", e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Wichtig für medizinische Materialien
+                  {t("expiryHint")}
                 </p>
               </div>
             </CardContent>
@@ -371,7 +371,7 @@ export default function NewMaterialPage() {
           {/* Manufacturer */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Hersteller</CardTitle>
+              <CardTitle className="text-base">{t("manufacturer")}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-5 sm:grid-cols-2">
               {/* Hersteller */}
@@ -402,13 +402,13 @@ export default function NewMaterialPage() {
 
               {/* Notes */}
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="notes">Notizen</Label>
+                <Label htmlFor="notes">{tc("notes")}</Label>
                 <textarea
                   id="notes"
                   className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                   value={form.notes}
                   onChange={(e) => updateField("notes", e.target.value)}
-                  placeholder="Zusätzliche Hinweise..."
+                  placeholder={t("notesPlaceholder")}
                 />
               </div>
             </CardContent>
@@ -420,7 +420,7 @@ export default function NewMaterialPage() {
           {/* Quick info */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">&Uuml;bersicht</CardTitle>
+              <CardTitle className="text-base">{t("overview")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div className="flex justify-between">

@@ -160,17 +160,24 @@ const MOCK_TASKS: Task[] = [
   },
 ]
 
-const STATUS_CONFIG: Record<TaskStatus, { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
-  open: { label: "Offen", icon: IconCircle, color: "text-muted-foreground bg-muted" },
-  inProgress: { label: "In Bearbeitung", icon: IconClock, color: "text-primary bg-primary/10" },
-  done: { label: "Erledigt", icon: IconCircleCheck, color: "text-secondary bg-secondary/10" },
-  cancelled: { label: "Abgebrochen", icon: IconCircleX, color: "text-muted-foreground bg-muted" },
+const STATUS_ICONS: Record<TaskStatus, React.ComponentType<{ className?: string }>> = {
+  open: IconCircle,
+  inProgress: IconClock,
+  done: IconCircleCheck,
+  cancelled: IconCircleX,
 }
 
-const PRIORITY_CONFIG: Record<TaskPriority, { label: string; color: string }> = {
-  low: { label: "Niedrig", color: "text-muted-foreground" },
-  medium: { label: "Mittel", color: "text-primary" },
-  high: { label: "Hoch", color: "text-destructive" },
+const STATUS_COLORS: Record<TaskStatus, string> = {
+  open: "text-muted-foreground bg-muted",
+  inProgress: "text-primary bg-primary/10",
+  done: "text-secondary bg-secondary/10",
+  cancelled: "text-muted-foreground bg-muted",
+}
+
+const PRIORITY_COLORS: Record<TaskPriority, string> = {
+  low: "text-muted-foreground",
+  medium: "text-primary",
+  high: "text-destructive",
 }
 
 const LINKED_TYPE_ICONS: Record<NonNullable<LinkedType>, React.ComponentType<{ className?: string }>> = {
@@ -240,8 +247,8 @@ export default function TasksPage() {
       {/* Stats row */}
       <div className="grid grid-cols-4 gap-4">
         {(["open", "inProgress", "done", "cancelled"] as TaskStatus[]).map((s) => {
-          const cfg = STATUS_CONFIG[s]
-          const StatusIcon = cfg.icon
+          const StatusIcon = STATUS_ICONS[s]
+          const color = STATUS_COLORS[s]
           const count = MOCK_TASKS.filter((t) => t.status === s).length
           return (
             <Card
@@ -250,11 +257,11 @@ export default function TasksPage() {
               onClick={() => setStatusFilter(statusFilter === s ? "all" : s)}
             >
               <CardContent className="p-4 flex items-center gap-3">
-                <span className={`inline-flex items-center justify-center size-9 rounded-lg ${cfg.color}`}>
+                <span className={`inline-flex items-center justify-center size-9 rounded-lg ${color}`}>
                   <StatusIcon className="size-4" />
                 </span>
                 <div>
-                  <p className="text-xs text-muted-foreground">{cfg.label}</p>
+                  <p className="text-xs text-muted-foreground">{t(`statuses.${s}`)}</p>
                   <p className="text-2xl font-bold text-foreground leading-tight">{count}</p>
                 </div>
               </CardContent>
@@ -323,9 +330,9 @@ export default function TasksPage() {
               </TableHeader>
               <TableBody>
                 {filtered.map((task) => {
-                  const statusCfg = STATUS_CONFIG[task.status]
-                  const StatusIcon = statusCfg.icon
-                  const priorityCfg = PRIORITY_CONFIG[task.priority]
+                  const StatusIcon = STATUS_ICONS[task.status]
+                  const statusColor = STATUS_COLORS[task.status]
+                  const priorityColor = PRIORITY_COLORS[task.priority]
                   const overdue = isOverdue(task.dueDate, task.status)
                   const LinkedIcon = task.linkedType ? LINKED_TYPE_ICONS[task.linkedType] : null
 
@@ -335,15 +342,15 @@ export default function TasksPage() {
                       className={`group hover:bg-muted/80 border-b border-border ${task.status === "done" || task.status === "cancelled" ? "opacity-60" : ""}`}
                     >
                       <TableCell>
-                        <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md ${statusCfg.color}`}>
+                        <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md ${statusColor}`}>
                           <StatusIcon className="size-3" />
-                          {statusCfg.label}
+                          {t(`statuses.${task.status}`)}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <span className={`text-xs font-semibold ${priorityCfg.color}`}>
+                        <span className={`text-xs font-semibold ${priorityColor}`}>
                           {task.priority === "high" && <IconAlertCircle className="inline size-3.5 mr-0.5" />}
-                          {priorityCfg.label}
+                          {t(`priorities.${task.priority}`)}
                         </span>
                       </TableCell>
                       <TableCell>
