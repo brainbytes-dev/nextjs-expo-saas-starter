@@ -10,6 +10,7 @@ import { sendScheduledReportsFn } from "@/inngest/send-scheduled-reports";
 import { checkReorderFn } from "@/inngest/check-reorder";
 import { detectAnomaliesFn } from "@/inngest/detect-anomalies";
 import { sendShiftReportFn } from "@/inngest/send-shift-report";
+import { deleteUserDataFn } from "@/inngest/delete-user-data";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -24,5 +25,6 @@ export const { GET, POST, PUT } = serve({
     checkReorderFn,
     detectAnomaliesFn,
     sendShiftReportFn,
+    deleteUserDataFn,
   ],
 });

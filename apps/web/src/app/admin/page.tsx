@@ -4,7 +4,8 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Building2, Users, Package, Wrench, TrendingUp, UserPlus } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Building2, Users, Package, Wrench, TrendingUp, UserPlus, Trash2 } from "lucide-react"
 
 interface PlatformStats {
   totalOrganizations: number
@@ -14,6 +15,7 @@ interface PlatformStats {
   mrr: number
   signups7d: number
   signups30d: number
+  pendingDeletions: number
   recentUsers: Array<{
     id: string
     name: string | null
@@ -107,7 +109,7 @@ export default function AdminOverviewPage() {
       </div>
 
       {/* Secondary Stats */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardDescription className="text-sm font-medium">Materialien</CardDescription>
@@ -125,6 +127,21 @@ export default function AdminOverviewPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.totalTools ?? "—"}</div>
+          </CardContent>
+        </Card>
+
+        <Card className={stats?.pendingDeletions ? "border-red-200 bg-red-50/50 dark:border-red-900 dark:bg-red-950/20" : ""}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardDescription className="text-sm font-medium">Ausstehende Löschungen</CardDescription>
+            <Trash2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.pendingDeletions ?? 0}</div>
+            {(stats?.pendingDeletions ?? 0) > 0 && (
+              <Badge variant="outline" className="mt-1 bg-red-100 text-red-800 border-red-200 text-xs">
+                DSGVO Art. 17
+              </Badge>
+            )}
           </CardContent>
         </Card>
       </div>

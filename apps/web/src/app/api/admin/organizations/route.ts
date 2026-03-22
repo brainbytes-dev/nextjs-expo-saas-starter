@@ -7,9 +7,10 @@ import {
   organizationMembers,
   materials,
   tools,
+  users,
   userSubscriptions,
 } from "@repo/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, like } from "drizzle-orm";
 
 type UserWithRole = { id: string; email: string; role?: string };
 
@@ -66,10 +67,22 @@ export async function GET(request: NextRequest) {
       .from(tools)
       .groupBy(tools.organizationId);
 
+    // Count pending deletions per org
+    const pendingDeletionCounts = await db
+      .select({
+        organizationId: organizationMembers.organizationId,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(organizationMembers)
+      .innerJoin(users, eq(organizationMembers.userId, users.id))
+      .where(like(users.banReason, "DELETION_REQUESTED:%"))
+      .groupBy(organizationMembers.organizationId);
+
     // Build lookup maps
     const memberMap = new Map(memberCounts.map((m) => [m.organizationId, m.count]));
     const materialMap = new Map(materialCounts.map((m) => [m.organizationId, m.count]));
     const toolMap = new Map(toolCounts.map((m) => [m.organizationId, m.count]));
+    const deletionMap = new Map(pendingDeletionCounts.map((d) => [d.organizationId, d.count]));
 
     // Get subscription plan for each org (via org members -> user -> subscription)
     // We'll match org to subscription through user memberships
@@ -95,6 +108,7 @@ export async function GET(request: NextRequest) {
       userCount: memberMap.get(org.id) || 0,
       materialCount: materialMap.get(org.id) || 0,
       toolCount: toolMap.get(org.id) || 0,
+      pendingDeletions: deletionMap.get(org.id) || 0,
     }));
 
     return NextResponse.json({ organizations: result });

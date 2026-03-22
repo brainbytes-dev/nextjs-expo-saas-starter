@@ -9,7 +9,7 @@ import {
   tools,
   userSubscriptions,
 } from "@repo/db/schema";
-import { sql, gte, eq } from "drizzle-orm";
+import { sql, gte, eq, like } from "drizzle-orm";
 
 type UserWithRole = { id: string; email: string; role?: string };
 
@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
       [signups30d],
       activeSubscriptions,
       recentUsers,
+      [pendingDeletionsCount],
     ] = await Promise.all([
       db.select({ count: sql<number>`count(*)::int` }).from(organizations),
       db.select({ count: sql<number>`count(*)::int` }).from(users),
@@ -72,6 +73,10 @@ export async function GET(request: NextRequest) {
         .from(users)
         .orderBy(sql`${users.createdAt} DESC`)
         .limit(10),
+      db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(users)
+        .where(like(users.banReason, "DELETION_REQUESTED:%")),
     ]);
 
     // Calculate MRR from active subscriptions
@@ -96,6 +101,7 @@ export async function GET(request: NextRequest) {
       mrr,
       signups7d: signups7d?.count || 0,
       signups30d: signups30d?.count || 0,
+      pendingDeletions: pendingDeletionsCount?.count || 0,
       recentUsers,
     });
   } catch (error) {

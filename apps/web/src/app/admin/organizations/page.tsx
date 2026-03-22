@@ -34,6 +34,7 @@ interface AdminOrg {
   userCount: number
   materialCount: number
   toolCount: number
+  pendingDeletions: number
   createdAt: string
 }
 
@@ -158,9 +159,19 @@ export default function AdminOrganizationsPage() {
                     onClick={() => router.push(`/admin/organizations/${org.id}`)}
                   >
                     <TableCell>
-                      <div>
-                        <span className="font-medium">{org.name}</span>
-                        <span className="text-xs text-muted-foreground ml-2">/{org.slug}</span>
+                      <div className="flex items-center gap-2">
+                        <div>
+                          <span className="font-medium">{org.name}</span>
+                          <span className="text-xs text-muted-foreground ml-2">/{org.slug}</span>
+                        </div>
+                        {org.pendingDeletions > 0 && (
+                          <Badge
+                            variant="outline"
+                            className="bg-red-100 text-red-800 border-red-200 text-[10px] px-1.5 py-0"
+                          >
+                            {org.pendingDeletions} Löschung{org.pendingDeletions !== 1 ? "en" : ""}
+                          </Badge>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
