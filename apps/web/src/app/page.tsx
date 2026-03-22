@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/logo"
 import { ModeToggle } from "@/components/theme/theme-toggle"
+import { LanguageSwitcher } from "@/components/language-switcher"
 import {
   IconBuildingWarehouse,
   IconPackage,
@@ -713,6 +714,7 @@ export default function LandingPage() {
               <a href="#migration"    className="hover:text-foreground transition-colors">{t("navMigration")}</a>
             </nav>
             <div className="flex items-center gap-1.5">
+              <LanguageSwitcher compact />
               <ModeToggle />
               <Link href="/login">
                 <Button variant="ghost" size="sm" className="font-mono text-[11px] tracking-widest uppercase">{t("navLogin")}</Button>
