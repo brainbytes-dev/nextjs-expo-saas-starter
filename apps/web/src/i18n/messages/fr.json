@@ -232,6 +232,7 @@
     "createDeliveryNote": "Créer un bon de livraison",
     "bookStockChange": "Enregistrer un mouvement de stock",
     "createNewItem": "Créer un nouvel élément",
+    "addLocation": "Ajouter un emplacement",
     "upcomingMaintenance": "Maintenances à venir",
     "maintenanceSubtitle": "Outils avec maintenance prévue dans les 7 prochains jours",
     "maintenanceButton": "Maintenance",

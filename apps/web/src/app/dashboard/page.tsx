@@ -50,6 +50,12 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Separator } from "@/components/ui/separator"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { PrintButton } from "@/components/print-button"
 import { ForecastWidget } from "@/components/forecast-widget"
 import type { ActivityItem } from "@/app/api/dashboard/activity/route"
@@ -658,7 +664,7 @@ export default function DashboardPage() {
                 value={stats.users}
                 label={t("users")}
                 suffix={`/ ${stats.maxUsers}`}
-                href="/dashboard/settings/users"
+                href="/dashboard/settings/team"
               />
             </>
           ) : (
@@ -826,7 +832,7 @@ export default function DashboardPage() {
             </Button>
             <Separator className="my-1" />
             <Button variant="outline" className="justify-start gap-2.5 h-10" asChild>
-              <Link href="/dashboard/commissions">
+              <Link href="/dashboard/deliveries">
                 <span className="flex size-6 items-center justify-center rounded bg-primary/10">
                   <IconClipboardList className="size-3.5 text-primary" />
                 </span>
@@ -843,12 +849,40 @@ export default function DashboardPage() {
             </Button>
           </CardContent>
           <CardFooter className="pt-0">
-            <Button variant="default" className="w-full gap-1.5" asChild>
-              <Link href="/dashboard/materials/new">
-                <IconPlus className="size-4" />
-                {t("createNewItem")}
-              </Link>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="default" className="w-full gap-1.5">
+                  <IconPlus className="size-4" />
+                  {t("createNewItem")}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/materials/new" className="gap-2">
+                    <IconPackage className="size-4 text-blue-500" />
+                    {t("addMaterial")}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/tools/new" className="gap-2">
+                    <IconTool className="size-4 text-emerald-600" />
+                    {t("addTool")}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/keys" className="gap-2">
+                    <IconKey className="size-4 text-amber-600" />
+                    {t("addKey")}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/locations/new" className="gap-2">
+                    <IconLayoutDashboard className="size-4 text-muted-foreground" />
+                    {t("addLocation")}
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </CardFooter>
         </Card>
       </div>

@@ -28,7 +28,7 @@ describe("email", () => {
     expect(mockSend).toHaveBeenCalledWith(
       expect.objectContaining({
         to: "john@example.com",
-        subject: "Welcome John!",
+        subject: "Willkommen bei Zentory, John!",
       })
     );
   });
@@ -39,7 +39,7 @@ describe("email", () => {
     expect(mockSend).toHaveBeenCalledWith(
       expect.objectContaining({
         to: "user@example.com",
-        subject: "Payment Failed - Action Required",
+        subject: "Zahlung fehlgeschlagen — Handlungsbedarf",
       })
     );
   });
@@ -50,7 +50,7 @@ describe("email", () => {
     expect(mockSend).toHaveBeenCalledWith(
       expect.objectContaining({
         to: "user@example.com",
-        subject: "Subscription Canceled",
+        subject: "Abo gekündigt",
       })
     );
   });

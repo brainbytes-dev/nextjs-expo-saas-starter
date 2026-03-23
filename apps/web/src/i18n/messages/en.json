@@ -232,6 +232,7 @@
     "createDeliveryNote": "Create delivery note",
     "bookStockChange": "Book stock change",
     "createNewItem": "Create new item",
+    "addLocation": "Add location",
     "upcomingMaintenance": "Upcoming maintenance",
     "maintenanceSubtitle": "Tools with maintenance due in the next 7 days",
     "maintenanceButton": "Maintenance",

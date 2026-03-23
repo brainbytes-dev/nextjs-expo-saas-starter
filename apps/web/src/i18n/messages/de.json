@@ -232,6 +232,7 @@
     "createDeliveryNote": "Lieferschein erstellen",
     "bookStockChange": "Bestandsänderung buchen",
     "createNewItem": "Neues Element anlegen",
+    "addLocation": "Standort erfassen",
     "upcomingMaintenance": "Anstehende Wartungen",
     "maintenanceSubtitle": "Werkzeuge mit Wartungsfälligkeit in den nächsten 7 Tagen",
     "maintenanceButton": "Wartung",

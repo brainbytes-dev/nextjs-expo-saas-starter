@@ -435,6 +435,7 @@ export default function CustomizeDashboardPage() {
             containerPadding={[0, 0]}
             onLayoutChange={handleLayoutChange as Parameters<typeof ResponsiveGridLayout>[0]["onLayoutChange"]}
             dragConfig={{ handle: ".widget-drag-handle" }}
+            resizeConfig={{ enabled: true }}
           >
             {items.map((item) => (
               <div key={item.id} className="group relative rounded-xl overflow-hidden border bg-card shadow-sm">

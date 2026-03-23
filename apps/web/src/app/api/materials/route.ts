@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { materials, materialGroups, locations, materialStocks } from "@repo/db/schema";
-import { eq, and, ilike, sql, isNotNull, inArray } from "drizzle-orm";
+import { eq, and, ilike, sql, isNotNull, inArray, desc } from "drizzle-orm";
 import { dispatchWebhook } from "@/lib/webhooks";
 import { withPermission } from "@/lib/rbac";
 
@@ -81,7 +81,7 @@ export const GET = withPermission("materials", "read")(async (request, { db, org
         .leftJoin(materialGroups, eq(materials.groupId, materialGroups.id))
         .leftJoin(locations, eq(materials.mainLocationId, locations.id))
         .where(and(...conditions))
-        .orderBy(materials.name)
+        .orderBy(desc(materials.createdAt))
         .limit(limit)
         .offset(offset),
       db

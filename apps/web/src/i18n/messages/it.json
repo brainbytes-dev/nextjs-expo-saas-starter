@@ -232,6 +232,7 @@
     "createDeliveryNote": "Crea bolla di consegna",
     "bookStockChange": "Registra variazione scorte",
     "createNewItem": "Crea nuovo elemento",
+    "addLocation": "Aggiungi sede",
     "upcomingMaintenance": "Manutenzioni in arrivo",
     "maintenanceSubtitle": "Attrezzi con manutenzione prevista nei prossimi 7 giorni",
     "maintenanceButton": "Manutenzione",
