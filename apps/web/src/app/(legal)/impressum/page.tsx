@@ -11,56 +11,60 @@ export default function ImpressumPage() {
       {/* Header */}
       <header className="border-b border-border pb-8">
         <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground mb-3">
-          Rechtliches · Impressum
+          Legal · Imprint
         </div>
-        <h1 className="text-3xl font-bold leading-tight mb-4">Impressum</h1>
+        <h1 className="text-3xl font-bold leading-tight mb-4">Imprint</h1>
         <p className="font-mono text-xs text-muted-foreground">
-          Angaben gemäss Schweizer Recht und EU-Impressumspflicht
+          Last updated: March 23, 2026
         </p>
       </header>
 
-      {/* Gesellschaft */}
+      {/* Operator */}
       <section className="space-y-4">
         <h2 className="text-xl font-bold border-b border-border pb-3">
-          Betreiber dieser Website
+          Website Operator
         </h2>
         <div className="rounded-lg border border-border bg-muted/30 p-6 font-mono text-sm space-y-3">
           <div>
-            <div className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mb-1">Firma</div>
-            <div className="font-bold text-foreground text-base">HR Online Consulting LLC (DBA Zentory)</div>
+            <div className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mb-1">Company</div>
+            <div className="font-bold text-foreground text-base">HR Online Consulting LLC</div>
+            <div className="text-muted-foreground">(doing business as Zentory)</div>
           </div>
           <div>
-            <div className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mb-1">Adresse</div>
+            <div className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mb-1">Incorporation</div>
             <div className="text-muted-foreground">
-              Musterstrasse 1<br />
-              8001 Zürich<br />
-              Schweiz
+              Incorporated under the laws of the Catawba Indian Nation of the Carolinas,<br />
+              Catawba Digital Economic Zone, USA
             </div>
           </div>
           <div>
-            <div className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mb-1">UID</div>
-            <div className="text-muted-foreground">CHE-XXX.XXX.XXX MWST</div>
+            <div className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mb-1">Registered Office</div>
+            <div className="text-muted-foreground">
+              550 Kings Mountain<br />
+              Kings Mountain, NC 28086<br />
+              USA
+            </div>
           </div>
           <div>
-            <div className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mb-1">Handelsregister</div>
-            <div className="text-muted-foreground">Handelsregister des Kantons Zürich</div>
+            <div className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mb-1">Authorized Representative</div>
+            <div className="text-muted-foreground">Henrik Rühe, Managing Member</div>
+          </div>
+          <div>
+            <div className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mb-1">Tax Identification Number (EIN)</div>
+            <div className="text-muted-foreground">61-2199060</div>
           </div>
         </div>
       </section>
 
-      {/* Kontakt */}
+      {/* Contact */}
       <section className="space-y-4">
         <h2 className="text-xl font-bold border-b border-border pb-3">
-          Kontakt
+          Contact Information
         </h2>
         <div className="rounded-lg border border-border bg-muted/30 p-6 font-mono text-sm space-y-3">
           <div>
-            <div className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mb-1">E-Mail allgemein</div>
-            <a href="mailto:info@zentory.ch" className="text-primary hover:underline">info@zentory.ch</a>
-          </div>
-          <div>
-            <div className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mb-1">E-Mail Datenschutz</div>
-            <a href="mailto:datenschutz@zentory.ch" className="text-primary hover:underline">datenschutz@zentory.ch</a>
+            <div className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mb-1">E-Mail</div>
+            <a href="mailto:legal@zentory.ch" className="text-primary hover:underline">legal@zentory.ch</a>
           </div>
           <div>
             <div className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mb-1">Support</div>
@@ -73,51 +77,54 @@ export default function ImpressumPage() {
         </div>
       </section>
 
-      {/* Haftungsausschluss */}
+      {/* Responsibility */}
       <section className="space-y-4">
         <h2 className="text-xl font-bold border-b border-border pb-3">
-          Haftungsausschluss
-        </h2>
-        <div className="space-y-4 text-sm text-muted-foreground leading-relaxed">
-          <div>
-            <h3 className="text-sm font-semibold text-foreground mb-2">Inhalt der Website</h3>
-            <p>
-              HR Online Consulting LLC (DBA Zentory) übernimmt keinerlei Gewähr für die Aktualität, Korrektheit, Vollständigkeit
-              oder Qualität der bereitgestellten Informationen. Haftungsansprüche gegen HR Online Consulting LLC (DBA Zentory)
-              wegen Schäden materieller oder immaterieller Art, die durch die Nutzung oder Nichtnutzung
-              der dargebotenen Informationen entstanden sind, sind grundsätzlich ausgeschlossen.
-            </p>
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-foreground mb-2">Verweise und Links</h3>
-            <p>
-              Bei direkten oder indirekten Verweisen auf fremde Webseiten («Hyperlinks»), die ausserhalb
-              des Verantwortungsbereichs von HR Online Consulting LLC (DBA Zentory) liegen, tritt eine Haftungsverpflichtung
-              ausschliesslich dann in Kraft, wenn HR Online Consulting LLC (DBA Zentory) von den Inhalten Kenntnis hat und
-              es ihr technisch möglich und zumutbar wäre, die Nutzung im Falle rechtswidriger Inhalte
-              zu verhindern.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Urheberrecht */}
-      <section className="space-y-4">
-        <h2 className="text-xl font-bold border-b border-border pb-3">
-          Urheberrecht
+          Responsibility for Content
         </h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Die durch HR Online Consulting LLC (DBA Zentory) erstellten Inhalte und Werke auf dieser Website unterliegen dem
-          Schweizer Urheberrecht. Die Vervielfältigung, Bearbeitung, Verbreitung und jede Art der
-          Verwertung ausserhalb der Grenzen des Urheberrechts bedürfen der schriftlichen Zustimmung
-          von HR Online Consulting LLC (DBA Zentory).
+          In accordance with applicable law, the operator of this platform is responsible for its own content.
+          We are not obliged to monitor transmitted third-party information or investigate illegal activity
+          unless we have knowledge of a specific infringement. Upon notification, we will remove infringing
+          content immediately.
         </p>
       </section>
 
-      {/* Technische Umsetzung */}
+      {/* Intellectual Property */}
       <section className="space-y-4">
         <h2 className="text-xl font-bold border-b border-border pb-3">
-          Technische Umsetzung
+          Intellectual Property
+        </h2>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          All content and works created by the site operator are subject to international copyright law.
+          Any duplication, processing, or commercialization requires prior written consent of
+          HR Online Consulting LLC.
+        </p>
+      </section>
+
+      {/* Disclaimer */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-bold border-b border-border pb-3">
+          Disclaimer
+        </h2>
+        <div className="space-y-4 text-sm text-muted-foreground leading-relaxed">
+          <p>
+            Zentory is an inventory and asset management tool for businesses. The operator assumes
+            no liability for decisions made based on data managed within the platform. Users are
+            responsible for verifying the accuracy of their inventory data.
+          </p>
+          <p>
+            HR Online Consulting LLC makes no warranty regarding the availability, accuracy, or
+            completeness of the platform or its content. Liability claims arising from the use or
+            non-use of the information provided are excluded.
+          </p>
+        </div>
+      </section>
+
+      {/* Technical Implementation */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-bold border-b border-border pb-3">
+          Technical Implementation
         </h2>
         <div className="overflow-hidden rounded-lg border border-border">
           <table className="w-full text-sm">
@@ -125,9 +132,9 @@ export default function ImpressumPage() {
               {[
                 ["Framework", "Next.js (React)"],
                 ["Hosting", "Vercel"],
-                ["Datenbank", "PostgreSQL via Supabase (EU Frankfurt)"],
+                ["Database", "PostgreSQL via Supabase (EU Frankfurt)"],
                 ["CDN", "Vercel Edge Network"],
-                ["TLS", "1.3 (überall erzwungen)"],
+                ["TLS", "1.3 (enforced everywhere)"],
               ].map(([key, value]) => (
                 <tr key={key} className="hover:bg-muted/20 transition-colors">
                   <td className="px-4 py-3 font-mono text-[11px] tracking-widest uppercase text-muted-foreground w-40">{key}</td>
@@ -139,17 +146,17 @@ export default function ImpressumPage() {
         </div>
       </section>
 
-      {/* Rechtliches */}
+      {/* Dispute Resolution */}
       <section className="space-y-4">
         <h2 className="text-xl font-bold border-b border-border pb-3">
-          Anwendbares Recht
+          Dispute Resolution
         </h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Dieses Impressum sowie die Nutzung dieser Website unterstehen Schweizer Recht.
-          Gerichtsstand ist Zürich, Schweiz.
+          We are neither willing nor obliged to participate in dispute resolution proceedings
+          before a consumer arbitration board.
         </p>
         <p className="font-mono text-[10px] text-muted-foreground">
-          Stand: März 2026
+          Last updated: March 2026
         </p>
       </section>
     </article>
