@@ -25,7 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import Link from "next/link"
 
 // ── Types ──────────────────────────────────────────────────────────────
-type EventType = "toolBooking" | "task" | "order" | "commission"
+type EventType = "toolBooking" | "task" | "order" | "commission" | "expiringMaterial"
 type MaintenanceStatus = "overdue" | "this-week" | "upcoming"
 type MaintenanceFilter = "all" | "overdue" | "this-week" | "upcoming"
 
@@ -54,6 +54,17 @@ interface MaintenanceItem {
   daysUntil: number
 }
 
+interface ExpiringMaterial {
+  stockId: string
+  materialId: string
+  materialName: string
+  expiryDate: string
+  quantity: number
+  unit: string
+  batchNumber: string | null
+  daysUntil: number
+}
+
 // ── Mock calendar data ─────────────────────────────────────────────────
 const MOCK_EVENTS: CalendarEvent[] = [
   { id: "1", type: "toolBooking", title: "Hilti TE 70-ATC", subtitle: "Thomas Müller → Baustelle Oerlikon", date: "2025-03-17", endDate: "2025-03-21", color: "bg-primary" },
@@ -75,6 +86,7 @@ const EVENT_TYPE_CONFIG: Record<EventType, { icon: React.ComponentType<{ classNa
   task: { icon: IconChecklist, label: "tasks", bg: "bg-primary/10", text: "text-primary" },
   order: { icon: IconFileInvoice, label: "orders", bg: "bg-secondary/10", text: "text-secondary" },
   commission: { icon: IconClipboardList, label: "commissions", bg: "bg-muted", text: "text-muted-foreground" },
+  expiringMaterial: { icon: IconAlertTriangle, label: "Ablaufdaten", bg: "bg-amber-500/10", text: "text-amber-700 dark:text-amber-400" },
 }
 
 function getDaysInMonth(year: number, month: number) {
@@ -387,7 +399,7 @@ export default function CalendarPage() {
   const today = new Date()
   const [currentYear, setCurrentYear] = useState(today.getFullYear())
   const [currentMonth, setCurrentMonth] = useState(today.getMonth())
-  const [activeTypes, setActiveTypes] = useState<Set<EventType>>(new Set(["toolBooking", "task", "order", "commission"]))
+  const [activeTypes, setActiveTypes] = useState<Set<EventType>>(new Set(["toolBooking", "task", "order", "commission", "expiringMaterial"]))
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
 
   // ── Maintenance state ──────────────────────────────────────────────
@@ -397,6 +409,9 @@ export default function CalendarPage() {
   const [activeTab, setActiveTab] = useState<"calendar" | "maintenance">("calendar")
   const [reschedulingId, setReschedulingId] = useState<string | null>(null)
   const isMounted = useRef(true)
+
+  // ── Expiring materials state ────────────────────────────────────────
+  const [expiringMaterials, setExpiringMaterials] = useState<ExpiringMaterial[]>([])
 
   useEffect(() => {
     isMounted.current = true
@@ -414,6 +429,21 @@ export default function CalendarPage() {
       }
     }
     void load()
+
+    // Fetch expiring materials (next 90 days)
+    const loadExpiring = async () => {
+      try {
+        const res = await fetch("/api/materials/expiring?days=90")
+        if (res.ok) {
+          const data: ExpiringMaterial[] = await res.json()
+          if (isMounted.current) setExpiringMaterials(data)
+        }
+      } catch {
+        // silent — no expiring material data
+      }
+    }
+    void loadExpiring()
+
     return () => { isMounted.current = false }
   }, [])
 
@@ -519,8 +549,23 @@ export default function CalendarPage() {
             : "bg-emerald-500",
       })
     })
+    // Overlay expiring material events
+    if (activeTypes.has("expiringMaterial")) {
+      expiringMaterials.forEach(item => {
+        const key = item.expiryDate
+        if (!map.has(key)) map.set(key, [])
+        map.get(key)!.push({
+          id: `expiry-${item.stockId}`,
+          type: "expiringMaterial",
+          title: item.materialName,
+          subtitle: `${item.quantity} ${item.unit}${item.batchNumber ? ` — ${item.batchNumber}` : ""} — ${item.daysUntil} Tage`,
+          date: key,
+          color: item.daysUntil <= 7 ? "bg-red-500" : item.daysUntil <= 30 ? "bg-amber-500" : "bg-orange-400",
+        })
+      })
+    }
     return map
-  }, [activeTypes, maintenance, t, STATUS_CONFIG])
+  }, [activeTypes, maintenance, expiringMaterials, t, STATUS_CONFIG])
 
   const selectedEvents = selectedDay ? (eventsForDate.get(selectedDay) ?? []) : []
   const todayStr = today.toISOString().split("T")[0]!

@@ -661,6 +661,24 @@
     "adjustFilters": "Adjust your filters.",
     "uploadDeliveryNote": "Delivery note"
   },
+  "newOrder": {
+    "title": "New Order",
+    "createOrder": "Create Order",
+    "supplierSection": "Supplier",
+    "supplier": "Supplier",
+    "selectSupplier": "Select supplier...",
+    "supplierRequired": "Supplier is required",
+    "orderDetails": "Order Details",
+    "materialName": "Material",
+    "materialNamePlaceholder": "e.g. Cable conduit 20mm grey",
+    "materialRequired": "Material is required",
+    "quantity": "Quantity",
+    "quantityMin": "Quantity must be at least 1",
+    "expectedDeliveryDate": "Expected delivery date",
+    "notesPlaceholder": "Notes about the order...",
+    "summary": "Summary",
+    "fromRequest": "Created from material request"
+  },
   "masterData": {
     "title": "Master Data",
     "locations": "Locations",

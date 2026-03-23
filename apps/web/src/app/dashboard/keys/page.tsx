@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useTranslations } from "next-intl"
 import {
   IconPlus,
@@ -9,15 +9,14 @@ import {
   IconCheck,
   IconX,
   IconDotsVertical,
-  IconEye,
   IconEdit,
   IconTrash,
-  IconBuilding,
-  IconCar,
-  IconLock,
+  IconChevronLeft,
+  IconChevronRight,
 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   Table,
@@ -28,18 +27,20 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   Empty,
   EmptyHeader,
@@ -48,153 +49,187 @@ import {
   EmptyDescription,
 } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Textarea } from "@/components/ui/textarea"
 
 // ── Types ──────────────────────────────────────────────────────────────
-type KeyType = "building" | "vehicle" | "safe" | "cabinet" | "other"
 
 interface KeyItem {
   id: string
   number: string | null
   name: string
-  keyType: KeyType
-  homeLocation: string | null
-  assignedTo: string | null
-  assignedLocation: string | null
-  isHome: boolean
-  quantity: number
+  barcode: string | null
   address: string | null
+  quantity: number
+  homeLocationId: string | null
+  homeLocationName: string | null
+  assignedToId: string | null
+  assignedToName: string | null
+  image: string | null
   notes: string | null
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
 }
 
-// ── Mock Data ──────────────────────────────────────────────────────────
-const MOCK_KEYS: KeyItem[] = [
-  {
-    id: "1",
-    number: "SCH-001",
-    name: "Haupteingang Lager A",
-    keyType: "building",
-    homeLocation: "Büro Schlüsselkasten",
-    assignedTo: null,
-    assignedLocation: null,
-    isHome: true,
-    quantity: 3,
-    address: "Industriestrasse 12, 8005 Zürich",
-    notes: null,
-  },
-  {
-    id: "2",
-    number: "SCH-002",
-    name: "Fahrzeug VW Transporter ZH-123",
-    keyType: "vehicle",
-    homeLocation: "Büro Schlüsselkasten",
-    assignedTo: "Thomas Müller",
-    assignedLocation: "Baustelle Oerlikon",
-    isHome: false,
-    quantity: 2,
-    address: null,
-    notes: "Reserveschlüssel im Safe",
-  },
-  {
-    id: "3",
-    number: "SCH-003",
-    name: "Werkzeugkammer",
-    keyType: "cabinet",
-    homeLocation: "Büro Schlüsselkasten",
-    assignedTo: null,
-    assignedLocation: null,
-    isHome: true,
-    quantity: 2,
-    address: null,
-    notes: null,
-  },
-  {
-    id: "4",
-    number: "SCH-004",
-    name: "Safe Buchhaltung",
-    keyType: "safe",
-    homeLocation: "Büro Schlüsselkasten",
-    assignedTo: "Anna Weber",
-    assignedLocation: "Büro 2. OG",
-    isHome: false,
-    quantity: 1,
-    address: null,
-    notes: null,
-  },
-  {
-    id: "5",
-    number: "SCH-005",
-    name: "Ford Transit SH-456",
-    keyType: "vehicle",
-    homeLocation: "Büro Schlüsselkasten",
-    assignedTo: null,
-    assignedLocation: null,
-    isHome: true,
-    quantity: 2,
-    address: null,
-    notes: null,
-  },
-  {
-    id: "6",
-    number: "SCH-006",
-    name: "Nebeneingang Baustelle Nord",
-    keyType: "building",
-    homeLocation: "Büro Schlüsselkasten",
-    assignedTo: "Peter Keller",
-    assignedLocation: "Baustelle Winterthur",
-    isHome: false,
-    quantity: 1,
-    address: "Technikumstrasse 3, 8400 Winterthur",
-    notes: "Läuft ab: 31.12.2025",
-  },
-]
-
-const KEY_TYPE_ICONS: Record<KeyType, React.ComponentType<{ className?: string }>> = {
-  building: IconBuilding,
-  vehicle: IconCar,
-  safe: IconLock,
-  cabinet: IconLock,
-  other: IconKey,
+interface KeysResponse {
+  data: KeyItem[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
 }
 
-const KEY_TYPE_COLORS: Record<KeyType, string> = {
-  building: "bg-primary/10 text-primary",
-  vehicle: "bg-muted text-muted-foreground",
-  safe: "bg-primary/10 text-primary",
-  cabinet: "bg-primary/10 text-primary",
-  other: "bg-muted text-muted-foreground",
+interface Location {
+  id: string
+  name: string
 }
+
+// ── Constants ─────────────────────────────────────────────────────────
+const ITEMS_PER_PAGE = 20
 
 // ── Page ───────────────────────────────────────────────────────────────
 export default function KeysPage() {
   const t = useTranslations("keys")
   const tc = useTranslations("common")
 
+  // Data state
+  const [keys, setKeys] = useState<KeyItem[]>([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(true)
+
+  // Filter / pagination state
   const [search, setSearch] = useState("")
-  const [typeFilter, setTypeFilter] = useState<string>("all")
-  const [isHomeFilter, setIsHomeFilter] = useState<string>("all")
-  const [loading] = useState(false)
+  const [debouncedSearch, setDebouncedSearch] = useState("")
+  const [page, setPage] = useState(1)
 
-  const filtered = useMemo(() => {
-    return MOCK_KEYS.filter((k) => {
-      const matchSearch =
-        !search ||
-        k.name.toLowerCase().includes(search.toLowerCase()) ||
-        (k.number ?? "").toLowerCase().includes(search.toLowerCase()) ||
-        (k.assignedTo ?? "").toLowerCase().includes(search.toLowerCase())
-      const matchType = typeFilter === "all" || k.keyType === typeFilter
-      const matchHome =
-        isHomeFilter === "all" ||
-        (isHomeFilter === "home" && k.isHome) ||
-        (isHomeFilter === "away" && !k.isHome)
-      return matchSearch && matchType && matchHome
-    })
-  }, [search, typeFilter, isHomeFilter])
+  // Create dialog
+  const [createOpen, setCreateOpen] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [createForm, setCreateForm] = useState({
+    name: "",
+    number: "",
+    barcode: "",
+    homeLocationId: "",
+    address: "",
+    quantity: 1,
+    notes: "",
+  })
 
-  const stats = useMemo(() => ({
-    total: MOCK_KEYS.reduce((s, k) => s + k.quantity, 0),
-    home: MOCK_KEYS.filter((k) => k.isHome).reduce((s, k) => s + k.quantity, 0),
-    away: MOCK_KEYS.filter((k) => !k.isHome).reduce((s, k) => s + k.quantity, 0),
-  }), [])
+  // Delete dialog
+  const [deleteTarget, setDeleteTarget] = useState<KeyItem | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  // Reference data
+  const [locations, setLocations] = useState<Location[]>([])
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search)
+      setPage(1)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [search])
+
+  // Fetch reference data once
+  useEffect(() => {
+    async function fetchLocations() {
+      try {
+        const res = await fetch("/api/locations")
+        if (res.ok) {
+          const data = await res.json()
+          setLocations(Array.isArray(data) ? data : (data.data ?? []))
+        }
+      } catch {
+        // silently fail
+      }
+    }
+    fetchLocations()
+  }, [])
+
+  // Fetch keys
+  const fetchKeys = useCallback(async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(ITEMS_PER_PAGE),
+      })
+      if (debouncedSearch) params.set("search", debouncedSearch)
+
+      const res = await fetch(`/api/keys?${params.toString()}`)
+      if (res.ok) {
+        const json: KeysResponse = await res.json()
+        setKeys(json.data ?? [])
+        setTotal(json.pagination?.total ?? 0)
+      }
+    } catch {
+      // TODO: toast error
+    } finally {
+      setLoading(false)
+    }
+  }, [page, debouncedSearch])
+
+  useEffect(() => {
+    fetchKeys()
+  }, [fetchKeys])
+
+  // Create handler
+  const handleCreate = useCallback(async () => {
+    if (!createForm.name.trim()) return
+    setCreating(true)
+    try {
+      const res = await fetch("/api/keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: createForm.name.trim(),
+          number: createForm.number.trim() || null,
+          barcode: createForm.barcode.trim() || null,
+          homeLocationId: createForm.homeLocationId || null,
+          address: createForm.address.trim() || null,
+          quantity: createForm.quantity || 1,
+          notes: createForm.notes.trim() || null,
+        }),
+      })
+      if (res.ok) {
+        setCreateOpen(false)
+        setCreateForm({ name: "", number: "", barcode: "", homeLocationId: "", address: "", quantity: 1, notes: "" })
+        fetchKeys()
+      }
+    } catch {
+      // TODO: toast error
+    } finally {
+      setCreating(false)
+    }
+  }, [createForm, fetchKeys])
+
+  // Delete handler
+  const handleDelete = useCallback(async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/keys/${deleteTarget.id}`, {
+        method: "DELETE",
+      })
+      if (res.ok) {
+        setKeys((prev) => prev.filter((k) => k.id !== deleteTarget.id))
+        setTotal((prev) => prev - 1)
+      }
+    } catch {
+      // TODO: toast error
+    } finally {
+      setDeleting(false)
+      setDeleteTarget(null)
+    }
+  }, [deleteTarget])
+
+  const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE))
+
+  // Stats computed from current total (server-side filtered)
+  const assignedCount = keys.filter((k) => k.assignedToName).length
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -203,29 +238,13 @@ export default function KeysPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t("title")}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {MOCK_KEYS.length} {t("title")} · {stats.away} {t("assigned")}
+            {total} {t("title")} {assignedCount > 0 && <>· {assignedCount} {t("assigned")}</>}
           </p>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={() => setCreateOpen(true)}>
           <IconPlus className="size-4" />
           {t("addKey")}
         </Button>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        {[
-          { label: t("totalKeys"), value: stats.total, color: "text-foreground" },
-          { label: t("atHome"), value: stats.home, color: "text-secondary" },
-          { label: t("away"), value: stats.away, color: "text-primary" },
-        ].map(({ label, value, color }) => (
-          <Card key={label} className="border-0 bg-muted">
-            <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">{label}</p>
-              <p className={`text-3xl font-bold mt-1 ${color}`}>{value}</p>
-            </CardContent>
-          </Card>
-        ))}
       </div>
 
       {/* Filters */}
@@ -233,35 +252,12 @@ export default function KeysPage() {
         <div className="relative flex-1 min-w-[200px]">
           <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
-            placeholder={tc("search") + "…"}
+            placeholder={tc("search") + "..."}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
           />
         </div>
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder={t("keyType")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t("allTypes")}</SelectItem>
-            <SelectItem value="building">{t("types.building")}</SelectItem>
-            <SelectItem value="vehicle">{t("types.vehicle")}</SelectItem>
-            <SelectItem value="safe">{t("types.safe")}</SelectItem>
-            <SelectItem value="cabinet">{t("types.cabinet")}</SelectItem>
-            <SelectItem value="other">{t("types.other")}</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={isHomeFilter} onValueChange={setIsHomeFilter}>
-          <SelectTrigger className="w-44">
-            <SelectValue placeholder={tc("status")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t("allStatuses")}</SelectItem>
-            <SelectItem value="home">{t("atHome")}</SelectItem>
-            <SelectItem value="away">{t("away")}</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Table */}
@@ -270,10 +266,18 @@ export default function KeysPage() {
           {loading ? (
             <div className="p-6 space-y-3">
               {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-10 w-full" />
+                <div key={i} className="flex items-center gap-4">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-4 w-40 flex-1" />
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-4 w-12" />
+                  <Skeleton className="h-6 w-6 rounded-full" />
+                  <Skeleton className="h-8 w-8" />
+                </div>
               ))}
             </div>
-          ) : filtered.length === 0 ? (
+          ) : keys.length === 0 ? (
             <Empty className="py-16">
               <EmptyMedia>
                 <IconKey className="size-12 text-muted-foreground/40" />
@@ -281,9 +285,15 @@ export default function KeysPage() {
               <EmptyHeader>
                 <EmptyTitle>{t("noKeysFound")}</EmptyTitle>
                 <EmptyDescription>
-                  {search ? t("adjustSearch") : t("addFirstKey")}
+                  {debouncedSearch ? t("adjustSearch") : t("addFirstKey")}
                 </EmptyDescription>
               </EmptyHeader>
+              {!debouncedSearch && (
+                <Button className="mt-4" onClick={() => setCreateOpen(true)}>
+                  <IconPlus className="size-4" />
+                  {t("addKey")}
+                </Button>
+              )}
             </Empty>
           ) : (
             <Table>
@@ -291,7 +301,6 @@ export default function KeysPage() {
                 <TableRow className="hover:bg-transparent border-b border-border">
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[100px]">{t("number")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("name")}</TableHead>
-                  <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("keyType")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("home")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("assignedTo")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[70px] text-right">{t("quantity")}</TableHead>
@@ -300,12 +309,12 @@ export default function KeysPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((key) => {
-                  const TypeIcon = KEY_TYPE_ICONS[key.keyType]
+                {keys.map((key) => {
+                  const isHome = !key.assignedToName
                   return (
                     <TableRow key={key.id} className="group hover:bg-muted/80 border-b border-border">
                       <TableCell className="font-mono text-sm text-muted-foreground">
-                        {key.number ?? "—"}
+                        {key.number ?? "\u2014"}
                       </TableCell>
                       <TableCell>
                         <div>
@@ -315,32 +324,21 @@ export default function KeysPage() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md ${KEY_TYPE_COLORS[key.keyType]}`}>
-                          <TypeIcon className="size-3" />
-                          {t(`types.${key.keyType}`)}
-                        </span>
-                      </TableCell>
                       <TableCell className="text-sm text-foreground">
-                        {key.homeLocation ?? "—"}
+                        {key.homeLocationName ?? "\u2014"}
                       </TableCell>
                       <TableCell>
-                        {key.assignedTo ? (
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{key.assignedTo}</p>
-                            {key.assignedLocation && (
-                              <p className="text-xs text-muted-foreground">{key.assignedLocation}</p>
-                            )}
-                          </div>
+                        {key.assignedToName ? (
+                          <p className="text-sm font-medium text-foreground">{key.assignedToName}</p>
                         ) : (
-                          <span className="text-muted-foreground text-sm">—</span>
+                          <span className="text-muted-foreground text-sm">{"\u2014"}</span>
                         )}
                       </TableCell>
                       <TableCell className="text-right font-mono text-sm font-medium">
                         {key.quantity}
                       </TableCell>
                       <TableCell className="text-center">
-                        {key.isHome ? (
+                        {isHome ? (
                           <span className="inline-flex items-center justify-center size-6 rounded-full bg-secondary/10">
                             <IconCheck className="size-3.5 text-secondary" />
                           </span>
@@ -359,12 +357,13 @@ export default function KeysPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem className="gap-2">
-                              <IconEye className="size-4" /> {tc("details")}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-2">
                               <IconEdit className="size-4" /> {tc("edit")}
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-2 text-destructive focus:text-destructive">
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="gap-2 text-destructive focus:text-destructive"
+                              onClick={() => setDeleteTarget(key)}
+                            >
                               <IconTrash className="size-4" /> {tc("delete")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -378,6 +377,170 @@ export default function KeysPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Pagination */}
+      {!loading && keys.length > 0 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            {(page - 1) * ITEMS_PER_PAGE + 1}&ndash;
+            {Math.min(page * ITEMS_PER_PAGE, total)} {tc("of")} {total}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              <IconChevronLeft className="size-4" />
+              {tc("back")}
+            </Button>
+            <span className="min-w-[3rem] text-center text-sm font-medium">
+              {page} / {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              {tc("next")}
+              <IconChevronRight className="size-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Create Key Dialog */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("addKey")}</DialogTitle>
+            <DialogDescription>
+              {t("addFirstKey")}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="key-name">{t("name")} *</Label>
+              <Input
+                id="key-name"
+                value={createForm.name}
+                onChange={(e) => setCreateForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder={t("name")}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="key-number">{t("number")}</Label>
+                <Input
+                  id="key-number"
+                  value={createForm.number}
+                  onChange={(e) => setCreateForm((f) => ({ ...f, number: e.target.value }))}
+                  placeholder="SCH-001"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="key-barcode">Barcode</Label>
+                <Input
+                  id="key-barcode"
+                  value={createForm.barcode}
+                  onChange={(e) => setCreateForm((f) => ({ ...f, barcode: e.target.value }))}
+                  placeholder="Barcode"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="key-location">{t("home")}</Label>
+                <select
+                  id="key-location"
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  value={createForm.homeLocationId}
+                  onChange={(e) => setCreateForm((f) => ({ ...f, homeLocationId: e.target.value }))}
+                >
+                  <option value="">{"\u2014"}</option>
+                  {locations.map((loc) => (
+                    <option key={loc.id} value={loc.id}>
+                      {loc.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="key-quantity">{t("quantity")}</Label>
+                <Input
+                  id="key-quantity"
+                  type="number"
+                  min={1}
+                  value={createForm.quantity}
+                  onChange={(e) => setCreateForm((f) => ({ ...f, quantity: parseInt(e.target.value) || 1 }))}
+                />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="key-address">{t("address")}</Label>
+              <Input
+                id="key-address"
+                value={createForm.address}
+                onChange={(e) => setCreateForm((f) => ({ ...f, address: e.target.value }))}
+                placeholder={t("address")}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="key-notes">{t("notes")}</Label>
+              <Textarea
+                id="key-notes"
+                value={createForm.notes}
+                onChange={(e) => setCreateForm((f) => ({ ...f, notes: e.target.value }))}
+                placeholder={t("notes")}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={creating}>
+              {tc("cancel")}
+            </Button>
+            <Button onClick={handleCreate} disabled={creating || !createForm.name.trim()}>
+              {creating ? tc("loading") : tc("save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(open: boolean) => {
+          if (!open) setDeleteTarget(null)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{tc("delete")} — {deleteTarget?.name}</DialogTitle>
+            <DialogDescription>
+              {tc("deleteConfirm")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteTarget(null)}
+              disabled={deleting}
+            >
+              {tc("cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting ? tc("loading") : tc("delete")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

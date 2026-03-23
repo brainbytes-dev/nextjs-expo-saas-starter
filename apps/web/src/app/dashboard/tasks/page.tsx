@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import { useTranslations } from "next-intl"
 import {
   IconPlus,
@@ -18,6 +18,7 @@ import {
   IconCircle,
   IconCircleX,
   IconClock,
+  IconLoader2,
 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -42,6 +43,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -55,110 +60,24 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 // ── Types ──────────────────────────────────────────────────────────────
 type TaskStatus = "open" | "inProgress" | "done" | "cancelled"
-type TaskPriority = "low" | "medium" | "high"
-type TaskTopic = "maintenance" | "repair" | "inspection" | "procurement" | "other"
 type LinkedType = "tool" | "material" | "key" | null
 
 interface Task {
   id: string
-  status: TaskStatus
-  priority: TaskPriority
-  topic: TaskTopic
-  itemName: string | null
-  linkedType: LinkedType
-  details: string
-  responsible: string
+  title: string
+  status: string | null
+  topic: string | null
+  description: string | null
   dueDate: string | null
+  assignedToId: string | null
+  assignedToName: string | null
+  materialId: string | null
+  toolId: string | null
   createdAt: string
+  updatedAt: string
 }
 
-// ── Mock Data ──────────────────────────────────────────────────────────
-const MOCK_TASKS: Task[] = [
-  {
-    id: "1",
-    status: "open",
-    priority: "high",
-    topic: "maintenance",
-    itemName: "Hilti TE 70-ATC",
-    linkedType: "tool",
-    details: "Jährliche Wartung fällig. Kohlebürsten prüfen.",
-    responsible: "Thomas Müller",
-    dueDate: "2025-03-25",
-    createdAt: "2025-03-10",
-  },
-  {
-    id: "2",
-    status: "inProgress",
-    priority: "high",
-    topic: "repair",
-    itemName: "Bosch GBH 5-40 DE",
-    linkedType: "tool",
-    details: "Getriebeschaden. An Werkstatt eingeschickt.",
-    responsible: "Anna Weber",
-    dueDate: "2025-03-20",
-    createdAt: "2025-03-08",
-  },
-  {
-    id: "3",
-    status: "open",
-    priority: "medium",
-    topic: "procurement",
-    itemName: "Kabelrohr 20mm",
-    linkedType: "material",
-    details: "Nachbestellung nötig — Bestand unter Meldebestand.",
-    responsible: "Peter Keller",
-    dueDate: "2025-03-30",
-    createdAt: "2025-03-12",
-  },
-  {
-    id: "4",
-    status: "done",
-    priority: "low",
-    topic: "inspection",
-    itemName: "Sicherheitsventil SV-44",
-    linkedType: "material",
-    details: "Halbjahreskontrolle abgeschlossen. Protokoll abgelegt.",
-    responsible: "Sandra Huber",
-    dueDate: "2025-03-15",
-    createdAt: "2025-02-28",
-  },
-  {
-    id: "5",
-    status: "open",
-    priority: "medium",
-    topic: "other",
-    itemName: null,
-    linkedType: null,
-    details: "Schlüsselverwaltung digitalisieren — Prozess dokumentieren.",
-    responsible: "Anna Weber",
-    dueDate: "2025-04-01",
-    createdAt: "2025-03-14",
-  },
-  {
-    id: "6",
-    status: "inProgress",
-    priority: "high",
-    topic: "maintenance",
-    itemName: "Kompressor Atlas Copco GA15",
-    linkedType: "tool",
-    details: "Ölwechsel und Filterreinigung. Termin mit Servicetechniker vereinbart.",
-    responsible: "Thomas Müller",
-    dueDate: "2025-03-22",
-    createdAt: "2025-03-11",
-  },
-  {
-    id: "7",
-    status: "cancelled",
-    priority: "low",
-    topic: "repair",
-    itemName: "Winkelschleifer Makita GA9020",
-    linkedType: "tool",
-    details: "Reparatur nicht wirtschaftlich. Gerät ausgemustert.",
-    responsible: "Peter Keller",
-    dueDate: null,
-    createdAt: "2025-03-05",
-  },
-]
+const ALL_STATUSES: TaskStatus[] = ["open", "inProgress", "done", "cancelled"]
 
 const STATUS_ICONS: Record<TaskStatus, React.ComponentType<{ className?: string }>> = {
   open: IconCircle,
@@ -174,12 +93,6 @@ const STATUS_COLORS: Record<TaskStatus, string> = {
   cancelled: "text-muted-foreground bg-muted",
 }
 
-const PRIORITY_COLORS: Record<TaskPriority, string> = {
-  low: "text-muted-foreground",
-  medium: "text-primary",
-  high: "text-destructive",
-}
-
 const LINKED_TYPE_ICONS: Record<NonNullable<LinkedType>, React.ComponentType<{ className?: string }>> = {
   tool: IconTool,
   material: IconPackage,
@@ -190,9 +103,40 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit", year: "numeric" })
 }
 
-function isOverdue(dueDate: string | null, status: TaskStatus) {
+function isOverdue(dueDate: string | null, status: string | null) {
   if (!dueDate || status === "done" || status === "cancelled") return false
   return new Date(dueDate) < new Date()
+}
+
+function getLinkedType(task: Task): LinkedType {
+  if (task.toolId) return "tool"
+  if (task.materialId) return "material"
+  return null
+}
+
+function normalizeStatus(status: string | null): TaskStatus {
+  if (!status) return "open"
+  // Map DB values to frontend values
+  const map: Record<string, TaskStatus> = {
+    open: "open",
+    in_progress: "inProgress",
+    inProgress: "inProgress",
+    completed: "done",
+    done: "done",
+    cancelled: "cancelled",
+  }
+  return map[status] ?? "open"
+}
+
+function statusToDb(status: TaskStatus): string {
+  // Map frontend values to DB values
+  const map: Record<TaskStatus, string> = {
+    open: "open",
+    inProgress: "inProgress",
+    done: "done",
+    cancelled: "cancelled",
+  }
+  return map[status]
 }
 
 // ── Page ───────────────────────────────────────────────────────────────
@@ -200,29 +144,89 @@ export default function TasksPage() {
   const t = useTranslations("tasks")
   const tc = useTranslations("common")
 
+  const [tasks, setTasks] = useState<Task[]>([])
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [priorityFilter, setPriorityFilter] = useState<string>("all")
-  const [loading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [updatingId, setUpdatingId] = useState<string | null>(null)
+
+  const fetchTasks = useCallback(async () => {
+    try {
+      setLoading(true)
+      const res = await fetch("/api/tasks")
+      if (!res.ok) throw new Error("Failed to fetch tasks")
+      const data = await res.json()
+      setTasks(data)
+    } catch (err) {
+      console.error("Failed to load tasks:", err)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchTasks()
+  }, [fetchTasks])
+
+  const handleStatusChange = async (taskId: string, newStatus: TaskStatus) => {
+    setUpdatingId(taskId)
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: statusToDb(newStatus) }),
+      })
+      if (!res.ok) throw new Error("Failed to update status")
+
+      // Optimistic update
+      setTasks((prev) =>
+        prev.map((task) =>
+          task.id === taskId ? { ...task, status: statusToDb(newStatus), updatedAt: new Date().toISOString() } : task
+        )
+      )
+    } catch (err) {
+      console.error("Failed to update task status:", err)
+      // Refetch on error
+      fetchTasks()
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
+  const handleDelete = async (taskId: string) => {
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, { method: "DELETE" })
+      if (!res.ok) throw new Error("Failed to delete task")
+      setTasks((prev) => prev.filter((task) => task.id !== taskId))
+    } catch (err) {
+      console.error("Failed to delete task:", err)
+    }
+  }
 
   const filtered = useMemo(() => {
-    return MOCK_TASKS.filter((task) => {
+    return tasks.filter((task) => {
+      const nStatus = normalizeStatus(task.status)
       const matchSearch =
         !search ||
-        task.details.toLowerCase().includes(search.toLowerCase()) ||
-        (task.itemName ?? "").toLowerCase().includes(search.toLowerCase()) ||
-        task.responsible.toLowerCase().includes(search.toLowerCase())
-      const matchStatus = statusFilter === "all" || task.status === statusFilter
-      const matchPriority = priorityFilter === "all" || task.priority === priorityFilter
-      return matchSearch && matchStatus && matchPriority
+        (task.description ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (task.title ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (task.assignedToName ?? "").toLowerCase().includes(search.toLowerCase())
+      const matchStatus = statusFilter === "all" || nStatus === statusFilter
+      return matchSearch && matchStatus
     })
-  }, [search, statusFilter, priorityFilter])
+  }, [search, statusFilter, tasks])
 
-  const counts = useMemo(() => ({
-    open: MOCK_TASKS.filter((t) => t.status === "open").length,
-    inProgress: MOCK_TASKS.filter((t) => t.status === "inProgress").length,
-    overdue: MOCK_TASKS.filter((t) => isOverdue(t.dueDate, t.status)).length,
-  }), [])
+  const counts = useMemo(
+    () => ({
+      open: tasks.filter((t) => normalizeStatus(t.status) === "open").length,
+      inProgress: tasks.filter((t) => normalizeStatus(t.status) === "inProgress").length,
+      done: tasks.filter((t) => normalizeStatus(t.status) === "done").length,
+      cancelled: tasks.filter((t) => normalizeStatus(t.status) === "cancelled").length,
+      overdue: tasks.filter((t) => isOverdue(t.dueDate, normalizeStatus(t.status))).length,
+    }),
+    [tasks]
+  )
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -246,10 +250,10 @@ export default function TasksPage() {
 
       {/* Stats row */}
       <div className="grid grid-cols-4 gap-4">
-        {(["open", "inProgress", "done", "cancelled"] as TaskStatus[]).map((s) => {
+        {ALL_STATUSES.map((s) => {
           const StatusIcon = STATUS_ICONS[s]
           const color = STATUS_COLORS[s]
-          const count = MOCK_TASKS.filter((t) => t.status === s).length
+          const count = counts[s]
           return (
             <Card
               key={s}
@@ -275,23 +279,12 @@ export default function TasksPage() {
         <div className="relative flex-1 min-w-[200px]">
           <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
-            placeholder={tc("search") + "…"}
+            placeholder={tc("search") + "..."}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
           />
         </div>
-        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder={t("priority")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t("allPriorities")}</SelectItem>
-            <SelectItem value="high">{t("priorities.high")}</SelectItem>
-            <SelectItem value="medium">{t("priorities.medium")}</SelectItem>
-            <SelectItem value="low">{t("priorities.low")}</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Table */}
@@ -320,7 +313,6 @@ export default function TasksPage() {
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-b border-border">
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[140px]">{t("status")}</TableHead>
-                  <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[80px]">{t("priority")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("details")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[140px]">{t("topic")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[140px]">{t("responsible")}</TableHead>
@@ -330,44 +322,50 @@ export default function TasksPage() {
               </TableHeader>
               <TableBody>
                 {filtered.map((task) => {
-                  const StatusIcon = STATUS_ICONS[task.status]
-                  const statusColor = STATUS_COLORS[task.status]
-                  const priorityColor = PRIORITY_COLORS[task.priority]
-                  const overdue = isOverdue(task.dueDate, task.status)
-                  const LinkedIcon = task.linkedType ? LINKED_TYPE_ICONS[task.linkedType] : null
+                  const nStatus = normalizeStatus(task.status)
+                  const StatusIcon = STATUS_ICONS[nStatus]
+                  const statusColor = STATUS_COLORS[nStatus]
+                  const overdue = isOverdue(task.dueDate, nStatus)
+                  const linkedType = getLinkedType(task)
+                  const LinkedIcon = linkedType ? LINKED_TYPE_ICONS[linkedType] : null
+                  const isUpdating = updatingId === task.id
 
                   return (
                     <TableRow
                       key={task.id}
-                      className={`group hover:bg-muted/80 border-b border-border ${task.status === "done" || task.status === "cancelled" ? "opacity-60" : ""}`}
+                      className={`group hover:bg-muted/80 border-b border-border ${nStatus === "done" || nStatus === "cancelled" ? "opacity-60" : ""}`}
                     >
                       <TableCell>
                         <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md ${statusColor}`}>
-                          <StatusIcon className="size-3" />
-                          {t(`statuses.${task.status}`)}
+                          {isUpdating ? (
+                            <IconLoader2 className="size-3 animate-spin" />
+                          ) : (
+                            <StatusIcon className="size-3" />
+                          )}
+                          {t(`statuses.${nStatus}`)}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <span className={`text-xs font-semibold ${priorityColor}`}>
-                          {task.priority === "high" && <IconAlertCircle className="inline size-3.5 mr-0.5" />}
-                          {t(`priorities.${task.priority}`)}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <p className="text-sm text-foreground line-clamp-1">{task.details}</p>
-                        {task.itemName && (
-                          <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+                        <p className="text-sm font-medium text-foreground line-clamp-1">{task.title}</p>
+                        {task.description && (
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1 flex items-center gap-1">
                             {LinkedIcon && <LinkedIcon className="size-3" />}
-                            {task.itemName}
+                            {task.description}
                           </p>
                         )}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary" className="text-xs font-normal">
-                          {t(`topics.${task.topic}`)}
-                        </Badge>
+                        {task.topic ? (
+                          <Badge variant="secondary" className="text-xs font-normal">
+                            {t(`topics.${task.topic}`)}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">-</span>
+                        )}
                       </TableCell>
-                      <TableCell className="text-sm text-foreground">{task.responsible}</TableCell>
+                      <TableCell className="text-sm text-foreground">
+                        {task.assignedToName ?? "-"}
+                      </TableCell>
                       <TableCell>
                         {task.dueDate ? (
                           <span className={`text-sm font-medium ${overdue ? "text-destructive" : "text-foreground"}`}>
@@ -375,7 +373,7 @@ export default function TasksPage() {
                             {formatDate(task.dueDate)}
                           </span>
                         ) : (
-                          <span className="text-muted-foreground text-sm">—</span>
+                          <span className="text-muted-foreground text-sm">-</span>
                         )}
                       </TableCell>
                       <TableCell>
@@ -386,13 +384,43 @@ export default function TasksPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            {/* Status change submenu */}
+                            <DropdownMenuSub>
+                              <DropdownMenuSubTrigger className="gap-2">
+                                <StatusIcon className="size-4" />
+                                {t("status")}
+                              </DropdownMenuSubTrigger>
+                              <DropdownMenuSubContent>
+                                {ALL_STATUSES.map((s) => {
+                                  const SIcon = STATUS_ICONS[s]
+                                  const isActive = nStatus === s
+                                  return (
+                                    <DropdownMenuItem
+                                      key={s}
+                                      className={`gap-2 ${isActive ? "font-semibold" : ""}`}
+                                      disabled={isActive}
+                                      onClick={() => handleStatusChange(task.id, s)}
+                                    >
+                                      <SIcon className="size-4" />
+                                      {t(`statuses.${s}`)}
+                                      {isActive && <IconCircleCheck className="size-3 ml-auto" />}
+                                    </DropdownMenuItem>
+                                  )
+                                })}
+                              </DropdownMenuSubContent>
+                            </DropdownMenuSub>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem className="gap-2">
                               <IconEye className="size-4" /> {tc("details")}
                             </DropdownMenuItem>
                             <DropdownMenuItem className="gap-2">
                               <IconEdit className="size-4" /> {tc("edit")}
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-2 text-destructive focus:text-destructive">
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="gap-2 text-destructive focus:text-destructive"
+                              onClick={() => handleDelete(task.id)}
+                            >
                               <IconTrash className="size-4" /> {tc("delete")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>

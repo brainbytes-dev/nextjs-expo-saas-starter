@@ -661,6 +661,24 @@
     "adjustFilters": "Modifiez vos filtres.",
     "uploadDeliveryNote": "Bon de livraison"
   },
+  "newOrder": {
+    "title": "Nouvelle commande",
+    "createOrder": "Créer la commande",
+    "supplierSection": "Fournisseur",
+    "supplier": "Fournisseur",
+    "selectSupplier": "Sélectionner un fournisseur...",
+    "supplierRequired": "Le fournisseur est requis",
+    "orderDetails": "Détails de la commande",
+    "materialName": "Matériel",
+    "materialNamePlaceholder": "p.ex. Tube câble 20mm gris",
+    "materialRequired": "Le matériel est requis",
+    "quantity": "Quantité",
+    "quantityMin": "La quantité doit être au moins 1",
+    "expectedDeliveryDate": "Date de livraison souhaitée",
+    "notesPlaceholder": "Remarques sur la commande...",
+    "summary": "Résumé",
+    "fromRequest": "Créée à partir d'une demande de matériel"
+  },
   "masterData": {
     "title": "Données de base",
     "locations": "Emplacements",

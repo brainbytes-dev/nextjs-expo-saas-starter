@@ -661,6 +661,24 @@
     "adjustFilters": "Modifica i tuoi filtri.",
     "uploadDeliveryNote": "Bolla di consegna"
   },
+  "newOrder": {
+    "title": "Nuovo ordine",
+    "createOrder": "Crea ordine",
+    "supplierSection": "Fornitore",
+    "supplier": "Fornitore",
+    "selectSupplier": "Seleziona fornitore...",
+    "supplierRequired": "Il fornitore è obbligatorio",
+    "orderDetails": "Dettagli dell'ordine",
+    "materialName": "Materiale",
+    "materialNamePlaceholder": "es. Tubo cavi 20mm grigio",
+    "materialRequired": "Il materiale è obbligatorio",
+    "quantity": "Quantità",
+    "quantityMin": "La quantità deve essere almeno 1",
+    "expectedDeliveryDate": "Data di consegna prevista",
+    "notesPlaceholder": "Note sull'ordine...",
+    "summary": "Riepilogo",
+    "fromRequest": "Creato da richiesta materiale"
+  },
   "masterData": {
     "title": "Dati anagrafici",
     "locations": "Ubicazioni",

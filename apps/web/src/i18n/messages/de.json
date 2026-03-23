@@ -661,6 +661,24 @@
     "adjustFilters": "Passen Sie Ihre Filter an.",
     "uploadDeliveryNote": "Lieferschein"
   },
+  "newOrder": {
+    "title": "Neue Bestellung",
+    "createOrder": "Bestellung erstellen",
+    "supplierSection": "Lieferant",
+    "supplier": "Lieferant",
+    "selectSupplier": "Lieferant waehlen...",
+    "supplierRequired": "Lieferant ist erforderlich",
+    "orderDetails": "Bestelldetails",
+    "materialName": "Material",
+    "materialNamePlaceholder": "z.B. Kabelrohr 20mm grau",
+    "materialRequired": "Material ist erforderlich",
+    "quantity": "Menge",
+    "quantityMin": "Menge muss mindestens 1 sein",
+    "expectedDeliveryDate": "Gewuenschtes Lieferdatum",
+    "notesPlaceholder": "Bemerkungen zur Bestellung...",
+    "summary": "Zusammenfassung",
+    "fromRequest": "Erstellt aus Materialanfrage"
+  },
   "masterData": {
     "title": "Stammdaten",
     "locations": "Lagerorte",

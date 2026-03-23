@@ -370,6 +370,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           { title: t("inventory"), url: "/dashboard/inventory" },
           { title: t("reservations"), url: "/dashboard/reservations" },
           { title: t("warrantyClaims"), url: "/dashboard/warranty-claims" },
+          { title: t("suppliers"), url: "/dashboard/suppliers" },
         ],
       },
       {
@@ -378,7 +379,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         items: [
           { title: t("locations"), url: "/dashboard/locations" },
           { title: t("map"), url: "/dashboard/map" },
-          { title: t("suppliers"), url: "/dashboard/suppliers" },
         ],
       },
       {

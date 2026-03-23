@@ -65,7 +65,7 @@ export function LoginForm({
       { email: "demo@zentory.ch", password: "demo1234" },
       {
         onSuccess: () => {
-          router.push("/dashboard")
+          window.location.href = "/dashboard"
         },
         onError: () => {
           toast.error("Demo-Login fehlgeschlagen")
