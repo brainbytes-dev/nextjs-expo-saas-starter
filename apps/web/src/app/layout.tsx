@@ -21,6 +21,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: false },
   title: {
     default: "Zentory",
     template: "%s | Zentory",
