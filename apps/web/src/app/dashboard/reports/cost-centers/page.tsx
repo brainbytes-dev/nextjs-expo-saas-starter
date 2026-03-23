@@ -200,7 +200,7 @@ export default function CostCenterReportPage() {
     if (!res.ok) throw new Error(t("loadError"))
     const json = await res.json()
     return (json.data ?? []) as ProjectGroup[]
-  }, [from, to])
+  }, [from, to, t])
 
   const handleFetch = useCallback(async () => {
     setLoading("fetch")
@@ -213,7 +213,7 @@ export default function CostCenterReportPage() {
     } finally {
       setLoading(null)
     }
-  }, [fetchData])
+  }, [fetchData, t])
 
   const handleCsv = useCallback(async () => {
     setLoading("csv")
@@ -226,7 +226,7 @@ export default function CostCenterReportPage() {
     } finally {
       setLoading(null)
     }
-  }, [fetchData])
+  }, [fetchData, t])
 
   const handlePrint = useCallback(async () => {
     setLoading("print")
@@ -239,7 +239,7 @@ export default function CostCenterReportPage() {
     } finally {
       setLoading(null)
     }
-  }, [fetchData])
+  }, [fetchData, t])
 
   const isBusy = loading !== null
 

@@ -434,7 +434,7 @@ export default function MaterialImportPage() {
         )
       )
     }
-  }, [parsed])
+  }, [parsed, t])
 
   const lookupAllEans = useCallback(async () => {
     setEanLookingAll(true)

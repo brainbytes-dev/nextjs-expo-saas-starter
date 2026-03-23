@@ -273,7 +273,7 @@ export function BatchesTab({
     } finally {
       setLoading(false)
     }
-  }, [materialId])
+  }, [materialId, t])
 
   useEffect(() => {
     void load()

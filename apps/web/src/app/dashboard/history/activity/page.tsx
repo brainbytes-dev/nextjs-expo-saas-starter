@@ -147,7 +147,7 @@ export default function ActivityLogPage() {
         setLoading(false)
       }
     },
-    [search, objectTypeFilter, dateFrom, dateTo]
+    [search, objectTypeFilter, dateFrom, dateTo, t]
   )
 
   // Re-fetch when filters change, reset to page 1

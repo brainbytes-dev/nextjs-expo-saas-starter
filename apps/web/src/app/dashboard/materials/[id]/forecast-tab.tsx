@@ -169,7 +169,7 @@ export function ForecastTab({ materialId }: ForecastTabProps) {
     } finally {
       setLoading(false)
     }
-  }, [materialId, daysAhead, leadTime, orgId])
+  }, [materialId, daysAhead, leadTime, orgId, t])
 
   useEffect(() => {
     void fetchForecast()
