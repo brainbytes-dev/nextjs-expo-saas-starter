@@ -27,6 +27,7 @@ import {
   IconAlertTriangle,
   IconCheck,
 } from "@tabler/icons-react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -87,6 +88,7 @@ interface VehicleMetadata {
   model?: string
   year?: number
   nextMfk?: string
+  nextService?: string
   mileage?: number
   driverId?: string
   driverName?: string
@@ -124,12 +126,12 @@ function formatDate(dateStr: string | null | undefined): string {
   })
 }
 
-function isMfkOverdue(dateStr: string | null | undefined): boolean {
+function isDateOverdue(dateStr: string | null | undefined): boolean {
   if (!dateStr) return false
   return new Date(dateStr) < new Date()
 }
 
-function isMfkSoon(dateStr: string | null | undefined): boolean {
+function isDateSoon(dateStr: string | null | undefined): boolean {
   if (!dateStr) return false
   const d = new Date(dateStr)
   const now = new Date()
@@ -146,6 +148,7 @@ function downloadCsv(rows: VehicleRow[], filename: string) {
     "Fahrer",
     "Kilometerstand",
     "Naechste MFK",
+    "Naechster Service",
     "Status",
     "Notizen",
   ]
@@ -160,6 +163,7 @@ function downloadCsv(rows: VehicleRow[], filename: string) {
         r.metadata?.driverName ?? "",
         r.metadata?.mileage ?? "",
         r.metadata?.nextMfk ?? "",
+        r.metadata?.nextService ?? "",
         r.isActive ? "Aktiv" : "Inaktiv",
         r.metadata?.notes ?? "",
       ]
@@ -279,6 +283,7 @@ function CreateVehicleDialog({
   const [model, setModel] = useState("")
   const [year, setYear] = useState("")
   const [nextMfk, setNextMfk] = useState("")
+  const [nextService, setNextService] = useState("")
   const [mileage, setMileage] = useState("")
   const [driverId, setDriverId] = useState("")
   const [notes, setNotes] = useState("")
@@ -337,6 +342,7 @@ function CreateVehicleDialog({
     setModel("")
     setYear("")
     setNextMfk("")
+    setNextService("")
     setMileage("")
     setDriverId("")
     setNotes("")
@@ -355,6 +361,7 @@ function CreateVehicleDialog({
         model: model || undefined,
         year: year ? parseInt(year, 10) : undefined,
         nextMfk: nextMfk || undefined,
+        nextService: nextService || undefined,
         mileage: mileage ? parseInt(mileage, 10) : undefined,
         driverId: effectiveDriverId || undefined,
         driverName: selectedMember?.user?.name || undefined,
@@ -462,15 +469,28 @@ function CreateVehicleDialog({
             </div>
           </div>
 
-          {/* Naechste MFK */}
-          <div className="grid gap-2">
-            <Label htmlFor="nextMfk">{t("nextMfk")}</Label>
-            <Input
-              id="nextMfk"
-              type="date"
-              value={nextMfk}
-              onChange={(e) => setNextMfk(e.target.value)}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            {/* Naechste MFK */}
+            <div className="grid gap-2">
+              <Label htmlFor="nextMfk">{t("nextMfk")}</Label>
+              <Input
+                id="nextMfk"
+                type="date"
+                value={nextMfk}
+                onChange={(e) => setNextMfk(e.target.value)}
+              />
+            </div>
+
+            {/* Naechster Service */}
+            <div className="grid gap-2">
+              <Label htmlFor="nextService">{t("nextService")}</Label>
+              <Input
+                id="nextService"
+                type="date"
+                value={nextService}
+                onChange={(e) => setNextService(e.target.value)}
+              />
+            </div>
           </div>
 
           {/* Fahrer */}
@@ -595,6 +615,30 @@ export default function VehiclesPage() {
       setDeleteTarget(null)
     }
   }, [deleteTarget])
+
+  // Toggle active/inactive status
+  const handleToggleStatus = useCallback(async (vehicle: VehicleRow) => {
+    const newStatus = !vehicle.isActive
+    try {
+      const res = await fetch(`/api/locations/${vehicle.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: newStatus }),
+      })
+      if (res.ok) {
+        setVehicles((prev) =>
+          prev.map((v) =>
+            v.id === vehicle.id ? { ...v, isActive: newStatus } : v
+          )
+        )
+        toast.success(
+          newStatus ? t("statusActivated") : t("statusDeactivated")
+        )
+      }
+    } catch {
+      toast.error(tc("error"))
+    }
+  }, [t, tc])
 
   // Client-side filtering
   const filteredVehicles = useMemo(() => {
@@ -762,8 +806,43 @@ export default function VehiclesPage() {
         size: 140,
         cell: ({ row }) => {
           const date = row.original.metadata?.nextMfk
-          const overdue = isMfkOverdue(date)
-          const soon = isMfkSoon(date)
+          const overdue = isDateOverdue(date)
+          const soon = isDateSoon(date)
+          return (
+            <div className="flex items-center gap-1.5">
+              {overdue && <IconAlertTriangle className="size-4 text-destructive" />}
+              <span
+                className={
+                  overdue
+                    ? "text-sm font-medium text-destructive"
+                    : soon
+                      ? "text-sm font-medium text-amber-600"
+                      : "text-sm text-muted-foreground"
+                }
+              >
+                {formatDate(date)}
+              </span>
+            </div>
+          )
+        },
+      },
+      {
+        id: "nextService",
+        accessorFn: (row) => row.metadata?.nextService ?? "",
+        header: ({ column }) => (
+          <button
+            className="flex cursor-pointer select-none items-center"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {t("nextService")}
+            <SortIcon sorted={column.getIsSorted()} />
+          </button>
+        ),
+        size: 140,
+        cell: ({ row }) => {
+          const date = row.original.metadata?.nextService
+          const overdue = isDateOverdue(date)
+          const soon = isDateSoon(date)
           return (
             <div className="flex items-center gap-1.5">
               {overdue && <IconAlertTriangle className="size-4 text-destructive" />}
@@ -787,22 +866,32 @@ export default function VehiclesPage() {
         header: () => tc("status"),
         size: 90,
         enableSorting: false,
-        cell: ({ row }) =>
-          row.original.isActive ? (
-            <Badge
-              variant="outline"
-              className="bg-secondary/10 text-secondary border-secondary/30"
-            >
-              {tc("active")}
-            </Badge>
-          ) : (
-            <Badge
-              variant="outline"
-              className="bg-muted text-muted-foreground border-border"
-            >
-              {tc("inactive")}
-            </Badge>
-          ),
+        cell: ({ row }) => (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              handleToggleStatus(row.original)
+            }}
+            className="cursor-pointer"
+            title={t("toggleStatus")}
+          >
+            {row.original.isActive ? (
+              <Badge
+                variant="outline"
+                className="bg-secondary/10 text-secondary border-secondary/30 hover:bg-secondary/20 transition-colors"
+              >
+                {tc("active")}
+              </Badge>
+            ) : (
+              <Badge
+                variant="outline"
+                className="bg-muted text-muted-foreground border-border hover:bg-muted/80 transition-colors"
+              >
+                {tc("inactive")}
+              </Badge>
+            )}
+          </button>
+        ),
       },
       {
         id: "actions",
@@ -985,7 +1074,7 @@ export default function VehiclesPage() {
                     <TableCell
                       key={cell.id}
                       onClick={
-                        cell.column.id === "actions"
+                        cell.column.id === "actions" || cell.column.id === "isActive"
                           ? (e) => e.stopPropagation()
                           : undefined
                       }

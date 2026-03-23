@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
 import { commissions, commissionEntries, locations, customers, users } from "@repo/db/schema";
-import { eq, and, count } from "drizzle-orm";
+import { eq, and, count, aliasedTable } from "drizzle-orm";
 import { sendPushToOrg } from "@/lib/push-notifications";
 
 export async function GET(
@@ -13,6 +13,8 @@ export async function GET(
     const result = await getSessionAndOrg(request);
     if (result.error) return result.error;
     const { db, orgId } = result;
+
+    const vehicleLocations = aliasedTable(locations, "vehicle_locations");
 
     const [commission] = await db
       .select({
@@ -28,6 +30,8 @@ export async function GET(
         customerName: customers.name,
         responsibleId: commissions.responsibleId,
         responsibleName: users.name,
+        vehicleId: commissions.vehicleId,
+        vehicleName: vehicleLocations.name,
         createdAt: commissions.createdAt,
         updatedAt: commissions.updatedAt,
       })
@@ -35,6 +39,7 @@ export async function GET(
       .leftJoin(locations, eq(commissions.targetLocationId, locations.id))
       .leftJoin(customers, eq(commissions.customerId, customers.id))
       .leftJoin(users, eq(commissions.responsibleId, users.id))
+      .leftJoin(vehicleLocations, eq(commissions.vehicleId, vehicleLocations.id))
       .where(and(eq(commissions.id, id), eq(commissions.organizationId, orgId)))
       .limit(1);
 
@@ -75,7 +80,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { status, name, notes, targetLocationId, customerId, signature, signedBy, signedAt } = body;
+    const { status, name, notes, targetLocationId, customerId, vehicleId, signature, signedBy, signedAt } = body;
 
     const validStatuses = ["open", "in_progress", "ready", "completed", "cancelled"];
     if (status && !validStatuses.includes(status)) {
@@ -91,6 +96,7 @@ export async function PATCH(
     if (notes !== undefined) updateData.notes = notes;
     if (targetLocationId !== undefined) updateData.targetLocationId = targetLocationId;
     if (customerId !== undefined) updateData.customerId = customerId;
+    if (vehicleId !== undefined) updateData.vehicleId = vehicleId;
     if (signature !== undefined) updateData.signature = signature;
     if (signedBy !== undefined) updateData.signedBy = signedBy;
     if (signedAt !== undefined) updateData.signedAt = signedAt ? new Date(signedAt) : null;

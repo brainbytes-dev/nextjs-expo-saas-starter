@@ -28,7 +28,12 @@ import {
   IconUpload,
   IconAlertTriangle,
   IconTag,
+  IconLogin,
+  IconLogout,
+  IconCar,
 } from "@tabler/icons-react"
+import { toast } from "sonner"
+import { BookToVehicleDialog } from "@/components/book-to-vehicle-dialog"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -211,6 +216,9 @@ export default function ToolsPage() {
   const [deleteTarget, setDeleteTarget] = useState<ToolRow | null>(null)
   const [deleting, setDeleting] = useState(false)
 
+  // Vehicle booking
+  const [vehicleBookTarget, setVehicleBookTarget] = useState<{ id: string; name: string } | null>(null)
+
   // Bulk selection
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [bulkLoading, setBulkLoading] = useState(false)
@@ -246,33 +254,60 @@ export default function ToolsPage() {
   }, [])
 
   // Fetch tools
-  useEffect(() => {
-    async function fetchTools() {
-      setLoading(true)
-      try {
-        const params = new URLSearchParams({
-          page: String(page),
-          limit: String(ITEMS_PER_PAGE),
-        })
-        if (debouncedSearch) params.set("search", debouncedSearch)
-        if (groupFilter && groupFilter !== "all") params.set("groupId", groupFilter)
-        if (conditionFilter && conditionFilter !== "all")
-          params.set("condition", conditionFilter)
+  const fetchTools = useCallback(async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(ITEMS_PER_PAGE),
+      })
+      if (debouncedSearch) params.set("search", debouncedSearch)
+      if (groupFilter && groupFilter !== "all") params.set("groupId", groupFilter)
+      if (conditionFilter && conditionFilter !== "all")
+        params.set("condition", conditionFilter)
 
-        const res = await fetch(`/api/tools?${params.toString()}`)
-        if (res.ok) {
-          const json: ToolsResponse = await res.json()
-          setTools(json.data ?? [])
-          setTotal(json.pagination?.total ?? 0)
-        }
-      } catch {
-        // TODO: toast error
-      } finally {
-        setLoading(false)
+      const res = await fetch(`/api/tools?${params.toString()}`)
+      if (res.ok) {
+        const json: ToolsResponse = await res.json()
+        setTools(json.data ?? [])
+        setTotal(json.pagination?.total ?? 0)
       }
+    } catch {
+      // TODO: toast error
+    } finally {
+      setLoading(false)
     }
-    fetchTools()
   }, [page, debouncedSearch, groupFilter, conditionFilter])
+
+  useEffect(() => {
+    fetchTools()
+  }, [fetchTools])
+
+  // Booking handler (checkout / checkin)
+  const handleBooking = useCallback(async (toolId: string, bookingType: "checkout" | "checkin") => {
+    try {
+      const res = await fetch(`/api/tools/${toolId}/booking`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingType }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        if (data.requiresApproval) {
+          toast.info(t("bookingRequiresApproval"))
+        } else {
+          toast.success(
+            bookingType === "checkout" ? t("checkedOutSuccess") : t("checkedInSuccess")
+          )
+          fetchTools()
+        }
+      } else {
+        toast.error(t("bookingFailed"))
+      }
+    } catch {
+      toast.error(t("bookingFailed"))
+    }
+  }, [fetchTools, t])
 
   // Delete handler (single)
   const handleDelete = useCallback(async () => {
@@ -548,8 +583,13 @@ export default function ToolsPage() {
         size: 150,
         cell: ({ row }) => (
           <span className="text-sm">
-            {row.original.assignedUserName ?? (
-              <span className="text-muted-foreground">\u2014</span>
+            {row.original.assignedToId ? (
+              <Badge variant="outline" className="bg-primary/10 text-primary border-transparent text-xs">
+                <IconLogout className="mr-1 size-3" />
+                {row.original.assignedUserName ?? t("checkedOut")}
+              </Badge>
+            ) : (
+              <span className="text-muted-foreground">{"\u2014"}</span>
             )}
           </span>
         ),
@@ -630,6 +670,27 @@ export default function ToolsPage() {
                 <IconEdit className="size-4" />
                 {tc("edit")}
               </DropdownMenuItem>
+              {row.original.assignedToId ? (
+                <DropdownMenuItem
+                  onClick={() => handleBooking(row.original.id, "checkin")}
+                >
+                  <IconLogin className="size-4 text-secondary" />
+                  {t("checkIn")}
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem
+                  onClick={() => handleBooking(row.original.id, "checkout")}
+                >
+                  <IconLogout className="size-4 text-primary" />
+                  {t("checkOut")}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem
+                onClick={() => setVehicleBookTarget({ id: row.original.id, name: row.original.name })}
+              >
+                <IconCar className="size-4" />
+                {t("bookToVehicle")}
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 variant="destructive"
@@ -644,7 +705,7 @@ export default function ToolsPage() {
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [t, tc, router, groups, selectedIds, allVisibleSelected, someVisibleSelected]
+    [t, tc, router, groups, selectedIds, allVisibleSelected, someVisibleSelected, handleBooking]
   )
 
   const table = useReactTable({
@@ -921,6 +982,16 @@ export default function ToolsPage() {
         onExport={handleBulkExport}
         onCancel={() => setSelectedIds(new Set())}
         loading={bulkLoading}
+      />
+
+      {/* Book to vehicle dialog */}
+      <BookToVehicleDialog
+        entityType="tool"
+        entityId={vehicleBookTarget?.id ?? ""}
+        entityName={vehicleBookTarget?.name ?? ""}
+        open={!!vehicleBookTarget}
+        onOpenChange={(open) => { if (!open) setVehicleBookTarget(null) }}
+        onSuccess={() => window.location.reload()}
       />
     </div>
   )

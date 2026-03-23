@@ -325,6 +325,7 @@
     "notesPlaceholder": "Zusaetzliche Hinweise...",
     "overview": "Uebersicht",
     "nameRequired": "Name ist erforderlich",
+    "bookToVehicle": "Auf Fahrzeug buchen",
     "reorder": {
       "button": "Nachbestellen",
       "buttonSufficient": "Bestand ausreichend",
@@ -344,7 +345,11 @@
       "loading": "Wird geladen...",
       "creating": "Bestellung wird erstellt...",
       "belowReorder": "Unter Meldebestand"
-    }
+    },
+    "supplier": "Lieferant",
+    "price": "Preis",
+    "addToCart": "In den Warenkorb",
+    "addedToCart": "Material zum Warenkorb hinzugefügt"
   },
   "tools": {
     "title": "Werkzeuge",
@@ -361,6 +366,7 @@
     "lastMaintenance": "Letzte Wartung",
     "checkIn": "Einchecken",
     "checkOut": "Auschecken",
+    "bookToVehicle": "Auf Fahrzeug buchen",
     "labels": "Etiketten",
     "conditions": {
       "good": "Gut",
@@ -404,6 +410,10 @@
     "notFound": "Werkzeug nicht gefunden",
     "reserve": "Reservieren",
     "checkedOut": "Ausgecheckt",
+    "checkedOutSuccess": "Werkzeug erfolgreich ausgecheckt",
+    "checkedInSuccess": "Werkzeug erfolgreich eingecheckt",
+    "bookingFailed": "Buchung fehlgeschlagen",
+    "bookingRequiresApproval": "Buchung erfordert Genehmigung",
     "locationId": "Lagerort-ID: {id}",
     "maintenanceOverdue": "Wartung überfällig ({date})",
     "nextMaintenance": "Nächste Wartung",
@@ -592,6 +602,9 @@
     "name": "Name",
     "number": "Nummer",
     "targetLocation": "Ziel Lagerort",
+    "vehicle": "Fahrzeug",
+    "selectVehicle": "Fahrzeug wählen...",
+    "noVehicle": "Kein Fahrzeug",
     "entryCount": "Anzahl Einträge",
     "openCount": "Anzahl offen",
     "customer": "Kunde",
@@ -774,7 +787,8 @@
       "safe": "Safe",
       "cabinet": "Schrank",
       "other": "Sonstige"
-    }
+    },
+    "bookToVehicle": "Auf Fahrzeug buchen"
   },
   "tasks": {
     "title": "Aufgaben",
@@ -4836,6 +4850,20 @@
     "tryDifferentSearch": "Versuchen Sie eine andere Suchanfrage.",
     "noFilterMatch": "Keine Fahrzeuge mit diesem Filter gefunden.",
     "deleteVehicle": "Fahrzeug löschen",
-    "deleteConfirmMessage": "Möchten Sie das Fahrzeug «{name}» wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+    "deleteConfirmMessage": "Möchten Sie das Fahrzeug «{name}» wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "nextService": "Nächster Service",
+    "toggleStatus": "Status umschalten",
+    "statusActivated": "Fahrzeug aktiviert",
+    "statusDeactivated": "Fahrzeug deaktiviert"
+  },
+  "bookToVehicle": {
+    "title": "Auf Fahrzeug buchen",
+    "description": "«{name}» einem Fahrzeug zuweisen.",
+    "searchPlaceholder": "Fahrzeug suchen...",
+    "noVehicles": "Keine Fahrzeuge gefunden",
+    "quantity": "Menge",
+    "confirm": "Zuweisen",
+    "success": "«{name}» wurde auf «{vehicle}» gebucht.",
+    "error": "Zuweisung fehlgeschlagen"
   }
 }

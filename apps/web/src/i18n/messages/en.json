@@ -325,6 +325,7 @@
     "notesPlaceholder": "Additional notes...",
     "overview": "Overview",
     "nameRequired": "Name is required",
+    "bookToVehicle": "Book to vehicle",
     "reorder": {
       "button": "Reorder",
       "buttonSufficient": "Stock sufficient",
@@ -344,7 +345,11 @@
       "loading": "Loading...",
       "creating": "Creating order...",
       "belowReorder": "Below reorder level"
-    }
+    },
+    "supplier": "Supplier",
+    "price": "Price",
+    "addToCart": "Add to cart",
+    "addedToCart": "Material added to cart"
   },
   "tools": {
     "title": "Tools",
@@ -361,6 +366,7 @@
     "lastMaintenance": "Last maintenance",
     "checkIn": "Check in",
     "checkOut": "Check out",
+    "bookToVehicle": "Book to vehicle",
     "labels": "Labels",
     "conditions": {
       "good": "Good",
@@ -404,6 +410,10 @@
     "notFound": "Tool not found",
     "reserve": "Reserve",
     "checkedOut": "Checked out",
+    "checkedOutSuccess": "Tool checked out successfully",
+    "checkedInSuccess": "Tool checked in successfully",
+    "bookingFailed": "Booking failed",
+    "bookingRequiresApproval": "Booking requires approval",
     "locationId": "Location ID: {id}",
     "maintenanceOverdue": "Maintenance overdue ({date})",
     "nextMaintenance": "Next maintenance",
@@ -592,6 +602,9 @@
     "name": "Name",
     "number": "Number",
     "targetLocation": "Target Location",
+    "vehicle": "Vehicle",
+    "selectVehicle": "Select vehicle...",
+    "noVehicle": "No vehicle",
     "entryCount": "Entry Count",
     "openCount": "Open Count",
     "customer": "Customer",
@@ -774,7 +787,8 @@
       "safe": "Safe",
       "cabinet": "Cabinet",
       "other": "Other"
-    }
+    },
+    "bookToVehicle": "Book to vehicle"
   },
   "tasks": {
     "title": "Tasks",
@@ -4820,6 +4834,20 @@
     "tryDifferentSearch": "Try a different search query.",
     "noFilterMatch": "No vehicles match this filter.",
     "deleteVehicle": "Delete Vehicle",
-    "deleteConfirmMessage": "Are you sure you want to delete the vehicle \"{name}\"? This action cannot be undone."
+    "deleteConfirmMessage": "Are you sure you want to delete the vehicle \"{name}\"? This action cannot be undone.",
+    "nextService": "Next Service",
+    "toggleStatus": "Toggle status",
+    "statusActivated": "Vehicle activated",
+    "statusDeactivated": "Vehicle deactivated"
+  },
+  "bookToVehicle": {
+    "title": "Book to Vehicle",
+    "description": "Assign \"{name}\" to a vehicle.",
+    "searchPlaceholder": "Search vehicle...",
+    "noVehicles": "No vehicles found",
+    "quantity": "Quantity",
+    "confirm": "Assign",
+    "success": "\"{name}\" was booked to \"{vehicle}\".",
+    "error": "Assignment failed"
   }
 }

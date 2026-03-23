@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
 import { commissions, locations, customers, users } from "@repo/db/schema";
-import { eq, and, inArray, desc, sql, count } from "drizzle-orm";
+import { eq, and, inArray, desc, sql, count, aliasedTable } from "drizzle-orm";
 
 export async function GET(request: Request) {
   try {
@@ -20,6 +20,8 @@ export async function GET(request: Request) {
       conditions.push(inArray(commissions.status, statusParam));
     }
 
+    const vehicleLocations = aliasedTable(locations, "vehicle_locations");
+
     const [items, countResult] = await Promise.all([
       db
         .select({
@@ -35,6 +37,8 @@ export async function GET(request: Request) {
           customerName: customers.name,
           responsibleId: commissions.responsibleId,
           responsibleName: users.name,
+          vehicleId: commissions.vehicleId,
+          vehicleName: vehicleLocations.name,
           entryCount: sql<number>`(
             SELECT COUNT(*) FROM commission_entries ce
             WHERE ce.commission_id = ${commissions.id}
@@ -46,6 +50,7 @@ export async function GET(request: Request) {
         .leftJoin(locations, eq(commissions.targetLocationId, locations.id))
         .leftJoin(customers, eq(commissions.customerId, customers.id))
         .leftJoin(users, eq(commissions.responsibleId, users.id))
+        .leftJoin(vehicleLocations, eq(commissions.vehicleId, vehicleLocations.id))
         .where(and(...conditions))
         .orderBy(desc(commissions.createdAt))
         .limit(limit)
@@ -79,7 +84,7 @@ export async function POST(request: Request) {
     const { db, orgId, session } = result;
 
     const body = await request.json();
-    const { name, targetLocationId, customerId, notes } = body;
+    const { name, targetLocationId, customerId, vehicleId, notes } = body;
 
     if (!name) {
       return NextResponse.json({ error: "name is required" }, { status: 400 });
@@ -100,6 +105,7 @@ export async function POST(request: Request) {
         )`,
         targetLocationId: targetLocationId ?? null,
         customerId: customerId ?? null,
+        vehicleId: vehicleId ?? null,
         responsibleId: session.user.id,
         notes: notes ?? null,
         status: "open",

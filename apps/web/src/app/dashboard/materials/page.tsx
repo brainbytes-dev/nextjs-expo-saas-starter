@@ -34,8 +34,10 @@ import {
   IconShoppingCart,
   IconTruck,
   IconLoader2,
+  IconCar,
 } from "@tabler/icons-react"
 import { toast } from "sonner"
+import { BookToVehicleDialog } from "@/components/book-to-vehicle-dialog"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -77,6 +79,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { BulkActionBar } from "@/components/bulk-action-bar"
+import { addToCart } from "@/lib/cart"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -105,6 +108,8 @@ interface MaterialRow {
   reorderLevel: number
   nearestExpiry: string | null
   unit: string
+  cheapestPrice: number | null
+  cheapestSupplierName: string | null
 }
 
 interface MaterialsResponse {
@@ -220,6 +225,9 @@ export default function MaterialsPage() {
   // Delete dialog
   const [deleteTarget, setDeleteTarget] = useState<MaterialRow | null>(null)
   const [deleting, setDeleting] = useState(false)
+
+  // Vehicle booking
+  const [vehicleBookTarget, setVehicleBookTarget] = useState<{ id: string; name: string } | null>(null)
 
   // Reorder dialog
   const [reorderTarget, setReorderTarget] = useState<MaterialRow | null>(null)
@@ -781,6 +789,39 @@ export default function MaterialsPage() {
         },
       },
       {
+        accessorKey: "cheapestSupplierName",
+        header: () => t("supplier"),
+        size: 140,
+        enableSorting: false,
+        cell: ({ row }) => (
+          <span className="text-sm">
+            {row.original.cheapestSupplierName ? (
+              <span className="flex items-center gap-1.5">
+                <IconTruck className="size-3.5 text-muted-foreground" />
+                {row.original.cheapestSupplierName}
+              </span>
+            ) : (
+              <span className="text-muted-foreground">{"\u2014"}</span>
+            )}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "cheapestPrice",
+        header: () => t("price"),
+        size: 100,
+        enableSorting: false,
+        cell: ({ row }) => {
+          const price = row.original.cheapestPrice
+          if (price == null) return <span className="text-muted-foreground">{"\u2014"}</span>
+          return (
+            <span className="text-sm font-medium">
+              CHF {(price / 100).toFixed(2)}
+            </span>
+          )
+        },
+      },
+      {
         id: "actions",
         header: () => tc("actions"),
         size: 60,
@@ -801,6 +842,35 @@ export default function MaterialsPage() {
               >
                 <IconEdit className="size-4" />
                 {tc("edit")}
+              </DropdownMenuItem>
+              {row.original.cheapestSupplierName && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    addToCart({
+                      id: `${row.original.id}-${Date.now()}`,
+                      type: "material",
+                      materialId: row.original.id,
+                      number: row.original.number ?? "",
+                      materialName: row.original.name,
+                      supplierName: row.original.cheapestSupplierName ?? "",
+                      supplierId: "",
+                      articleNumber: row.original.number ?? "",
+                      purchasePrice: row.original.cheapestPrice ?? 0,
+                      orderUnit: row.original.unit ?? "Stk",
+                      quantity: 1,
+                    })
+                    toast.success(t("addedToCart"))
+                  }}
+                >
+                  <IconShoppingCart className="size-4" />
+                  {t("addToCart")}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem
+                onClick={() => setVehicleBookTarget({ id: row.original.id, name: row.original.name })}
+              >
+                <IconCar className="size-4" />
+                {t("bookToVehicle")}
               </DropdownMenuItem>
               {row.original.reorderLevel > 0 && row.original.totalStock < row.original.reorderLevel && (
                 <DropdownMenuItem
@@ -1279,6 +1349,16 @@ export default function MaterialsPage() {
         onExport={handleBulkExport}
         onCancel={() => setSelectedIds(new Set())}
         loading={bulkLoading}
+      />
+
+      {/* Book to vehicle dialog */}
+      <BookToVehicleDialog
+        entityType="material"
+        entityId={vehicleBookTarget?.id ?? ""}
+        entityName={vehicleBookTarget?.name ?? ""}
+        open={!!vehicleBookTarget}
+        onOpenChange={(open) => { if (!open) setVehicleBookTarget(null) }}
+        onSuccess={() => window.location.reload()}
       />
     </div>
   )

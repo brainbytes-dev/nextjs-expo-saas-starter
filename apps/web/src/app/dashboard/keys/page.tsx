@@ -13,7 +13,9 @@ import {
   IconTrash,
   IconChevronLeft,
   IconChevronRight,
+  IconCar,
 } from "@tabler/icons-react"
+import { BookToVehicleDialog } from "@/components/book-to-vehicle-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -140,6 +142,9 @@ export default function KeysPage() {
   // Delete dialog
   const [deleteTarget, setDeleteTarget] = useState<KeyItem | null>(null)
   const [deleting, setDeleting] = useState(false)
+
+  // Vehicle booking
+  const [vehicleBookTarget, setVehicleBookTarget] = useState<{ id: string; name: string } | null>(null)
 
   // Reference data
   const [locations, setLocations] = useState<Location[]>([])
@@ -456,6 +461,12 @@ export default function KeysPage() {
                             <DropdownMenuItem className="gap-2" onClick={() => openEdit(key)}>
                               <IconEdit className="size-4" /> {tc("edit")}
                             </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="gap-2"
+                              onClick={() => setVehicleBookTarget({ id: key.id, name: key.name })}
+                            >
+                              <IconCar className="size-4" /> {t("bookToVehicle")}
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="gap-2 text-destructive focus:text-destructive"
@@ -638,6 +649,16 @@ export default function KeysPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Book to vehicle dialog */}
+      <BookToVehicleDialog
+        entityType="key"
+        entityId={vehicleBookTarget?.id ?? ""}
+        entityName={vehicleBookTarget?.name ?? ""}
+        open={!!vehicleBookTarget}
+        onOpenChange={(open) => { if (!open) setVehicleBookTarget(null) }}
+        onSuccess={() => fetchKeys()}
+      />
     </div>
   )
 }

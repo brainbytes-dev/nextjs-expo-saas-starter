@@ -76,6 +76,23 @@ export const GET = withPermission("materials", "read")(async (request, { db, org
             FROM material_stocks ms2
             WHERE ms2.material_id = ${materials.id}
           ), 0)`.as("total_stock"),
+          cheapestPrice: sql<number | null>`(
+            SELECT sp.unit_price
+            FROM supplier_prices sp
+            WHERE sp.material_id = ${materials.id}
+              AND sp.organization_id = ${orgId}
+            ORDER BY sp.unit_price ASC
+            LIMIT 1
+          )`.as("cheapest_price"),
+          cheapestSupplierName: sql<string | null>`(
+            SELECT s.name
+            FROM supplier_prices sp
+            JOIN suppliers s ON s.id = sp.supplier_id
+            WHERE sp.material_id = ${materials.id}
+              AND sp.organization_id = ${orgId}
+            ORDER BY sp.unit_price ASC
+            LIMIT 1
+          )`.as("cheapest_supplier_name"),
         })
         .from(materials)
         .leftJoin(materialGroups, eq(materials.groupId, materialGroups.id))

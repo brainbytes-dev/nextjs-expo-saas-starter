@@ -14,6 +14,7 @@ import {
   IconMapPin,
   IconUser,
   IconPrinter,
+  IconCar,
 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -54,6 +55,8 @@ interface Commission {
   targetLocation: string
   customer: string | null
   responsible: string
+  vehicleId: string | null
+  vehicleName: string | null
   entryCount: number
   openCount: number
   status: CommissionStatus
@@ -62,13 +65,13 @@ interface Commission {
 
 // ── Mock Data ──────────────────────────────────────────────────────────
 const MOCK_COMMISSIONS: Commission[] = [
-  { id: "1", name: "Elektroinstallation Oerlikon Phase 1", number: "K-2025-001", manualNumber: "PJ-230/1", targetLocation: "Baustelle Oerlikon", customer: "Muster AG", responsible: "Thomas Müller", entryCount: 12, openCount: 5, status: "inProgress", createdAt: "2025-02-10" },
-  { id: "2", name: "Reparatur Schulhaus Winterthur", number: "K-2025-002", manualNumber: null, targetLocation: "Baustelle Winterthur", customer: "Stadt Winterthur", responsible: "Anna Weber", entryCount: 8, openCount: 8, status: "open", createdAt: "2025-02-18" },
-  { id: "3", name: "Wartung Industrieanlage Schlieren", number: "K-2025-003", manualNumber: "WA-2025-3", targetLocation: "Lager A", customer: "Industriewerke AG", responsible: "Peter Keller", entryCount: 24, openCount: 0, status: "completed", createdAt: "2025-01-15" },
-  { id: "4", name: "Neubau Wohnüberbauung Zürich Nord", number: "K-2025-004", manualNumber: null, targetLocation: "Baustelle Zürich Nord", customer: "Baupartner GmbH", responsible: "Thomas Müller", entryCount: 45, openCount: 31, status: "inProgress", createdAt: "2025-02-28" },
-  { id: "5", name: "Umbau Bürogebäude Zug", number: "K-2025-005", manualNumber: "PJ-228", targetLocation: "Fahrzeug VW T6 ZH-777", customer: "Finance Corp AG", responsible: "Sandra Huber", entryCount: 6, openCount: 6, status: "open", createdAt: "2025-03-05" },
-  { id: "6", name: "Notfallreparatur Kabelschaden", number: "K-2025-006", manualNumber: null, targetLocation: "Baustelle Oerlikon", customer: "Muster AG", responsible: "Anna Weber", entryCount: 4, openCount: 0, status: "completed", createdAt: "2025-03-08" },
-  { id: "7", name: "Revision Elektroinstallation Lager", number: "K-2025-007", manualNumber: "REV-2025-1", targetLocation: "Lager A", customer: null, responsible: "Peter Keller", entryCount: 18, openCount: 12, status: "inProgress", createdAt: "2025-03-12" },
+  { id: "1", name: "Elektroinstallation Oerlikon Phase 1", number: "K-2025-001", manualNumber: "PJ-230/1", targetLocation: "Baustelle Oerlikon", customer: "Muster AG", responsible: "Thomas Müller", vehicleId: null, vehicleName: "VW T6 ZH-123", entryCount: 12, openCount: 5, status: "inProgress", createdAt: "2025-02-10" },
+  { id: "2", name: "Reparatur Schulhaus Winterthur", number: "K-2025-002", manualNumber: null, targetLocation: "Baustelle Winterthur", customer: "Stadt Winterthur", responsible: "Anna Weber", vehicleId: null, vehicleName: null, entryCount: 8, openCount: 8, status: "open", createdAt: "2025-02-18" },
+  { id: "3", name: "Wartung Industrieanlage Schlieren", number: "K-2025-003", manualNumber: "WA-2025-3", targetLocation: "Lager A", customer: "Industriewerke AG", responsible: "Peter Keller", vehicleId: null, vehicleName: "Mercedes Sprinter ZH-456", entryCount: 24, openCount: 0, status: "completed", createdAt: "2025-01-15" },
+  { id: "4", name: "Neubau Wohnüberbauung Zürich Nord", number: "K-2025-004", manualNumber: null, targetLocation: "Baustelle Zürich Nord", customer: "Baupartner GmbH", responsible: "Thomas Müller", vehicleId: null, vehicleName: null, entryCount: 45, openCount: 31, status: "inProgress", createdAt: "2025-02-28" },
+  { id: "5", name: "Umbau Bürogebäude Zug", number: "K-2025-005", manualNumber: "PJ-228", targetLocation: "Fahrzeug VW T6 ZH-777", customer: "Finance Corp AG", responsible: "Sandra Huber", vehicleId: null, vehicleName: "VW T6 ZH-777", entryCount: 6, openCount: 6, status: "open", createdAt: "2025-03-05" },
+  { id: "6", name: "Notfallreparatur Kabelschaden", number: "K-2025-006", manualNumber: null, targetLocation: "Baustelle Oerlikon", customer: "Muster AG", responsible: "Anna Weber", vehicleId: null, vehicleName: null, entryCount: 4, openCount: 0, status: "completed", createdAt: "2025-03-08" },
+  { id: "7", name: "Revision Elektroinstallation Lager", number: "K-2025-007", manualNumber: "REV-2025-1", targetLocation: "Lager A", customer: null, responsible: "Peter Keller", vehicleId: null, vehicleName: null, entryCount: 18, openCount: 12, status: "inProgress", createdAt: "2025-03-12" },
 ]
 
 const STATUS_COLORS: Record<CommissionStatus, string> = {
@@ -275,6 +278,7 @@ export default function CommissionsPage() {
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[110px]">{tc("status")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[170px]">{t("targetLocation")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[140px]">{t("customer")}</TableHead>
+                  <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[140px]">{t("vehicle")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[140px]">{t("responsible")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[150px]">{t("progress")}</TableHead>
                   <TableHead className="w-[50px]" />
@@ -325,6 +329,16 @@ export default function CommissionsPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-foreground">{commission.customer ?? "—"}</TableCell>
+                      <TableCell>
+                        {commission.vehicleName ? (
+                          <div className="flex items-center gap-1.5">
+                            <IconCar className="size-3.5 text-muted-foreground/60 flex-shrink-0" />
+                            <span className="text-sm text-foreground truncate">{commission.vehicleName}</span>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5">
                           <IconUser className="size-3.5 text-muted-foreground/60 flex-shrink-0" />

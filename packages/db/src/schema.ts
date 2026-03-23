@@ -558,6 +558,7 @@ export const commissions = pgTable(
     targetLocationId: uuid("target_location_id").references(() => locations.id),
     customerId: uuid("customer_id").references(() => customers.id),
     responsibleId: uuid("responsible_id").references(() => users.id),
+    vehicleId: uuid("vehicle_id").references(() => locations.id),
     status: text("status").default("open"), // "open", "in_progress", "completed", "cancelled"
     notes: text("notes"),
     signature: text("signature"),        // base64 PNG data URL — digital signature
