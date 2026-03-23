@@ -439,7 +439,7 @@ export default function CustomizeDashboardPage() {
             resizeConfig={{ enabled: true }}
           >
             {items.map((item) => (
-              <div key={item.id} className="group relative rounded-xl overflow-hidden border bg-card shadow-sm">
+              <div key={item.id} className="group relative rounded-xl border bg-card shadow-sm">
                 {/* Drag handle overlay at the top */}
                 <div className="widget-drag-handle absolute inset-x-0 top-0 h-8 z-10 cursor-grab active:cursor-grabbing bg-transparent hover:bg-muted/40 transition-colors rounded-t-xl" />
 
@@ -453,7 +453,7 @@ export default function CustomizeDashboardPage() {
                 </button>
 
                 {/* Widget content */}
-                <div className="h-full w-full overflow-hidden pt-6">
+                <div className="h-full w-full overflow-hidden rounded-xl pt-6">
                   <WidgetRenderer type={item.type} />
                 </div>
               </div>

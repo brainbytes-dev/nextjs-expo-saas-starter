@@ -3,12 +3,14 @@
 import { useTranslations } from "next-intl"
 
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { ModeToggle } from "@/components/theme/theme-toggle"
 import { NotificationBell } from "@/components/notification-bell"
-import { IconSearch } from "@tabler/icons-react"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { IconSearch, IconDeviceTv } from "@tabler/icons-react"
 
 export function SiteHeader() {
   const t = useTranslations("siteHeader")
@@ -38,6 +40,17 @@ export function SiteHeader() {
         </button>
         <div className="ml-auto flex items-center gap-2">
           <NotificationBell />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="size-8" asChild>
+                <Link href="/tv">
+                  <IconDeviceTv className="size-4" />
+                  <span className="sr-only">TV Mode</span>
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>TV Mode</TooltipContent>
+          </Tooltip>
           <ModeToggle />
           <Button variant="default" size="sm" onClick={handleUpgrade}>
             {t("upgrade")}

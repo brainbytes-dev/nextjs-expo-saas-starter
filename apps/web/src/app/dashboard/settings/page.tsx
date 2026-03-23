@@ -20,23 +20,6 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose,
-} from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { TimezoneSelect } from "@/components/timezone-select"
 import { useTranslations } from "next-intl"
@@ -205,7 +188,6 @@ export default function SettingsPage() {
   const t = useTranslations("settings")
   const tp = useTranslations("profile")
   const ts = useTranslations("security")
-  const tc = useTranslations("common")
 
   const SETTINGS_CATEGORIES = useSettingsCategories()
 

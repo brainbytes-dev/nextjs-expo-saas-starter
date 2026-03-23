@@ -1,7 +1,7 @@
 import { inngest } from "@/lib/inngest";
 import { getDb } from "@repo/db";
 import { statusChecks } from "@repo/db/schema";
-import { lt, sql } from "drizzle-orm";
+import { lt } from "drizzle-orm";
 
 // Check every 5 minutes (not every minute — saves ~100k rows/year)
 export const statusCheckCronFn = inngest.createFunction(

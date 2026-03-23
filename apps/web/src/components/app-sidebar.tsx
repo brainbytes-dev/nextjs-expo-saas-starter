@@ -19,7 +19,6 @@ import {
   IconDatabase,
   IconEye,
   IconEyeOff,
-  IconHelp,
   IconHistory,
   IconInbox,
   IconKey,

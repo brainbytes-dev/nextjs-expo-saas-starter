@@ -65,8 +65,6 @@ interface InventoryCountDetail {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-const STATUS_KEYS = ["draft", "in_progress", "completed", "cancelled"] as const
-
 const STATUS_VARIANTS: Record<
   string,
   "secondary" | "default" | "outline" | "destructive"

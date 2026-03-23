@@ -1,14 +1,10 @@
 "use client"
-
-import "react-grid-layout/css/styles.css"
-import "react-resizable/css/styles.css"
+"use no memo"
 
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { useSession } from "@/lib/auth-client"
 import { useState, useEffect, useRef, useCallback } from "react"
-import { ResponsiveGridLayout, noCompactor, useContainerWidth } from "react-grid-layout"
-import type { ResponsiveLayouts } from "react-grid-layout"
 import {
   IconPackage,
   IconTool,
@@ -59,14 +55,6 @@ import {
 import { PrintButton } from "@/components/print-button"
 import { ForecastWidget } from "@/components/forecast-widget"
 import type { ActivityItem } from "@/app/api/dashboard/activity/route"
-import {
-  WidgetRenderer,
-  type WidgetType,
-} from "@/components/dashboard-widgets"
-
-// ── react-grid-layout ─────────────────────────────────────────────────────────
-const BREAKPOINTS = { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }
-const COLS        = { lg: 12,   md: 10,  sm: 6,   xs: 4,   xxs: 2  }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface DashboardStats {
@@ -110,22 +98,6 @@ interface ChartDataPoint {
   keys: number
 }
 
-interface SavedWidget {
-  id: string
-  widgetType: WidgetType
-  position: { x: number; y: number } | null
-  size: { w: number; h: number } | null
-}
-
-interface WidgetLayoutItem {
-  id: string
-  type: WidgetType
-  x: number
-  y: number
-  w: number
-  h: number
-}
-
 // ── Chart config ──────────────────────────────────────────────────────────────
 const areaChartConfig = {
   materials: { label: "Materialien", color: "hsl(var(--chart-1))" },
@@ -167,16 +139,6 @@ function buildDescription(item: ActivityItem): string {
     return `${who} — ${sign}× ${item.itemName}${where}`
   }
   return `${who} — ${item.itemName}${where}`
-}
-
-function getOrgHeaders(): HeadersInit {
-  if (typeof window === "undefined") return {}
-  try {
-    const orgId = sessionStorage.getItem("orgId") ?? localStorage.getItem("orgId")
-    return orgId ? { "x-organization-id": orgId } : {}
-  } catch {
-    return {}
-  }
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -333,50 +295,6 @@ function ActivityFeedSkeleton() {
   )
 }
 
-// ── Custom widget grid (when user has saved layout) ───────────────────────────
-function buildGridLayouts(items: WidgetLayoutItem[]): ResponsiveLayouts {
-  const lg = items.map((item) => ({
-    i: item.id,
-    x: item.x,
-    y: item.y,
-    w: item.w,
-    h: item.h,
-    minW: 2,
-    minH: 2,
-    }))
-  const md  = lg.map((l) => ({ ...l, w: Math.min(l.w, 10), x: Math.min(l.x, 8) }))
-  const sm  = lg.map((l) => ({ ...l, w: Math.min(l.w, 6),  x: Math.min(l.x, 4) }))
-  const xs  = lg.map((l) => ({ ...l, w: Math.min(l.w, 4),  x: 0                }))
-  const xxs = lg.map((l) => ({ ...l, w: 2, x: 0 }))
-  return { lg, md, sm, xs, xxs }
-}
-
-function CustomWidgetGrid({ widgets }: { widgets: WidgetLayoutItem[] }) {
-  const layouts = buildGridLayouts(widgets)
-  const { width: gridWidth, containerRef, mounted: widthMounted } = useContainerWidth()
-  return (
-    <div ref={containerRef}>
-    <ResponsiveGridLayout
-      width={widthMounted ? gridWidth : 1280}
-      layouts={layouts}
-      breakpoints={BREAKPOINTS}
-      cols={COLS}
-      rowHeight={80}
-      margin={[12, 12]}
-      containerPadding={[0, 0]}
-      dragConfig={{ enabled: false }}
-      resizeConfig={{ enabled: false }}
-    >
-      {widgets.map((item) => (
-        <div key={item.id} className="rounded-xl overflow-hidden border bg-card shadow-sm">
-          <WidgetRenderer type={item.type} />
-        </div>
-      ))}
-    </ResponsiveGridLayout>
-    </div>
-  )
-}
-
 // ── Main Dashboard Page ───────────────────────────────────────────────────────
 export default function DashboardPage() {
   const t = useTranslations("dashboard")
@@ -397,42 +315,7 @@ export default function DashboardPage() {
   const [anomalies, setAnomalies] = useState<AnomalyEvent[]>([])
   const [anomalyLoading, setAnomalyLoading] = useState(true)
 
-  // Custom widget grid state
-  const [customWidgets, setCustomWidgets] = useState<WidgetLayoutItem[] | null>(null)
-  const [widgetsLoading, setWidgetsLoading] = useState(true)
-
   const isMounted = useRef(false)
-
-  // ── Load saved widget layout ──────────────────────────────────────────────
-  useEffect(() => {
-    isMounted.current = true
-    const run = async () => {
-      try {
-        const r = await fetch("/api/dashboard/widgets", { headers: getOrgHeaders() })
-        if (!r.ok) throw new Error("not ok")
-        const data = await r.json() as { data: SavedWidget[] }
-        const rows = data.data ?? []
-        if (rows.length > 0 && isMounted.current) {
-          setCustomWidgets(
-            rows.map((row) => ({
-              id: row.id,
-              type: row.widgetType,
-              x: row.position?.x ?? 0,
-              y: row.position?.y ?? 0,
-              w: row.size?.w ?? 4,
-              h: row.size?.h ?? 3,
-            }))
-          )
-        }
-      } catch {
-        // Fall through to static dashboard
-      } finally {
-        if (isMounted.current) setWidgetsLoading(false)
-      }
-    }
-    void run()
-    return () => { isMounted.current = false }
-  }, [refreshKey])
 
   // ── Static dashboard data ─────────────────────────────────────────────────
   useEffect(() => {

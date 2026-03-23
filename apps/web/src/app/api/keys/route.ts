@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { keys, locations, users } from "@repo/db/schema";
 import { eq, and, or, ilike, sql } from "drizzle-orm";
-import { dispatchWebhook } from "@/lib/webhooks";
 import { withPermission } from "@/lib/rbac";
 
 // ─── GET /api/keys ──────────────────────────────────────────────────────────
