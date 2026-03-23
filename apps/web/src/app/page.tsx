@@ -112,6 +112,65 @@ const STYLES = `
 
   /* Blinking terminal cursor */
   .term-blink { animation: blink-cursor 1.1s step-end infinite; }
+
+  /* ─── Mobile Menu ─────────────────────────────────── */
+  .burger-line {
+    display: block; width: 22px; height: 1.5px;
+    background: currentColor; border-radius: 1px;
+    transition: transform 0.35s cubic-bezier(0.77,0,0.18,1), opacity 0.25s ease;
+  }
+  .burger-open .burger-line:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+  }
+  .burger-open .burger-line:nth-child(2) {
+    opacity: 0; transform: scaleX(0);
+  }
+  .burger-open .burger-line:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+  }
+  .mobile-overlay {
+    position: fixed; inset: 0; z-index: 40;
+    background: oklch(0.13 0.01 170 / 0.96);
+    backdrop-filter: blur(24px) saturate(1.4);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.35s cubic-bezier(0.16,1,0.3,1);
+  }
+  .mobile-overlay.is-open { opacity: 1; pointer-events: auto; }
+  .mobile-overlay .mob-link {
+    opacity: 0; transform: translateY(20px);
+    transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16,1,0.3,1);
+  }
+  .mobile-overlay.is-open .mob-link {
+    opacity: 1; transform: translateY(0);
+  }
+  .mobile-overlay.is-open .mob-link:nth-child(1) { transition-delay: 0.08s; }
+  .mobile-overlay.is-open .mob-link:nth-child(2) { transition-delay: 0.13s; }
+  .mobile-overlay.is-open .mob-link:nth-child(3) { transition-delay: 0.18s; }
+  .mobile-overlay.is-open .mob-link:nth-child(4) { transition-delay: 0.23s; }
+  .mobile-overlay.is-open .mob-link:nth-child(5) { transition-delay: 0.28s; }
+  .mobile-overlay.is-open .mob-link:nth-child(6) { transition-delay: 0.33s; }
+  .mobile-overlay.is-open .mob-link:nth-child(7) { transition-delay: 0.38s; }
+  .mobile-overlay.is-open .mob-link:nth-child(8) { transition-delay: 0.43s; }
+  .mobile-overlay .mob-actions {
+    opacity: 0; transform: translateY(12px);
+    transition: opacity 0.4s ease 0.45s, transform 0.4s cubic-bezier(0.16,1,0.3,1) 0.45s;
+  }
+  .mobile-overlay.is-open .mob-actions {
+    opacity: 1; transform: translateY(0);
+  }
+  .mob-link a {
+    display: flex; align-items: baseline; gap: 12px;
+    padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+    text-decoration: none; color: rgba(255,255,255,0.7);
+    transition: color 0.2s ease;
+  }
+  .mob-link a:hover { color: #fff; }
+  .mob-link .mob-num {
+    font-family: var(--font-mono); font-size: 11px;
+    letter-spacing: 0.1em; color: rgba(255,255,255,0.25);
+    min-width: 28px;
+  }
+  .mob-link .mob-label { font-size: 20px; font-weight: 500; letter-spacing: -0.01em; }
 `
 
 /* ─── Custom Cursor ──────────────────────────────────────────── */
@@ -684,12 +743,25 @@ function FeatureComparisonSection() {
 export default function LandingPage() {
   const t = useTranslations("landing")
   const [navSolid, setNavSolid] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     const fn = () => setNavSolid(window.scrollY > 32)
     window.addEventListener("scroll", fn, { passive: true })
     return () => window.removeEventListener("scroll", fn)
   }, [])
+
+  // Mobile menu: Escape key + body scroll lock
+  useEffect(() => {
+    const onEsc = (e: KeyboardEvent) => { if (e.key === "Escape") setMobileMenuOpen(false) }
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden"
+      window.addEventListener("keydown", onEsc)
+    } else {
+      document.body.style.overflow = ""
+    }
+    return () => { document.body.style.overflow = ""; window.removeEventListener("keydown", onEsc) }
+  }, [mobileMenuOpen])
 
   return (
     <>
@@ -714,17 +786,83 @@ export default function LandingPage() {
             <div className="flex items-center gap-1.5">
               <LanguageSwitcher compact />
               <ModeToggle />
-              <Link href="/login">
+              <Link href="/login" className="hidden lg:inline-flex">
                 <Button variant="ghost" size="sm" className="text-sm">{t("navLogin")}</Button>
               </Link>
-              <Link href="/signup">
+              <Link href="/signup" className="hidden lg:inline-flex">
                 <Button size="sm" className="text-sm gap-1.5 bg-secondary hover:bg-secondary/90 text-secondary-foreground">
                   {t("navStart")} <IconArrowUpRight className="size-3.5" />
                 </Button>
               </Link>
+              {/* Burger — mobile only */}
+              <button
+                onClick={() => setMobileMenuOpen((v) => !v)}
+                className={`lg:hidden flex flex-col items-center justify-center gap-[5px] size-9 rounded-md hover:bg-muted/50 transition-colors ${mobileMenuOpen ? "burger-open" : ""}`}
+                aria-label="Menu"
+              >
+                <span className="burger-line" />
+                <span className="burger-line" />
+                <span className="burger-line" />
+              </button>
             </div>
           </div>
         </header>
+
+        {/* ══ MOBILE MENU OVERLAY ═════════════════════════════ */}
+        <div
+          className={`mobile-overlay lg:hidden ${mobileMenuOpen ? "is-open" : ""}`}
+          onClick={(e) => { if (e.target === e.currentTarget) setMobileMenuOpen(false) }}
+        >
+          {/* Grid texture */}
+          <div className="absolute inset-0 pointer-events-none opacity-[0.04]" style={{
+            backgroundImage: `linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px)`,
+            backgroundSize: "48px 48px",
+          }} />
+
+          <div className="relative h-full flex flex-col justify-between px-8 pt-20 pb-10">
+            {/* Nav links */}
+            <nav className="flex flex-col">
+              {[
+                { href: "#features",     label: t("navFeatures"),      num: "01" },
+                { href: "#scan",         label: t("navScan"),          num: "02" },
+                { href: "#integrations", label: t("navIntegrations"),  num: "03" },
+                { href: "#trust",        label: t("navSecurity"),      num: "04" },
+                { href: "#peripherals",  label: t("navHardware"),      num: "05" },
+                { href: "#pricing",      label: t("navPricing"),       num: "06" },
+              ].map((item) => (
+                <div key={item.href} className="mob-link">
+                  <a href={item.href} onClick={() => setMobileMenuOpen(false)}>
+                    <span className="mob-num">{item.num}</span>
+                    <span className="mob-label">{item.label}</span>
+                  </a>
+                </div>
+              ))}
+            </nav>
+
+            {/* Bottom: CTA + controls */}
+            <div className="mob-actions space-y-6">
+              <div className="flex gap-3">
+                <Link href="/login" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="outline" className="w-full h-12 text-sm border-white/20 text-white hover:bg-white/10 hover:text-white">
+                    {t("navLogin")}
+                  </Button>
+                </Link>
+                <Link href="/signup" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                  <Button className="w-full h-12 text-sm gap-1.5 bg-secondary hover:bg-secondary/90 text-secondary-foreground">
+                    {t("navStart")} <IconArrowUpRight className="size-3.5" />
+                  </Button>
+                </Link>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <LanguageSwitcher compact />
+                  <ModeToggle />
+                </div>
+                <span className="font-mono text-[10px] tracking-[0.2em] text-white/20 uppercase">zentory.ch</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* ══ HERO ═════════════════════════════════════════ */}
         <section className="relative min-h-[calc(100vh-56px)] flex flex-col justify-center overflow-hidden">
