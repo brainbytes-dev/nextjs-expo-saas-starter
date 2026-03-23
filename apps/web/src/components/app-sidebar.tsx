@@ -2,9 +2,11 @@
 
 import * as React from "react"
 import { usePathname } from "next/navigation"
+import Link from "next/link"
 import { LogoMark, Wordmark } from "@/components/logo"
 import { useBrand } from "@/components/brand-provider"
 import {
+  IconBook,
   IconBuilding,
   IconCalendar,
   IconChartBar,
@@ -22,6 +24,7 @@ import {
   IconInbox,
   IconKey,
   IconKeyboard,
+  IconLifebuoy,
   IconLink,
   IconMapPin,
   IconPackage,
@@ -552,16 +555,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               items={visibleNavSecondary}
               className="mt-auto"
             />
-            {/* Hilfe — links to docs */}
+            {/* Hilfe — docs + support */}
             <SidebarGroup className="pb-2">
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild className="flex items-center gap-2">
                       <a href="https://docs.zentory.ch" target="_blank" rel="noopener noreferrer">
-                        <IconHelp className="size-4 shrink-0" />
-                        <span>{t("help")}</span>
+                        <IconBook className="size-4 shrink-0" />
+                        <span>{t("docs")}</span>
                       </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild className="flex items-center gap-2">
+                      <Link href="/dashboard/support">
+                        <IconLifebuoy className="size-4 shrink-0" />
+                        <span>{t("support")}</span>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
