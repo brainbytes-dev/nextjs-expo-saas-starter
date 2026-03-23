@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 import { Logo, Wordmark } from "@/components/logo"
+import { LanguageSwitcher } from "@/components/language-switcher"
 
 export default async function LegalLayout({ children }: { children: React.ReactNode }) {
   const t = await getTranslations("legalLayout")
@@ -11,12 +12,15 @@ export default async function LegalLayout({ children }: { children: React.ReactN
       <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-6">
           <Logo />
-          <Link
-            href="/"
-            className="font-mono text-[11px] tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {t("backToHome")}
-          </Link>
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher compact />
+            <Link
+              href="/"
+              className="font-mono text-[11px] tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {t("backToHome")}
+            </Link>
+          </div>
         </div>
       </header>
 
