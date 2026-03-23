@@ -63,4 +63,4 @@ pnpm dev                     # Alle Apps starten
 
 ## Lizenz
 
-Proprietary — BrainBytes GmbH, Schweiz. Siehe [LICENSE](LICENSE).
+Proprietary — HR Online Consulting LLC, DBA Zentory. Siehe [LICENSE](LICENSE).

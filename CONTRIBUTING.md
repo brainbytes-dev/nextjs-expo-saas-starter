@@ -1,6 +1,6 @@
 # Contributing — Zentory
 
-Zentory ist proprietäre Software der BrainBytes GmbH. Nur autorisierte Teammitglieder haben Schreibzugriff.
+Zentory ist proprietäre Software der HR Online Consulting LLC. Nur autorisierte Teammitglieder haben Schreibzugriff.
 
 ## Development Setup
 

@@ -1273,7 +1273,7 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <Logo iconSize={20} />
               <p className="font-mono text-[10px] tracking-widest text-muted-foreground">
-                © {new Date().getFullYear()} BrainBytes GmbH · <Wordmark className="inline" />
+                © {new Date().getFullYear()} <Wordmark className="inline" />
               </p>
               <div className="flex gap-6 font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
                 <a href="#migration" className="hover:text-foreground transition-colors">{t("footerMigration")}</a>

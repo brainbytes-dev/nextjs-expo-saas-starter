@@ -20,7 +20,7 @@ const config: DocsThemeConfig = {
       <link rel="icon" href="/favicon.ico" />
     </>
   ),
-  footer: { content: <span>© {new Date().getFullYear()} BrainBytes GmbH · Zentory</span> },
+  footer: { content: <span>© {new Date().getFullYear()} Zentory</span> },
   sidebar: { defaultMenuCollapseLevel: 1, toggleButton: true },
   toc: { title: 'Auf dieser Seite' },
   editLink: { component: () => null },

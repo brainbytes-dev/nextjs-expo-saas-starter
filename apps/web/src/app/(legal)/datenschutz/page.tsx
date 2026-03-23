@@ -29,7 +29,7 @@ export default function DatenschutzPage() {
           Datenschutzgesetzes (nDSG) und der europäischen Datenschutz-Grundverordnung (DSGVO) ist:
         </p>
         <div className="rounded-lg border border-border bg-muted/30 p-5 font-mono text-sm space-y-1">
-          <div className="font-bold text-foreground">BrainBytes GmbH</div>
+          <div className="font-bold text-foreground">HR Online Consulting LLC (DBA Zentory)</div>
           <div className="text-muted-foreground">Zürich, Schweiz</div>
           <div className="text-muted-foreground">E-Mail: <a href="mailto:datenschutz@zentory.ch" className="text-primary hover:underline">datenschutz@zentory.ch</a></div>
           <div className="text-muted-foreground">Web: <a href="https://zentory.ch" className="text-primary hover:underline">zentory.ch</a></div>
@@ -253,7 +253,7 @@ export default function DatenschutzPage() {
         </h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
           Alle Inventardaten, die Sie in Zentory erfassen — Artikel, Werkzeuge, Fahrzeuge, Buchungshistorien —
-          verbleiben zu 100 % in Ihrem Eigentum. BrainBytes GmbH nimmt keine Eigentumsrechte daran in Anspruch
+          verbleiben zu 100 % in Ihrem Eigentum. HR Online Consulting LLC (DBA Zentory) nimmt keine Eigentumsrechte daran in Anspruch
           und nutzt diese Daten nicht für eigene Zwecke. Sie können Ihre Daten jederzeit exportieren und
           bei Kündigung innerhalb von 30 Tagen vollständig löschen lassen.
         </p>
@@ -280,7 +280,7 @@ export default function DatenschutzPage() {
           Für alle Fragen zum Datenschutz wenden Sie sich bitte an:
         </p>
         <div className="rounded-lg border border-border bg-muted/30 p-5 font-mono text-sm space-y-1">
-          <div className="font-bold text-foreground">BrainBytes GmbH — Datenschutz</div>
+          <div className="font-bold text-foreground">HR Online Consulting LLC (DBA Zentory) — Datenschutz</div>
           <div className="text-muted-foreground">E-Mail: <a href="mailto:datenschutz@zentory.ch" className="text-primary hover:underline">datenschutz@zentory.ch</a></div>
           <div className="text-muted-foreground">Aufsichtsbehörde: <a href="https://www.edoeb.admin.ch" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">EDÖB (edoeb.admin.ch)</a></div>
         </div>

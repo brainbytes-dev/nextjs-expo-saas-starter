@@ -26,7 +26,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
       <footer className="border-t border-border">
         <div className="mx-auto max-w-3xl px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
-            © {new Date().getFullYear()} BrainBytes GmbH · <Wordmark className="inline" />
+            © {new Date().getFullYear()} <Wordmark className="inline" />
           </p>
           <nav className="flex gap-6 font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
             <Link href="/datenschutz" className="hover:text-foreground transition-colors">Datenschutz</Link>

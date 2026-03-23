@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "Impressum",
-  description: "Impressum und rechtliche Angaben zu Zentory von BrainBytes GmbH.",
+  description: "Impressum und rechtliche Angaben zu Zentory.",
 }
 
 export default function ImpressumPage() {
@@ -27,7 +27,7 @@ export default function ImpressumPage() {
         <div className="rounded-lg border border-border bg-muted/30 p-6 font-mono text-sm space-y-3">
           <div>
             <div className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mb-1">Firma</div>
-            <div className="font-bold text-foreground text-base">BrainBytes GmbH</div>
+            <div className="font-bold text-foreground text-base">HR Online Consulting LLC (DBA Zentory)</div>
           </div>
           <div>
             <div className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mb-1">Adresse</div>
@@ -82,8 +82,8 @@ export default function ImpressumPage() {
           <div>
             <h3 className="text-sm font-semibold text-foreground mb-2">Inhalt der Website</h3>
             <p>
-              BrainBytes GmbH übernimmt keinerlei Gewähr für die Aktualität, Korrektheit, Vollständigkeit
-              oder Qualität der bereitgestellten Informationen. Haftungsansprüche gegen BrainBytes GmbH
+              HR Online Consulting LLC (DBA Zentory) übernimmt keinerlei Gewähr für die Aktualität, Korrektheit, Vollständigkeit
+              oder Qualität der bereitgestellten Informationen. Haftungsansprüche gegen HR Online Consulting LLC (DBA Zentory)
               wegen Schäden materieller oder immaterieller Art, die durch die Nutzung oder Nichtnutzung
               der dargebotenen Informationen entstanden sind, sind grundsätzlich ausgeschlossen.
             </p>
@@ -92,8 +92,8 @@ export default function ImpressumPage() {
             <h3 className="text-sm font-semibold text-foreground mb-2">Verweise und Links</h3>
             <p>
               Bei direkten oder indirekten Verweisen auf fremde Webseiten («Hyperlinks»), die ausserhalb
-              des Verantwortungsbereichs von BrainBytes GmbH liegen, tritt eine Haftungsverpflichtung
-              ausschliesslich dann in Kraft, wenn BrainBytes GmbH von den Inhalten Kenntnis hat und
+              des Verantwortungsbereichs von HR Online Consulting LLC (DBA Zentory) liegen, tritt eine Haftungsverpflichtung
+              ausschliesslich dann in Kraft, wenn HR Online Consulting LLC (DBA Zentory) von den Inhalten Kenntnis hat und
               es ihr technisch möglich und zumutbar wäre, die Nutzung im Falle rechtswidriger Inhalte
               zu verhindern.
             </p>
@@ -107,10 +107,10 @@ export default function ImpressumPage() {
           Urheberrecht
         </h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Die durch BrainBytes GmbH erstellten Inhalte und Werke auf dieser Website unterliegen dem
+          Die durch HR Online Consulting LLC (DBA Zentory) erstellten Inhalte und Werke auf dieser Website unterliegen dem
           Schweizer Urheberrecht. Die Vervielfältigung, Bearbeitung, Verbreitung und jede Art der
           Verwertung ausserhalb der Grenzen des Urheberrechts bedürfen der schriftlichen Zustimmung
-          von BrainBytes GmbH.
+          von HR Online Consulting LLC (DBA Zentory).
         </p>
       </section>
 

@@ -45,7 +45,7 @@ export default function AboutScreen() {
             variant="footnote"
             className="text-muted-foreground mt-8 text-center"
           >
-            Version 1.0.0 • © 2024 BrainBytes GmbH
+            Version 1.0.0 • © 2026 Zentory
           </Text>
         </View>
       </ScrollView>

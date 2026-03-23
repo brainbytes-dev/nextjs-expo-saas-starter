@@ -17,7 +17,7 @@ export default function AGBPage() {
           Allgemeine Geschäftsbedingungen
         </h1>
         <p className="font-mono text-xs text-muted-foreground">
-          Stand: März 2026 · BrainBytes GmbH, Zürich · Anwendbar auf alle Zentory-Abonnements
+          Stand: März 2026 · HR Online Consulting LLC (DBA Zentory), Zürich · Anwendbar auf alle Zentory-Abonnements
         </p>
       </header>
 
@@ -28,7 +28,7 @@ export default function AGBPage() {
         </h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
           Diese Allgemeinen Geschäftsbedingungen (nachfolgend «AGB») regeln das Vertragsverhältnis zwischen
-          der BrainBytes GmbH (nachfolgend «Anbieter») und dem Kunden (nachfolgend «Kunde») bezüglich der
+          der HR Online Consulting LLC (DBA Zentory) (nachfolgend «Anbieter») und dem Kunden (nachfolgend «Kunde») bezüglich der
           Nutzung der SaaS-Plattform Zentory unter <a href="https://zentory.ch" className="text-primary hover:underline">zentory.ch</a> und
           der zugehörigen mobilen Applikation.
         </p>
@@ -259,7 +259,7 @@ export default function AGBPage() {
         </h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
           Zentory und alle zugehörigen Marken, Logos, Software, Quellcodes und Inhalte sind
-          ausschliessliches Eigentum der BrainBytes GmbH und urheberrechtlich geschützt.
+          ausschliessliches Eigentum der HR Online Consulting LLC (DBA Zentory) und urheberrechtlich geschützt.
           Das Abonnement gewährt dem Kunden ein nicht-exklusives, nicht-übertragbares Nutzungsrecht
           für die Dauer des Abonnements. Reverse Engineering, Dekompilierung oder Versuche, den
           Quellcode abzuleiten, sind untersagt.
