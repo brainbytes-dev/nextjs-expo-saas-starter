@@ -33,6 +33,28 @@ export const metadata: Metadata = {
     ],
     apple: "/apple-touch-icon.png",
   },
+  openGraph: {
+    title: "Zentory — Dein Lager. Zentral.",
+    description: "Inventar- und Werkzeugverwaltung für Schweizer KMU.",
+    url: "https://zentory.ch",
+    siteName: "Zentory",
+    images: [
+      {
+        url: "/api/og",
+        width: 1200,
+        height: 630,
+        alt: "Zentory — Inventar- und Werkzeugverwaltung",
+      },
+    ],
+    locale: "de_CH",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Zentory — Dein Lager. Zentral.",
+    description: "Inventar- und Werkzeugverwaltung für Schweizer KMU.",
+    images: ["/api/og"],
+  },
 };
 
 export default async function RootLayout({

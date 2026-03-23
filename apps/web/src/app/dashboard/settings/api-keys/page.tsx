@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Wordmark } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,33 +38,6 @@ interface ApiKey {
   createdAt: string;
 }
 
-// ─── Scope catalogue ──────────────────────────────────────────────────────────
-
-const SCOPE_GROUPS = [
-  {
-    label: "Materialien",
-    scopes: [
-      { id: "materials:read", label: "Materialien lesen" },
-      { id: "materials:write", label: "Materialien schreiben" },
-    ],
-  },
-  {
-    label: "Werkzeuge",
-    scopes: [
-      { id: "tools:read", label: "Werkzeuge lesen" },
-      { id: "tools:write", label: "Werkzeuge schreiben" },
-    ],
-  },
-  {
-    label: "Sonstiges",
-    scopes: [
-      { id: "keys:read", label: "Schlüssel lesen" },
-      { id: "locations:read", label: "Lagerorte lesen" },
-      { id: "stock:read", label: "Bestand lesen" },
-    ],
-  },
-] as const;
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDate(iso: string | null) {
@@ -73,36 +47,18 @@ function formatDate(iso: string | null) {
   );
 }
 
-function CopyButton({ value }: { value: string }) {
-  const [copied, setCopied] = useState(false);
-  const copy = async () => {
-    await navigator.clipboard.writeText(value);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      size="sm"
-      onClick={copy}
-      className="shrink-0 text-xs h-7 px-2"
-    >
-      {copied ? "Kopiert" : "Kopieren"}
-    </Button>
-  );
-}
-
 // ─── Revoke Confirm Dialog ────────────────────────────────────────────────────
 
 function RevokeConfirmDialog({
   keyName,
   onConfirm,
   loading,
+  t,
 }: {
   keyName: string;
   onConfirm: () => void;
   loading: boolean;
+  t: (key: string) => string;
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -114,21 +70,19 @@ function RevokeConfirmDialog({
           className="text-xs h-7 px-2 text-destructive hover:text-destructive"
           disabled={loading}
         >
-          {loading ? "..." : "Widerrufen"}
+          {loading ? "..." : t("revoke")}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>API-Schlüssel widerrufen?</DialogTitle>
+          <DialogTitle>{t("revokeTitle")}</DialogTitle>
           <DialogDescription>
-            <strong>{keyName}</strong> wird permanent gelöscht. Alle
-            Anwendungen, die diesen Schlüssel verwenden, verlieren sofort den
-            Zugriff.
+            <strong>{keyName}</strong> {t("revokeDesc")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => setOpen(false)} disabled={loading}>
-            Abbrechen
+            {t("cancel")}
           </Button>
           <Button
             variant="destructive"
@@ -138,7 +92,7 @@ function RevokeConfirmDialog({
             }}
             disabled={loading}
           >
-            Widerrufen
+            {t("revoke")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -151,9 +105,11 @@ function RevokeConfirmDialog({
 function CreateKeyDialog({
   orgId,
   onCreated,
+  t,
 }: {
   orgId: string;
   onCreated: () => void;
+  t: (key: string) => string;
 }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -161,6 +117,32 @@ function CreateKeyDialog({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdKey, setCreatedKey] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const SCOPE_GROUPS = [
+    {
+      label: t("scopeGroups.materials"),
+      scopes: [
+        { id: "materials:read", label: t("scopes.materialsRead") },
+        { id: "materials:write", label: t("scopes.materialsWrite") },
+      ],
+    },
+    {
+      label: t("scopeGroups.tools"),
+      scopes: [
+        { id: "tools:read", label: t("scopes.toolsRead") },
+        { id: "tools:write", label: t("scopes.toolsWrite") },
+      ],
+    },
+    {
+      label: t("scopeGroups.other"),
+      scopes: [
+        { id: "keys:read", label: t("scopes.keysRead") },
+        { id: "locations:read", label: t("scopes.locationsRead") },
+        { id: "stock:read", label: t("scopes.stockRead") },
+      ],
+    },
+  ];
 
   const toggleScope = (scopeId: string) => {
     setSelectedScopes((prev) =>
@@ -184,12 +166,12 @@ function CreateKeyDialog({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Fehler beim Erstellen");
+        setError(data.error ?? t("createError"));
         return;
       }
       setCreatedKey(data.keyOnCreate);
     } catch {
-      setError("Netzwerkfehler");
+      setError(t("networkError"));
     } finally {
       setSaving(false);
     }
@@ -205,6 +187,12 @@ function CreateKeyDialog({
     if (hadKey) onCreated();
   };
 
+  const handleCopy = async (value: string) => {
+    await navigator.clipboard.writeText(value);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <Dialog
       open={open}
@@ -214,56 +202,63 @@ function CreateKeyDialog({
       }}
     >
       <DialogTrigger asChild>
-        <Button size="sm">+ Neuer API-Schlüssel</Button>
+        <Button size="sm">{t("newKey")}</Button>
       </DialogTrigger>
 
       <DialogContent className="max-w-lg">
         {createdKey ? (
           <>
             <DialogHeader>
-              <DialogTitle>API-Schlüssel erstellt</DialogTitle>
+              <DialogTitle>{t("createdTitle")}</DialogTitle>
               <DialogDescription>
-                Kopiere den Schlüssel jetzt — er wird nur einmal angezeigt.
+                {t("createdDesc")}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-3 py-2">
               <Label className="text-xs font-mono text-muted-foreground uppercase tracking-widest">
-                API-Schlüssel
+                {t("keyLabel")}
               </Label>
               <div className="flex items-center gap-2">
                 <code className="flex-1 rounded-md border border-border bg-muted px-3 py-2 text-xs font-mono break-all">
                   {createdKey}
                 </code>
-                <CopyButton value={createdKey} />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleCopy(createdKey)}
+                  className="shrink-0 text-xs h-7 px-2"
+                >
+                  {copied ? t("copied") : t("copy")}
+                </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Verwende diesen Schlüssel als{" "}
+                {t("useAsHeader")}{" "}
                 <code className="font-mono bg-background border border-border px-1 rounded">
                   Authorization: Bearer &lt;schlüssel&gt;
                 </code>{" "}
-                Header in deinen API-Anfragen.
+                {t("headerInRequests")}
               </p>
             </div>
             <DialogFooter>
-              <Button onClick={handleClose}>Fertig</Button>
+              <Button onClick={handleClose}>{t("done")}</Button>
             </DialogFooter>
           </>
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>Neuer API-Schlüssel</DialogTitle>
+              <DialogTitle>{t("createTitle")}</DialogTitle>
               <DialogDescription>
-                Gib dem Schlüssel einen beschreibenden Namen und wähle die
-                benötigten Berechtigungen.
+                {t("createDesc")}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-5 py-2">
               <div className="space-y-1.5">
-                <Label htmlFor="key-name">Name</Label>
+                <Label htmlFor="key-name">{t("nameLabel")}</Label>
                 <Input
                   id="key-name"
-                  placeholder="z. B. Zapier Integration, Mobile App"
+                  placeholder={t("namePlaceholder")}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={saving}
@@ -271,7 +266,7 @@ function CreateKeyDialog({
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm">Berechtigungen (Scopes)</Label>
+                <Label className="text-sm">{t("scopesLabel")}</Label>
                 <div className="space-y-4 rounded-md border border-border p-3 max-h-60 overflow-y-auto">
                   {SCOPE_GROUPS.map((group) => (
                     <div key={group.label}>
@@ -313,13 +308,13 @@ function CreateKeyDialog({
 
             <DialogFooter>
               <Button variant="outline" onClick={handleClose} disabled={saving}>
-                Abbrechen
+                {t("cancel")}
               </Button>
               <Button
                 onClick={handleCreate}
                 disabled={saving || !name.trim() || selectedScopes.length === 0}
               >
-                {saving ? "Erstelle..." : "Erstellen"}
+                {saving ? t("creating") : t("create")}
               </Button>
             </DialogFooter>
           </>
@@ -332,6 +327,7 @@ function CreateKeyDialog({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ApiKeysPage() {
+  const t = useTranslations("apiKeys");
   const { orgId } = useOrganization();
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(true);
@@ -346,15 +342,15 @@ export default function ApiKeysPage() {
       const res = await fetch("/api/api-keys", {
         headers: { "x-organization-id": orgId },
       });
-      if (!res.ok) throw new Error("Fehler beim Laden");
+      if (!res.ok) throw new Error(t("loadFailed"));
       const json = await res.json();
       setKeys(json.data ?? []);
     } catch {
-      setPageError("API-Schlüssel konnten nicht geladen werden.");
+      setPageError(t("loadError"));
     } finally {
       setLoading(false);
     }
-  }, [orgId]);
+  }, [orgId, t]);
 
   useEffect(() => {
     loadKeys();
@@ -381,28 +377,27 @@ export default function ApiKeysPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-1">
-            Einstellungen
+            {t("breadcrumb")}
           </p>
-          <h1 className="text-2xl font-semibold tracking-tight">API-Schlüssel</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
           <p className="text-sm text-muted-foreground mt-1 max-w-xl">
-            Erstelle API-Schlüssel, um von externen Systemen, Zapier oder eigenen
-            Skripten auf deine Daten zuzugreifen.
+            {t("description")}
           </p>
         </div>
-        {orgId && <CreateKeyDialog orgId={orgId} onCreated={loadKeys} />}
+        {orgId && <CreateKeyDialog orgId={orgId} onCreated={loadKeys} t={t} />}
       </div>
 
       {/* Info box */}
       <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-1">
         <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">
-          Authentifizierung
+          {t("authLabel")}
         </p>
         <p className="text-sm text-muted-foreground mt-1">
-          Sende den Schlüssel als{" "}
+          {t("authDesc")}{" "}
           <code className="font-mono text-xs bg-background border border-border px-1 rounded">
             Authorization: Bearer lapp_live_...
           </code>{" "}
-          Header. Die API ist erreichbar unter{" "}
+          {t("authHeader")}{" "}
           <code className="font-mono text-xs bg-background border border-border px-1 rounded">
             /api/v1/
           </code>
@@ -412,7 +407,7 @@ export default function ApiKeysPage() {
 
       {loading && (
         <div className="text-sm text-muted-foreground font-mono animate-pulse">
-          Lade API-Schlüssel...
+          {t("loadingKeys")}
         </div>
       )}
 
@@ -425,12 +420,12 @@ export default function ApiKeysPage() {
       {!loading && keys.length === 0 && !pageError && (
         <div className="rounded-xl border border-dashed border-border p-10 text-center">
           <p className="text-sm font-medium mb-1">
-            Noch keine API-Schlüssel erstellt
+            {t("emptyTitle")}
           </p>
           <p className="text-xs text-muted-foreground font-mono mb-4">
-            Erstelle einen Schlüssel, um die <Wordmark className="inline" /> API zu nutzen.
+            {t("emptyDesc")} <Wordmark className="inline" /> {t("emptyDescSuffix")}
           </p>
-          {orgId && <CreateKeyDialog orgId={orgId} onCreated={loadKeys} />}
+          {orgId && <CreateKeyDialog orgId={orgId} onCreated={loadKeys} t={t} />}
         </div>
       )}
 
@@ -449,21 +444,21 @@ export default function ApiKeysPage() {
                       variant="outline"
                       className="text-[10px] px-1.5 border-green-500/30 text-green-600 bg-green-500/10"
                     >
-                      Aktiv
+                      {t("active")}
                     </Badge>
                   </div>
                   <CardDescription className="text-xs mt-1 font-mono">
                     {key.prefix}••••••••••••••••••••••••
                   </CardDescription>
                   <CardDescription className="text-xs mt-0.5">
-                    Erstellt: {formatDate(key.createdAt)}
+                    {t("created")}: {formatDate(key.createdAt)}
                     {" · "}
-                    Zuletzt verwendet:{" "}
-                    {key.lastUsedAt ? formatDate(key.lastUsedAt) : "Noch nie"}
+                    {t("lastUsed")}:{" "}
+                    {key.lastUsedAt ? formatDate(key.lastUsedAt) : t("never")}
                     {key.expiresAt && (
                       <>
                         {" · "}
-                        Läuft ab: {formatDate(key.expiresAt)}
+                        {t("expiresAt")}: {formatDate(key.expiresAt)}
                       </>
                     )}
                   </CardDescription>
@@ -474,6 +469,7 @@ export default function ApiKeysPage() {
                     keyName={key.name}
                     loading={revokingId === key.id}
                     onConfirm={() => handleRevoke(key.id)}
+                    t={t}
                   />
                 </div>
               </div>

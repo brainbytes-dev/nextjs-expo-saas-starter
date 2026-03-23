@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useTranslations } from "next-intl"
 import { Wordmark } from "@/components/logo"
 import {
   IconBrain,
@@ -22,6 +23,7 @@ type Status = "idle" | "loading" | "saving" | "testing" | "saved" | "error"
 type KeyStatus = "unchecked" | "valid" | "invalid"
 
 export default function AiSettingsPage() {
+  const t = useTranslations("aiSettings")
   const [apiKey, setApiKey] = useState("")
   const [showKey, setShowKey] = useState(false)
   const [status, setStatus] = useState<Status>("idle")
@@ -54,7 +56,7 @@ export default function AiSettingsPage() {
   const handleTest = async () => {
     const key = apiKey.trim()
     if (!key) {
-      setErrorMsg("Bitte zuerst einen API-Key eingeben")
+      setErrorMsg(t("enterKeyFirst"))
       return
     }
     setStatus("testing")
@@ -70,14 +72,14 @@ export default function AiSettingsPage() {
       const data: { valid: boolean; error?: string } = await res.json()
       if (data.valid) {
         setKeyStatus("valid")
-        setSuccessMsg("Verbindung erfolgreich — API-Key ist gültig")
+        setSuccessMsg(t("connectionSuccess"))
       } else {
         setKeyStatus("invalid")
-        setErrorMsg(data.error ?? "API-Key ungültig")
+        setErrorMsg(data.error ?? t("keyInvalid"))
       }
     } catch {
       setKeyStatus("invalid")
-      setErrorMsg("Verbindung zu OpenAI fehlgeschlagen")
+      setErrorMsg(t("connectionFailed"))
     } finally {
       setStatus("idle")
     }
@@ -95,10 +97,10 @@ export default function AiSettingsPage() {
       })
       if (!res.ok) {
         const data: { error?: string } = await res.json()
-        setErrorMsg(data.error ?? "Speichern fehlgeschlagen")
+        setErrorMsg(data.error ?? t("saveFailed"))
         return
       }
-      setSuccessMsg("API-Key gespeichert")
+      setSuccessMsg(t("keySaved"))
       setStatus("saved")
       // Reload preview
       const reload = await fetch("/api/ai/settings")
@@ -114,7 +116,7 @@ export default function AiSettingsPage() {
         setSuccessMsg(null)
       }, 3000)
     } catch {
-      setErrorMsg("Netzwerkfehler beim Speichern")
+      setErrorMsg(t("networkErrorSave"))
     } finally {
       if (status !== "saved") setStatus("idle")
     }
@@ -132,15 +134,15 @@ export default function AiSettingsPage() {
       })
       if (!res.ok) {
         const data: { error?: string } = await res.json()
-        setErrorMsg(data.error ?? "Entfernen fehlgeschlagen")
+        setErrorMsg(data.error ?? t("removeFailed"))
         return
       }
       setHasStoredKey(false)
       setStoredKeyPreview(null)
-      setSuccessMsg("API-Key entfernt — Systemschlüssel wird verwendet")
+      setSuccessMsg(t("keyRemoved"))
       setTimeout(() => setSuccessMsg(null), 3000)
     } catch {
-      setErrorMsg("Netzwerkfehler")
+      setErrorMsg(t("networkError"))
     } finally {
       setStatus("idle")
     }
@@ -153,14 +155,14 @@ export default function AiSettingsPage() {
       {/* Header */}
       <div>
         <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-1">
-          Einstellungen
+          {t("breadcrumb")}
         </p>
         <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
           <IconBrain className="size-6 text-primary" />
-          KI-Funktionen
+          {t("title")}
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Konfiguriere den OpenAI API-Key für KI-gestützte Funktionen in <Wordmark className="inline" />.
+          {t("description")} <Wordmark className="inline" />.
         </p>
       </div>
 
@@ -185,20 +187,20 @@ export default function AiSettingsPage() {
       {/* Current Status Card */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Aktueller Status</CardTitle>
+          <CardTitle className="text-base">{t("currentStatus")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {status === "loading" ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <IconLoader2 className="size-4 animate-spin" />
-              Lade...
+              {t("loading")}
             </div>
           ) : hasStoredKey ? (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Badge className="bg-secondary/15 text-secondary border-secondary/30 font-mono text-xs">
                   <IconCheck className="size-3 mr-1" />
-                  Verbunden
+                  {t("connected")}
                 </Badge>
                 {storedKeyPreview && (
                   <span className="text-xs text-muted-foreground font-mono">
@@ -213,17 +215,17 @@ export default function AiSettingsPage() {
                 onClick={handleRemove}
                 disabled={isBusy}
               >
-                Entfernen
+                {t("remove")}
               </Button>
             </div>
           ) : (
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-muted-foreground font-mono text-xs">
                 <IconX className="size-3 mr-1" />
-                Nicht konfiguriert
+                {t("notConfigured")}
               </Badge>
               <span className="text-xs text-muted-foreground">
-                System-Schlüssel oder Demo-Modus aktiv
+                {t("systemKeyActive")}
               </span>
             </div>
           )}
@@ -235,21 +237,21 @@ export default function AiSettingsPage() {
       {/* KI-Funktionen Info */}
       <Card className="border-primary/20 bg-primary/5">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">Was wird KI verwendet für?</CardTitle>
+          <CardTitle className="text-sm font-medium">{t("whatIsAiFor")}</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-1.5 text-sm text-muted-foreground">
             <li className="flex items-start gap-2">
               <span className="text-primary mt-0.5">•</span>
-              <span><strong className="text-foreground">Foto-Erkennung</strong> — Artikel aus Fotos automatisch identifizieren (GPT-4o Vision)</span>
+              <span><strong className="text-foreground">{t("featurePhotoRecognition")}</strong> — {t("featurePhotoRecognitionDesc")}</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary mt-0.5">•</span>
-              <span><strong className="text-foreground">Import-Mapping</strong> — CSV-Spalten automatisch den richtigen Feldern zuordnen</span>
+              <span><strong className="text-foreground">{t("featureImportMapping")}</strong> — {t("featureImportMappingDesc")}</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary mt-0.5">•</span>
-              <span><strong className="text-foreground">Nachfrageprognose</strong> — Verbrauchsmuster analysieren und Bestellempfehlungen geben</span>
+              <span><strong className="text-foreground">{t("featureForecast")}</strong> — {t("featureForecastDesc")}</span>
             </li>
           </ul>
         </CardContent>
@@ -258,15 +260,14 @@ export default function AiSettingsPage() {
       {/* API Key Input */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">OpenAI API-Key eingeben</CardTitle>
+          <CardTitle className="text-base">{t("enterApiKey")}</CardTitle>
           <CardDescription>
-            <Wordmark className="inline" /> nutzt KI für Foto-Erkennung, Import-Mapping und Nachfrageprognose.
-            Geben Sie Ihren eigenen OpenAI API-Key ein um diese Funktionen zu aktivieren.
+            <Wordmark className="inline" /> {t("enterApiKeyDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="api-key">API-Key</Label>
+            <Label htmlFor="api-key">{t("apiKeyLabel")}</Label>
             <div className="relative">
               <Input
                 id="api-key"
@@ -292,7 +293,7 @@ export default function AiSettingsPage() {
                 type="button"
                 onClick={() => setShowKey((v) => !v)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                aria-label={showKey ? "API-Key verbergen" : "API-Key anzeigen"}
+                aria-label={showKey ? t("hideKey") : t("showKey")}
               >
                 {showKey ? (
                   <IconEyeOff className="size-4" />
@@ -303,12 +304,12 @@ export default function AiSettingsPage() {
             </div>
             {keyStatus === "valid" && (
               <p className="flex items-center gap-1 text-xs text-secondary">
-                <IconCheck className="size-3" /> Gültiger API-Key
+                <IconCheck className="size-3" /> {t("validKey")}
               </p>
             )}
             {keyStatus === "invalid" && (
               <p className="flex items-center gap-1 text-xs text-destructive">
-                <IconX className="size-3" /> Ungültiger API-Key
+                <IconX className="size-3" /> {t("invalidKey")}
               </p>
             )}
           </div>
@@ -321,7 +322,7 @@ export default function AiSettingsPage() {
               disabled={isBusy || !apiKey.trim()}
             >
               {status === "testing" && <IconLoader2 className="size-4 mr-2 animate-spin" />}
-              Testen
+              {t("test")}
             </Button>
             <Button
               type="button"
@@ -332,16 +333,16 @@ export default function AiSettingsPage() {
               {status === "saved" ? (
                 <>
                   <IconCheck className="size-4 mr-2" />
-                  Gespeichert
+                  {t("saved")}
                 </>
               ) : (
-                "Speichern"
+                t("save")
               )}
             </Button>
           </div>
 
           <p className="text-xs text-muted-foreground">
-            API-Keys erstellen auf{" "}
+            {t("createKeysAt")}{" "}
             <a
               href="https://platform.openai.com/api-keys"
               target="_blank"
@@ -357,9 +358,8 @@ export default function AiSettingsPage() {
 
       {/* Privacy note */}
       <p className="text-xs text-muted-foreground">
-        Ihr API-Key wird verschlüsselt in der Datenbank Ihrer Organisation gespeichert und
-        ausschliesslich für KI-Anfragen innerhalb Ihrer Organisation verwendet.
-        <Wordmark className="inline" /> speichert keine Antworten von OpenAI.
+        {t("privacyNote")}{" "}
+        <Wordmark className="inline" /> {t("noResponseStored")}
       </p>
     </div>
   )

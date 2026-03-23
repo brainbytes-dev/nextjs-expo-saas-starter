@@ -12,6 +12,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import {
   ComposedChart,
@@ -86,10 +87,10 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit" })
 }
 
-function confidenceLabel(c: number): { text: string; color: string } {
-  if (c >= 0.75) return { text: "Hoch", color: "text-green-600 dark:text-green-400" }
-  if (c >= 0.45) return { text: "Mittel", color: "text-yellow-600 dark:text-yellow-400" }
-  return { text: "Niedrig", color: "text-red-600 dark:text-red-400" }
+function confidenceLevel(c: number): { key: string; color: string } {
+  if (c >= 0.75) return { key: "confidenceHigh", color: "text-green-600 dark:text-green-400" }
+  if (c >= 0.45) return { key: "confidenceMedium", color: "text-yellow-600 dark:text-yellow-400" }
+  return { key: "confidenceLow", color: "text-red-600 dark:text-red-400" }
 }
 
 function stockoutSeverity(days: number): "critical" | "warning" | "ok" {
@@ -136,6 +137,7 @@ interface ForecastTabProps {
 }
 
 export function ForecastTab({ materialId }: ForecastTabProps) {
+  const t = useTranslations("forecastTab")
   const router = useRouter()
   const [data, setData] = useState<ForecastResponse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -157,13 +159,13 @@ export function ForecastTab({ materialId }: ForecastTabProps) {
         headers: orgId ? { "x-organization-id": orgId } : {},
       })
       if (!res.ok) {
-        setError("Prognose konnte nicht geladen werden.")
+        setError(t("loadError"))
         return
       }
       const json = (await res.json()) as ForecastResponse
       setData(json)
     } catch {
-      setError("Netzwerkfehler beim Laden der Prognose.")
+      setError(t("networkError"))
     } finally {
       setLoading(false)
     }
@@ -256,9 +258,9 @@ export function ForecastTab({ materialId }: ForecastTabProps) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-20">
         <IconAlertTriangle className="size-8 text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">{error ?? "Keine Daten verfügbar."}</p>
+        <p className="text-sm text-muted-foreground">{error ?? t("noData")}</p>
         <Button variant="outline" size="sm" onClick={fetchForecast}>
-          Erneut versuchen
+          {t("retry")}
         </Button>
       </div>
     )
@@ -266,12 +268,12 @@ export function ForecastTab({ materialId }: ForecastTabProps) {
 
   const { reorder } = data
   const severity = stockoutSeverity(reorder.daysUntilStockout)
-  const conf = confidenceLabel(reorder.confidence)
+  const conf = confidenceLevel(reorder.confidence)
 
   const severityBadge = {
-    critical: <Badge variant="destructive">Kritisch</Badge>,
-    warning: <Badge className="bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-400/30">Warnung</Badge>,
-    ok: <Badge variant="secondary">OK</Badge>,
+    critical: <Badge variant="destructive">{t("critical")}</Badge>,
+    warning: <Badge className="bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-400/30">{t("warning")}</Badge>,
+    ok: <Badge variant="secondary">{t("ok")}</Badge>,
   }[severity]
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -282,51 +284,51 @@ export function ForecastTab({ materialId }: ForecastTabProps) {
       {/* Controls */}
       <div className="flex flex-wrap items-end gap-4">
         <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-medium text-muted-foreground">Prognosehorizont</span>
+          <span className="text-xs font-medium text-muted-foreground">{t("forecastHorizon")}</span>
           <Select value={daysAhead} onValueChange={setDaysAhead}>
             <SelectTrigger className="h-8 w-36 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="14">14 Tage</SelectItem>
-              <SelectItem value="30">30 Tage</SelectItem>
-              <SelectItem value="60">60 Tage</SelectItem>
-              <SelectItem value="90">90 Tage</SelectItem>
+              <SelectItem value="14">{t("days", { count: 14 })}</SelectItem>
+              <SelectItem value="30">{t("days", { count: 30 })}</SelectItem>
+              <SelectItem value="60">{t("days", { count: 60 })}</SelectItem>
+              <SelectItem value="90">{t("days", { count: 90 })}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-medium text-muted-foreground">Lieferzeit</span>
+          <span className="text-xs font-medium text-muted-foreground">{t("leadTime")}</span>
           <Select value={leadTime} onValueChange={setLeadTime}>
             <SelectTrigger className="h-8 w-36 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="3">3 Tage</SelectItem>
-              <SelectItem value="7">7 Tage</SelectItem>
-              <SelectItem value="14">14 Tage</SelectItem>
-              <SelectItem value="30">30 Tage</SelectItem>
+              <SelectItem value="3">{t("days", { count: 3 })}</SelectItem>
+              <SelectItem value="7">{t("days", { count: 7 })}</SelectItem>
+              <SelectItem value="14">{t("days", { count: 14 })}</SelectItem>
+              <SelectItem value="30">{t("days", { count: 30 })}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground ml-auto">
           <IconInfoCircle className="size-3.5" />
-          Basierend auf {data.dataPointCount} Verbrauchstagen (letzte 90 Tage)
+          {t("basedOn", { count: data.dataPointCount })}
         </div>
       </div>
 
       {/* Chart */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Verbrauchsprognose</CardTitle>
+          <CardTitle className="text-base">{t("chartTitle")}</CardTitle>
           <CardDescription className="text-xs">
-            Historischer Verbrauch (—) und Prognose (- -) mit Konfidenzbereich
+            {t("chartDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {chartData.length === 0 ? (
             <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
-              Keine Verbrauchsdaten in den letzten 90 Tagen
+              {t("noConsumptionData")}
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={280}>
@@ -352,7 +354,7 @@ export function ForecastTab({ materialId }: ForecastTabProps) {
                 <Area
                   type="monotone"
                   dataKey="upper"
-                  name="Obere Grenze"
+                  name={t("upperBound")}
                   fill="var(--chart-1, #6366f1)"
                   stroke="none"
                   fillOpacity={0.12}
@@ -362,7 +364,7 @@ export function ForecastTab({ materialId }: ForecastTabProps) {
                 <Area
                   type="monotone"
                   dataKey="lower"
-                  name="Untere Grenze"
+                  name={t("lowerBound")}
                   fill="var(--background)"
                   stroke="none"
                   fillOpacity={1}
@@ -374,7 +376,7 @@ export function ForecastTab({ materialId }: ForecastTabProps) {
                 <Line
                   type="monotone"
                   dataKey="historisch"
-                  name="Historisch"
+                  name={t("historical")}
                   stroke="var(--chart-2, #22c55e)"
                   strokeWidth={2}
                   dot={false}
@@ -386,7 +388,7 @@ export function ForecastTab({ materialId }: ForecastTabProps) {
                 <Line
                   type="monotone"
                   dataKey="prognose"
-                  name="Prognose"
+                  name={t("forecast")}
                   stroke="var(--chart-1, #6366f1)"
                   strokeWidth={2}
                   strokeDasharray="6 3"
@@ -401,7 +403,7 @@ export function ForecastTab({ materialId }: ForecastTabProps) {
                     y={data.reorderLevel}
                     stroke="var(--chart-4, #ec4899)"
                     strokeDasharray="4 4"
-                    label={{ value: "Meldebestand", position: "insideTopRight", fontSize: 10, fill: "var(--chart-4, #ec4899)" }}
+                    label={{ value: t("reorderLevel"), position: "insideTopRight", fontSize: 10, fill: "var(--chart-4, #ec4899)" }}
                   />
                 )}
               </ComposedChart>
@@ -418,7 +420,7 @@ export function ForecastTab({ materialId }: ForecastTabProps) {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Tage bis Nullbestand
+                {t("daysUntilStockout")}
               </p>
               {severityBadge}
             </div>
@@ -433,7 +435,7 @@ export function ForecastTab({ materialId }: ForecastTabProps) {
               }
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              bei ⌀ {data.avgDailyConsumption.toLocaleString("de-CH")} {data.unit}/Tag
+              {t("avgConsumption", { avg: data.avgDailyConsumption.toLocaleString("de-CH"), unit: data.unit })}
             </p>
           </CardContent>
         </Card>
@@ -442,14 +444,14 @@ export function ForecastTab({ materialId }: ForecastTabProps) {
         <Card className={severity === "critical" ? "border-destructive/40" : severity === "warning" ? "border-yellow-400/40" : ""}>
           <CardContent className="p-4">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Empfohlene Nachbestellung
+              {t("suggestedReorder")}
             </p>
             <p className="mt-2 text-3xl font-bold tabular-nums">
               {reorder.reorderQuantity.toLocaleString("de-CH")}
               <span className="ml-1 text-sm font-normal text-muted-foreground">{data.unit}</span>
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Meldebestand: {reorder.reorderPoint} {data.unit}
+              {t("reorderLevel")}: {reorder.reorderPoint} {data.unit}
             </p>
           </CardContent>
         </Card>
@@ -458,12 +460,12 @@ export function ForecastTab({ materialId }: ForecastTabProps) {
         <Card>
           <CardContent className="p-4">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Prognose-Konfidenz
+              {t("forecastConfidence")}
             </p>
             <p className={`mt-2 text-3xl font-bold tabular-nums ${conf.color}`}>
               {Math.round(reorder.confidence * 100)} %
             </p>
-            <p className={`mt-1 text-xs font-medium ${conf.color}`}>{conf.text}</p>
+            <p className={`mt-1 text-xs font-medium ${conf.color}`}>{t(conf.key)}</p>
           </CardContent>
         </Card>
       </div>
@@ -474,14 +476,17 @@ export function ForecastTab({ materialId }: ForecastTabProps) {
           <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-medium text-sm">
-                {severity === "critical" ? "Dringend: " : ""}Empfohlene Nachbestellung
+                {severity === "critical" ? t("urgent") + ": " : ""}{t("suggestedReorder")}
               </p>
               <p className="text-sm text-muted-foreground mt-0.5">
-                {reorder.reorderQuantity} {data.unit} in den nächsten{" "}
-                {reorder.daysUntilStockout === Infinity
-                  ? "Wochen"
-                  : `${Math.max(0, reorder.daysUntilStockout - (data.leadTimeDays ?? 7))} Tagen`}{" "}
-                bestellen (Lieferzeit: {data.leadTimeDays} Tage)
+                {t("reorderDescription", {
+                  quantity: reorder.reorderQuantity,
+                  unit: data.unit,
+                  days: reorder.daysUntilStockout === Infinity
+                    ? t("weeks")
+                    : `${Math.max(0, reorder.daysUntilStockout - (data.leadTimeDays ?? 7))} ${t("daysUnit")}`,
+                  leadTime: data.leadTimeDays,
+                })}
               </p>
             </div>
             <Button
@@ -494,17 +499,17 @@ export function ForecastTab({ materialId }: ForecastTabProps) {
               {orderCreated ? (
                 <>
                   <IconCheck className="size-4" />
-                  Erstellt
+                  {t("created")}
                 </>
               ) : ordering ? (
                 <>
                   <IconLoader2 className="size-4 animate-spin" />
-                  Wird erstellt…
+                  {t("creating")}
                 </>
               ) : (
                 <>
                   <IconShoppingCart className="size-4" />
-                  Bestellung erstellen
+                  {t("createOrder")}
                 </>
               )}
             </Button>

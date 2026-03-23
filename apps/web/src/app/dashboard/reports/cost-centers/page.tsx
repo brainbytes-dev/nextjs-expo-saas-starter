@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import {
   IconBuildingFactory2,
   IconDownload,
@@ -104,7 +105,7 @@ const EXPORT_COLUMNS: ExportColumn<FlatRow>[] = [
 // ---------------------------------------------------------------------------
 // ProjectRow — expandable table row group
 // ---------------------------------------------------------------------------
-function ProjectRow({ group }: { group: ProjectGroup }) {
+function ProjectRow({ group, t }: { group: ProjectGroup; t: (key: string) => string }) {
   const [expanded, setExpanded] = useState(false)
 
   return (
@@ -136,7 +137,7 @@ function ProjectRow({ group }: { group: ProjectGroup }) {
           )}
         </td>
         <td className="px-4 py-3 text-right text-sm text-muted-foreground">
-          {group.lines.length} Positionen
+          {group.lines.length} {t("positions")}
         </td>
         <td className="px-4 py-3 text-right font-semibold">
           {fmtChf(group.totalCost)}
@@ -168,7 +169,7 @@ function ProjectRow({ group }: { group: ProjectGroup }) {
                 </>
               ) : (
                 <span className="text-muted-foreground italic">
-                  Kein Preis hinterlegt
+                  {t("noPrice")}
                 </span>
               )}
             </td>
@@ -182,6 +183,7 @@ function ProjectRow({ group }: { group: ProjectGroup }) {
 // Main page
 // ---------------------------------------------------------------------------
 export default function CostCenterReportPage() {
+  const t = useTranslations("costCenters")
   const [from, setFrom] = useState(thirtyDaysAgo())
   const [to, setTo] = useState(today())
   const [groups, setGroups] = useState<ProjectGroup[] | null>(null)
@@ -195,7 +197,7 @@ export default function CostCenterReportPage() {
     if (from) params.set("from", from)
     if (to) params.set("to", to)
     const res = await fetch(`/api/reports/cost-centers?${params}`)
-    if (!res.ok) throw new Error("Fehler beim Laden der Kostenstellen-Daten")
+    if (!res.ok) throw new Error(t("loadError"))
     const json = await res.json()
     return (json.data ?? []) as ProjectGroup[]
   }, [from, to])
@@ -207,7 +209,7 @@ export default function CostCenterReportPage() {
       const data = await fetchData()
       setGroups(data)
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unbekannter Fehler")
+      setError(e instanceof Error ? e.message : t("unknownError"))
     } finally {
       setLoading(null)
     }
@@ -220,7 +222,7 @@ export default function CostCenterReportPage() {
       const flat = flattenForExport(data)
       downloadCsv(flat, EXPORT_COLUMNS, "kostenstellen-bericht.csv")
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unbekannter Fehler")
+      setError(e instanceof Error ? e.message : t("unknownError"))
     } finally {
       setLoading(null)
     }
@@ -233,7 +235,7 @@ export default function CostCenterReportPage() {
       const flat = flattenForExport(data)
       printReport("Kostenstellen-Bericht", flat, EXPORT_COLUMNS)
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unbekannter Fehler")
+      setError(e instanceof Error ? e.message : t("unknownError"))
     } finally {
       setLoading(null)
     }
@@ -246,10 +248,10 @@ export default function CostCenterReportPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">
-          Kostenstellen-Bericht
+          {t("title")}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Materialkosten je Projekt / Kostenstelle im gewählten Zeitraum.
+          {t("subtitle")}
         </p>
       </div>
 
@@ -261,9 +263,9 @@ export default function CostCenterReportPage() {
               <IconBuildingFactory2 className="size-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-base">Filter &amp; Export</CardTitle>
+              <CardTitle className="text-base">{t("filterExport")}</CardTitle>
               <CardDescription className="text-xs">
-                Zeitraum wählen, dann Bericht laden oder exportieren.
+                {t("filterDescription")}
               </CardDescription>
             </div>
           </div>
@@ -271,7 +273,7 @@ export default function CostCenterReportPage() {
         <CardContent>
           <div className="flex flex-wrap items-end gap-4">
             <div className="flex flex-col gap-1.5">
-              <Label className="text-xs">Von</Label>
+              <Label className="text-xs">{t("from")}</Label>
               <Input
                 type="date"
                 value={from}
@@ -281,7 +283,7 @@ export default function CostCenterReportPage() {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label className="text-xs">Bis</Label>
+              <Label className="text-xs">{t("to")}</Label>
               <Input
                 type="date"
                 value={to}
@@ -301,7 +303,7 @@ export default function CostCenterReportPage() {
               ) : (
                 <IconCurrencyEuro className="size-4" />
               )}
-              Bericht laden
+              {t("loadReport")}
             </Button>
             <div className="ml-auto flex gap-2">
               <Button
@@ -330,7 +332,7 @@ export default function CostCenterReportPage() {
                 ) : (
                   <IconPrinter className="size-4" />
                 )}
-                PDF drucken
+                {t("printPdf")}
               </Button>
             </div>
           </div>
@@ -348,7 +350,7 @@ export default function CostCenterReportPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">
-                  Top {Math.min(groups.length, 10)} Kostenstellen nach Ausgaben
+                  {t("topCostCenters", { count: Math.min(groups.length, 10) })}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -388,45 +390,45 @@ export default function CostCenterReportPage() {
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <div>
                 <CardTitle className="text-base">
-                  Kostenaufstellung ({groups.length} Projekte)
+                  {t("costBreakdown", { count: groups.length })}
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Klicken Sie auf ein Projekt, um die Materialpositionen aufzuklappen.
+                  {t("clickToExpand")}
                 </CardDescription>
               </div>
               <div className="text-right">
-                <p className="text-xs text-muted-foreground">Gesamtkosten</p>
+                <p className="text-xs text-muted-foreground">{t("totalCosts")}</p>
                 <p className="text-xl font-bold">{fmtChf(totalAllProjects)}</p>
               </div>
             </CardHeader>
             <CardContent className="p-0">
               {groups.length === 0 ? (
                 <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-                  Keine Daten im gewählten Zeitraum gefunden.
+                  {t("noData")}
                   <br />
-                  Stellen Sie sicher, dass Lagerabbuchungen einem Projekt zugeordnet wurden.
+                  {t("noDataHint")}
                 </p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b bg-muted/40 text-xs text-muted-foreground">
-                        <th className="px-4 py-2 text-left font-medium">Projekt</th>
-                        <th className="px-4 py-2 text-left font-medium">Proj.-Nr.</th>
-                        <th className="px-4 py-2 text-left font-medium">Kostenstelle</th>
-                        <th className="px-4 py-2 text-right font-medium">Positionen</th>
-                        <th className="px-4 py-2 text-right font-medium">Gesamtkosten</th>
+                        <th className="px-4 py-2 text-left font-medium">{t("colProject")}</th>
+                        <th className="px-4 py-2 text-left font-medium">{t("colProjectNum")}</th>
+                        <th className="px-4 py-2 text-left font-medium">{t("colCostCenter")}</th>
+                        <th className="px-4 py-2 text-right font-medium">{t("positions")}</th>
+                        <th className="px-4 py-2 text-right font-medium">{t("totalCosts")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
                       {groups.map((g) => (
-                        <ProjectRow key={g.projectId} group={g} />
+                        <ProjectRow key={g.projectId} group={g} t={t} />
                       ))}
                     </tbody>
                     <tfoot>
                       <tr className="border-t bg-muted/40 font-semibold">
                         <td className="px-4 py-3" colSpan={4}>
-                          Gesamt
+                          {t("total")}
                         </td>
                         <td className="px-4 py-3 text-right">
                           {fmtChf(totalAllProjects)}

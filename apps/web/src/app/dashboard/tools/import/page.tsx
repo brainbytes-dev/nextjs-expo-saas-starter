@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
+import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
@@ -53,29 +54,14 @@ interface ParsedRow {
 type MappingConfidence = "ai-high" | "ai-mid" | "ai-low" | "rule" | "manual" | "skip"
 
 // ---------------------------------------------------------------------------
-// Column mapping config
-// ---------------------------------------------------------------------------
-const TOOL_FIELDS = [
-  { key: "name",         label: "Name *",        required: true  },
-  { key: "number",       label: "Nummer",         required: false },
-  { key: "manufacturer", label: "Hersteller",     required: false },
-  { key: "serialNumber", label: "Seriennummer",   required: false },
-  { key: "condition",    label: "Zustand",        required: false },
-  { key: "notes",        label: "Notizen",        required: false },
-  { key: "_skip",        label: "— Ignorieren —", required: false },
-] as const
-
 // Valid condition values accepted by the API
+// ---------------------------------------------------------------------------
 const CONDITION_MAP: Record<string, string> = {
   gut: "good", good: "good",
   beschaedigt: "damaged", beschädigt: "damaged", damaged: "damaged",
   reparatur: "repair", repair: "repair",
   ausgemustert: "decommissioned", decommissioned: "decommissioned",
 }
-
-// ---------------------------------------------------------------------------
-// Demo-mode: realistic AI suggestions without API call
-// ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
 // Rule-based auto-detect (initial mapping before AI)
@@ -145,32 +131,23 @@ function downloadTemplate() {
 }
 
 // ---------------------------------------------------------------------------
-// Steps
-// ---------------------------------------------------------------------------
-const STEPS = [
-  { key: "upload",  label: "Datei"    },
-  { key: "map",     label: "Spalten"  },
-  { key: "preview", label: "Vorschau" },
-  { key: "done",    label: "Fertig"   },
-] as const
-type Step = (typeof STEPS)[number]["key"]
-
-// ---------------------------------------------------------------------------
 // AI Confidence Badge
 // ---------------------------------------------------------------------------
 function AiConfidenceBadge({
   confidence,
   score,
+  t,
 }: {
   confidence: MappingConfidence
   score?: number
+  t: (key: string) => string
 }) {
   const pct = score !== undefined ? Math.round(score * 100) : null
 
   if (confidence === "ai-high")
     return (
       <span
-        title={`KI-Vorschlag (${pct}% Konfidenz)`}
+        title={`${t("aiSuggestion")} (${pct}% ${t("confidence")})`}
         className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] font-mono px-1.5 py-0.5 rounded bg-green-500/10 text-green-600 border border-green-500/20"
       >
         <IconSparkles className="size-2.5" />
@@ -180,7 +157,7 @@ function AiConfidenceBadge({
   if (confidence === "ai-mid")
     return (
       <span
-        title={`KI-Vorschlag (${pct}% Konfidenz)`}
+        title={`${t("aiSuggestion")} (${pct}% ${t("confidence")})`}
         className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] font-mono px-1.5 py-0.5 rounded bg-yellow-500/10 text-yellow-600 border border-yellow-500/20"
       >
         <IconSparkles className="size-2.5" />
@@ -190,7 +167,7 @@ function AiConfidenceBadge({
   if (confidence === "ai-low")
     return (
       <span
-        title={`KI-Vorschlag (${pct}% Konfidenz)`}
+        title={`${t("aiSuggestion")} (${pct}% ${t("confidence")})`}
         className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-500/10 text-red-500 border border-red-500/20"
       >
         <IconSparkles className="size-2.5" />
@@ -200,7 +177,7 @@ function AiConfidenceBadge({
   if (confidence === "rule")
     return (
       <span
-        title="Automatisch erkannt"
+        title={t("autoDetected")}
         className="ml-1.5 text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 border border-blue-500/20"
       >
         auto
@@ -209,10 +186,10 @@ function AiConfidenceBadge({
   if (confidence === "manual")
     return (
       <span
-        title="Manuell zugeordnet"
+        title={t("manuallyMapped")}
         className="ml-1.5 text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border"
       >
-        manuell
+        {t("manuallyMapped")}
       </span>
     )
   return null
@@ -222,8 +199,27 @@ function AiConfidenceBadge({
 // Page component
 // ---------------------------------------------------------------------------
 export default function ToolImportPage() {
+  const t = useTranslations("toolImport")
   const router  = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
+
+  const TOOL_FIELDS = [
+    { key: "name",         label: t("fieldName"),         required: true  },
+    { key: "number",       label: t("fieldNumber"),       required: false },
+    { key: "manufacturer", label: t("fieldManufacturer"), required: false },
+    { key: "serialNumber", label: t("fieldSerialNumber"), required: false },
+    { key: "condition",    label: t("fieldCondition"),    required: false },
+    { key: "notes",        label: t("fieldNotes"),        required: false },
+    { key: "_skip",        label: t("fieldSkip"),         required: false },
+  ] as const
+
+  const STEPS = [
+    { key: "upload",  label: t("stepFile")    },
+    { key: "map",     label: t("stepColumns") },
+    { key: "preview", label: t("stepPreview") },
+    { key: "done",    label: t("stepDone")    },
+  ] as const
+  type Step = (typeof STEPS)[number]["key"]
 
   const [step, setStep]             = useState<Step>("upload")
   const [fileName, setFileName]     = useState("")
@@ -315,7 +311,7 @@ export default function ToolImportPage() {
         }
       })
       const valid = !!mapped.name
-      return { raw, mapped, valid, error: valid ? undefined : "Name ist Pflichtfeld" }
+      return { raw, mapped, valid, error: valid ? undefined : t("nameIsMandatory") }
     })
     setParsed(rows)
     setStep("preview")
@@ -344,7 +340,7 @@ export default function ToolImportPage() {
         })
         if (res.ok) { success++ } else { failed++; errors.push(`${row.mapped.name}: ${res.status}`) }
       } catch {
-        failed++; errors.push(`${row.mapped.name}: Netzwerkfehler`)
+        failed++; errors.push(`${row.mapped.name}: ${t("networkError")}`)
       }
     }
 
@@ -373,9 +369,9 @@ export default function ToolImportPage() {
           </Button>
         </Link>
         <div>
-          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-0.5">Werkzeuge</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-0.5">{t("breadcrumb")}</p>
           <h1 className="text-2xl font-semibold tracking-tight">
-            CSV Import
+            {t("title")}
             {fileName && (
               <span className="ml-2 text-sm font-mono text-muted-foreground font-normal">{fileName}</span>
             )}
@@ -426,8 +422,8 @@ export default function ToolImportPage() {
               }}
             >
               <IconFileSpreadsheet className="size-10 text-muted-foreground mx-auto mb-4" />
-              <p className="text-sm font-medium mb-1">CSV-Datei hierher ziehen oder klicken</p>
-              <p className="text-xs text-muted-foreground font-mono">UTF-8, Komma- oder Semikolon-getrennt</p>
+              <p className="text-sm font-medium mb-1">{t("dropzone")}</p>
+              <p className="text-xs text-muted-foreground font-mono">{t("dropzoneHint")}</p>
             </div>
             <input
               ref={fileRef}
@@ -442,7 +438,7 @@ export default function ToolImportPage() {
             <div className="mt-4 flex justify-center">
               <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={downloadTemplate}>
                 <IconDownload className="size-3.5" />
-                Vorlage herunterladen
+                {t("downloadTemplate")}
               </Button>
             </div>
           </CardContent>
@@ -454,7 +450,7 @@ export default function ToolImportPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between gap-3 flex-wrap">
-              <CardTitle className="text-base">Spalten zuordnen</CardTitle>
+              <CardTitle className="text-base">{t("mapColumns")}</CardTitle>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -468,12 +464,12 @@ export default function ToolImportPage() {
                   ) : (
                     <IconSparkles className="size-3.5" />
                   )}
-                  {aiLoading ? "KI analysiert\u2026" : "KI-Mapping vorschlagen"}
+                  {aiLoading ? t("aiAnalyzing") : t("aiMapping")}
                 </Button>
                 {hasAiSuggested && (
                   <Button size="sm" className="gap-1.5 text-xs" onClick={() => {}}>
                     <IconWand className="size-3.5" />
-                    Alle KI-Vorschl&auml;ge &uuml;bernehmen
+                    {t("acceptAllAi")}
                   </Button>
                 )}
               </div>
@@ -481,18 +477,18 @@ export default function ToolImportPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-muted-foreground font-mono">
-              {rawRows.length} Zeilen erkannt &middot; {headers.length} Spalten
+              {t("rowsDetected", { rows: String(rawRows.length) })} &middot; {t("columnsDetected", { cols: String(headers.length) })}
             </p>
 
             {hasAiSuggested && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground rounded-md border border-border bg-muted/30 px-3 py-2">
                 <IconSparkles className="size-3.5 shrink-0 text-primary" />
                 <span>
-                  KI-Vorschl&auml;ge aktiv &mdash; &uuml;berpr&uuml;fen und bei Bedarf manuell anpassen.
+                  {t("aiActive")}
                   <span className="ml-2 inline-flex gap-2">
-                    <span className="text-green-600 font-mono">&gt;80% = gr&uuml;n</span>
-                    <span className="text-yellow-600 font-mono">50-80% = gelb</span>
-                    <span className="text-red-500 font-mono">&lt;50% = rot</span>
+                    <span className="text-green-600 font-mono">{t("aiConfGreen")}</span>
+                    <span className="text-yellow-600 font-mono">{t("aiConfYellow")}</span>
+                    <span className="text-red-500 font-mono">{t("aiConfRed")}</span>
                   </span>
                 </span>
               </div>
@@ -506,7 +502,7 @@ export default function ToolImportPage() {
                   <div key={h} className="flex items-center gap-3">
                     <div className="w-48 flex items-center text-sm font-mono truncate text-muted-foreground border border-border rounded px-2 py-1.5 bg-muted/30">
                       <span className="truncate">{h}</span>
-                      <AiConfidenceBadge confidence={conf} score={score} />
+                      <AiConfidenceBadge confidence={conf} score={score} t={t} />
                     </div>
                     <span className="text-muted-foreground">&rarr;</span>
                     <Select
@@ -527,7 +523,7 @@ export default function ToolImportPage() {
                     </Select>
                     {rawRows[0]?.[h] && (
                       <span className="text-xs text-muted-foreground font-mono truncate max-w-[10rem]">
-                        z.B. {rawRows[0][h]}
+                        {t("example")} {rawRows[0][h]}
                       </span>
                     )}
                   </div>
@@ -537,14 +533,14 @@ export default function ToolImportPage() {
 
             <div className="flex gap-2 pt-2">
               <Button onClick={applyMapping} disabled={!Object.values(mapping).includes("name")}>
-                Weiter zur Vorschau
+                {t("continuePreview")}
               </Button>
-              <Button variant="outline" onClick={() => setStep("upload")}>Zur&uuml;ck</Button>
+              <Button variant="outline" onClick={() => setStep("upload")}>{t("back")}</Button>
             </div>
 
             {!Object.values(mapping).includes("name") && (
               <p className="text-xs text-destructive">
-                Mindestens eine Spalte muss auf &laquo;Name *&raquo; gemappt werden.
+                {t("nameRequired")}
               </p>
             )}
           </CardContent>
@@ -557,12 +553,12 @@ export default function ToolImportPage() {
           <div className="flex items-center gap-3">
             <Badge variant="outline" className="text-secondary border-secondary/30 bg-secondary/10">
               <IconCheck className="size-3 mr-1" />
-              {validCount} g&uuml;ltig
+              {validCount} {t("valid")}
             </Badge>
             {invalidCount > 0 && (
               <Badge variant="outline" className="text-destructive border-destructive/30 bg-destructive/10">
                 <IconX className="size-3 mr-1" />
-                {invalidCount} Fehler (werden &uuml;bersprungen)
+                {invalidCount} {t("errorsSkipped")}
               </Badge>
             )}
           </div>
@@ -572,11 +568,11 @@ export default function ToolImportPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-8"></TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Nummer</TableHead>
-                  <TableHead>Hersteller</TableHead>
-                  <TableHead>Seriennummer</TableHead>
-                  <TableHead>Zustand</TableHead>
+                  <TableHead>{t("thName")}</TableHead>
+                  <TableHead>{t("thNumber")}</TableHead>
+                  <TableHead>{t("thManufacturer")}</TableHead>
+                  <TableHead>{t("thSerialNumber")}</TableHead>
+                  <TableHead>{t("thCondition")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -590,7 +586,7 @@ export default function ToolImportPage() {
                       )}
                     </TableCell>
                     <TableCell className="font-medium">
-                      {row.mapped.name || <span className="text-destructive text-xs">fehlt</span>}
+                      {row.mapped.name || <span className="text-destructive text-xs">{t("missing")}</span>}
                     </TableCell>
                     <TableCell className="font-mono text-xs">{row.mapped.number ?? "\u2014"}</TableCell>
                     <TableCell className="text-xs">{row.mapped.manufacturer ?? "\u2014"}</TableCell>
@@ -604,7 +600,7 @@ export default function ToolImportPage() {
 
           {parsed.length > 20 && (
             <p className="text-xs text-muted-foreground font-mono text-center">
-              &hellip; und {parsed.length - 20} weitere Zeilen
+              &hellip; {t("moreRows", { count: String(parsed.length - 20) })}
             </p>
           )}
 
@@ -613,13 +609,13 @@ export default function ToolImportPage() {
               {importing ? (
                 <>
                   <IconLoader2 className="size-4 animate-spin mr-2" />
-                  Importiert&hellip;
+                  {t("importing")}
                 </>
               ) : (
-                `${validCount} Werkzeuge importieren`
+                t("importButton", { count: String(validCount) })
               )}
             </Button>
-            <Button variant="outline" onClick={() => setStep("map")}>Zur&uuml;ck</Button>
+            <Button variant="outline" onClick={() => setStep("map")}>{t("back")}</Button>
           </div>
         </div>
       )}
@@ -632,15 +628,15 @@ export default function ToolImportPage() {
               <IconCheck className="size-8 text-secondary" />
             </div>
             <div>
-              <p className="text-xl font-bold">{results.success} Werkzeuge importiert</p>
+              <p className="text-xl font-bold">{t("toolsImported", { count: String(results.success) })}</p>
               {results.failed > 0 && (
                 <p className="text-sm text-muted-foreground mt-1">
-                  {results.failed} Fehler &mdash; {results.errors.slice(0, 3).join(", ")}
+                  {t("failedCount", { count: String(results.failed) })} &mdash; {results.errors.slice(0, 3).join(", ")}
                 </p>
               )}
             </div>
             <div className="flex justify-center gap-2">
-              <Button onClick={() => router.push("/dashboard/tools")}>Zur Werkzeugliste</Button>
+              <Button onClick={() => router.push("/dashboard/tools")}>{t("toToolList")}</Button>
               <Button
                 variant="outline"
                 onClick={() => {
@@ -649,7 +645,7 @@ export default function ToolImportPage() {
                   setResults({ success: 0, failed: 0, errors: [] })
                 }}
               >
-                Weitere Datei importieren
+                {t("importAnother")}
               </Button>
             </div>
           </CardContent>

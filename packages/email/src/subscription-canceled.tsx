@@ -8,6 +8,7 @@ import {
   Link,
   Preview,
   Section,
+  Hr,
 } from "@react-email/components";
 
 interface SubscriptionCanceledEmailProps {
@@ -15,31 +16,40 @@ interface SubscriptionCanceledEmailProps {
 }
 
 export function SubscriptionCanceledEmail({
-  appUrl = "http://localhost:3000",
+  appUrl = "https://app.zentory.ch",
 }: SubscriptionCanceledEmailProps) {
   return (
-    <Html>
+    <Html lang="de">
       <Head />
-      <Preview>Your subscription has been canceled</Preview>
+      <Preview>Dein Abo wurde gek&uuml;ndigt</Preview>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={h1}>Subscription Canceled</Heading>
-          <Text style={text}>Hi,</Text>
-          <Text style={text}>
-            Your subscription has been canceled and will end at the next billing cycle.
-            You&apos;ll continue to have access until then.
-          </Text>
-          <Text style={text}>
-            If you change your mind, you can resubscribe at any time.
-          </Text>
-          <Section style={buttonContainer}>
-            <Link style={button} href={`${appUrl}/pricing`}>
-              View Plans
-            </Link>
+          <Section style={header}>
+            <Text style={logo}>ZENTORY</Text>
           </Section>
-          <Text style={footer}>
-            If you have any questions, please reach out to our support team.
-          </Text>
+          <Section style={body}>
+            <Heading style={h1}>Abo gek&uuml;ndigt</Heading>
+            <Text style={text}>Hallo,</Text>
+            <Text style={text}>
+              Dein Abo wurde gek&uuml;ndigt und endet zum n&auml;chsten Abrechnungszeitraum.
+              Bis dahin hast du weiterhin vollen Zugang.
+            </Text>
+            <Text style={text}>
+              Falls du es dir anders &uuml;berlegst, kannst du jederzeit ein neues Abo abschliessen.
+            </Text>
+            <Section style={buttonContainer}>
+              <Link style={button} href={`${appUrl}/pricing`}>
+                Preise ansehen
+              </Link>
+            </Section>
+            <Text style={muted}>
+              Falls du Fragen hast, wende dich gerne an unser Support-Team.
+            </Text>
+          </Section>
+          <Hr style={hr} />
+          <Section style={footerSection}>
+            <Text style={footer}>&copy; 2026 Zentory &middot; zentory.ch</Text>
+          </Section>
         </Container>
       </Body>
     </Html>
@@ -48,19 +58,25 @@ export function SubscriptionCanceledEmail({
 
 export default SubscriptionCanceledEmail;
 
-const main = { backgroundColor: "#f6f9fc", fontFamily: "sans-serif" };
-const container = { margin: "0 auto", padding: "40px 20px", maxWidth: "560px" };
-const h1 = { color: "#333", fontSize: "24px", fontWeight: "bold" as const, margin: "0 0 16px" };
-const text = { color: "#555", fontSize: "16px", lineHeight: "24px", margin: "0 0 12px" };
-const buttonContainer = { textAlign: "center" as const, margin: "32px 0" };
+const main = { backgroundColor: "#f4f5f7", fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" };
+const container = { margin: "0 auto", maxWidth: "560px", backgroundColor: "#ffffff", borderRadius: "8px", overflow: "hidden" as const };
+const header = { backgroundColor: "#236B56", padding: "24px 32px", textAlign: "center" as const };
+const logo = { color: "#ffffff", fontSize: "22px", fontWeight: "700" as const, letterSpacing: "2px", margin: "0" };
+const body = { padding: "32px 32px 24px" };
+const h1 = { color: "#1f2937", fontSize: "20px", fontWeight: "bold" as const, margin: "0 0 16px" };
+const text = { color: "#4b5563", fontSize: "15px", lineHeight: "24px", margin: "0 0 12px" };
+const buttonContainer = { textAlign: "center" as const, margin: "24px 0" };
 const button = {
-  backgroundColor: "#000",
+  backgroundColor: "#236B56",
   borderRadius: "6px",
   color: "#fff",
-  fontSize: "16px",
+  fontSize: "14px",
   fontWeight: "bold" as const,
   textDecoration: "none",
   padding: "12px 24px",
   display: "inline-block",
 };
-const footer = { color: "#999", fontSize: "12px", margin: "32px 0 0" };
+const muted = { color: "#9ca3af", fontSize: "12px", margin: "16px 0 0" };
+const hr = { borderColor: "#e5e7eb", margin: "0" };
+const footerSection = { padding: "16px 32px", textAlign: "center" as const };
+const footer = { color: "#9ca3af", fontSize: "12px", margin: "0" };

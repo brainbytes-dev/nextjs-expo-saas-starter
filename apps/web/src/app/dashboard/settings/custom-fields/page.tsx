@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -51,21 +52,6 @@ interface FieldDefinition {
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
-const ENTITY_TYPE_LABELS: Record<EntityType, string> = {
-  material: "Material",
-  tool: "Werkzeug",
-  key: "Schlüssel",
-  location: "Lagerort",
-}
-
-const FIELD_TYPE_LABELS: Record<FieldType, string> = {
-  text: "Text",
-  number: "Zahl",
-  date: "Datum",
-  select: "Auswahlliste",
-  boolean: "Ja/Nein",
-}
-
 const ENTITY_TYPES: EntityType[] = ["material", "tool", "key", "location"]
 const FIELD_TYPES: FieldType[] = ["text", "number", "date", "select", "boolean"]
 
@@ -84,9 +70,10 @@ interface FieldDialogProps {
   }) => Promise<void>
   initial?: FieldDefinition | null
   saving: boolean
+  t: (key: string) => string
 }
 
-function FieldDialog({ open, onClose, onSave, initial, saving }: FieldDialogProps) {
+function FieldDialog({ open, onClose, onSave, initial, saving, t }: FieldDialogProps) {
   const [entityType, setEntityType] = useState<EntityType>(
     initial?.entityType ?? "material"
   )
@@ -102,7 +89,7 @@ function FieldDialog({ open, onClose, onSave, initial, saving }: FieldDialogProp
   const handleSave = async () => {
     setError(null)
     if (!name.trim()) {
-      setError("Name ist erforderlich.")
+      setError(t("nameRequired"))
       return
     }
     const options =
@@ -114,7 +101,7 @@ function FieldDialog({ open, onClose, onSave, initial, saving }: FieldDialogProp
         : null
 
     if (fieldType === "select" && (!options || options.length === 0)) {
-      setError("Bitte mindestens eine Option eingeben.")
+      setError(t("minOneOption"))
       return
     }
 
@@ -134,12 +121,12 @@ function FieldDialog({ open, onClose, onSave, initial, saving }: FieldDialogProp
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Zusatzfeld bearbeiten" : "Neues Zusatzfeld"}
+            {isEditing ? t("editField") : t("createField")}
           </DialogTitle>
           <DialogDescription>
             {isEditing
-              ? "Feldname, Typ und Optionen anpassen."
-              : "Legen Sie ein neues benutzerdefiniertes Feld an."}
+              ? t("editFieldDesc")
+              : t("createFieldDesc")}
           </DialogDescription>
         </DialogHeader>
 
@@ -152,7 +139,7 @@ function FieldDialog({ open, onClose, onSave, initial, saving }: FieldDialogProp
         <div className="space-y-4 py-1">
           {/* Entity Type — only selectable when creating */}
           <div className="space-y-2">
-            <Label>Entitätstyp</Label>
+            <Label>{t("entityType")}</Label>
             <Select
               value={entityType}
               onValueChange={(v) => setEntityType(v as EntityType)}
@@ -164,32 +151,32 @@ function FieldDialog({ open, onClose, onSave, initial, saving }: FieldDialogProp
               <SelectContent>
                 {ENTITY_TYPES.map((et) => (
                   <SelectItem key={et} value={et}>
-                    {ENTITY_TYPE_LABELS[et]}
+                    {t(`entityTypes.${et}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             {isEditing && (
               <p className="text-xs text-muted-foreground">
-                Entitätstyp kann nach Erstellung nicht geändert werden.
+                {t("entityTypeFixed")}
               </p>
             )}
           </div>
 
           {/* Name */}
           <div className="space-y-2">
-            <Label htmlFor="field-name">Bezeichnung</Label>
+            <Label htmlFor="field-name">{t("fieldName")}</Label>
             <Input
               id="field-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="z.B. Ablaufdatum, Kostenstelle, Prüfung bestanden"
+              placeholder={t("fieldNamePlaceholder")}
             />
           </div>
 
           {/* Field Type */}
           <div className="space-y-2">
-            <Label>Feldtyp</Label>
+            <Label>{t("fieldType")}</Label>
             <Select
               value={fieldType}
               onValueChange={(v) => setFieldType(v as FieldType)}
@@ -200,7 +187,7 @@ function FieldDialog({ open, onClose, onSave, initial, saving }: FieldDialogProp
               <SelectContent>
                 {FIELD_TYPES.map((ft) => (
                   <SelectItem key={ft} value={ft}>
-                    {FIELD_TYPE_LABELS[ft]}
+                    {t(`fieldTypes.${ft}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -211,9 +198,9 @@ function FieldDialog({ open, onClose, onSave, initial, saving }: FieldDialogProp
           {fieldType === "select" && (
             <div className="space-y-2">
               <Label htmlFor="field-options">
-                Optionen{" "}
+                {t("options")}{" "}
                 <span className="text-muted-foreground font-normal">
-                  (eine pro Zeile)
+                  {t("optionsHint")}
                 </span>
               </Label>
               <textarea
@@ -221,7 +208,7 @@ function FieldDialog({ open, onClose, onSave, initial, saving }: FieldDialogProp
                 className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 value={optionsRaw}
                 onChange={(e) => setOptionsRaw(e.target.value)}
-                placeholder={"Option A\nOption B\nOption C"}
+                placeholder={t("optionsPlaceholder")}
               />
             </div>
           )}
@@ -229,10 +216,10 @@ function FieldDialog({ open, onClose, onSave, initial, saving }: FieldDialogProp
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={saving}>
-            Abbrechen
+            {t("cancel")}
           </Button>
           <Button onClick={handleSave} disabled={saving}>
-            {saving ? "Speichern..." : "Speichern"}
+            {saving ? t("saving") : t("save")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -249,29 +236,30 @@ function DeleteDialog({
   onConfirm,
   fieldName,
   deleting,
+  t,
 }: {
   open: boolean
   onClose: () => void
   onConfirm: () => void
   fieldName: string
   deleting: boolean
+  t: (key: string, values?: Record<string, string>) => string
 }) {
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Zusatzfeld löschen</DialogTitle>
+          <DialogTitle>{t("deleteTitle")}</DialogTitle>
           <DialogDescription>
-            Möchten Sie das Feld &laquo;{fieldName}&raquo; wirklich löschen?
-            Alle gespeicherten Werte gehen unwiderruflich verloren.
+            {t("deleteDesc", { name: fieldName })}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={deleting}>
-            Abbrechen
+            {t("cancel")}
           </Button>
           <Button variant="destructive" onClick={onConfirm} disabled={deleting}>
-            {deleting ? "Löschen..." : "Löschen"}
+            {deleting ? t("deleting") : t("delete")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -283,6 +271,7 @@ function DeleteDialog({
 // Main page
 // ---------------------------------------------------------------------------
 export default function CustomFieldsSettingsPage() {
+  const t = useTranslations("customFields")
   const [definitions, setDefinitions] = useState<FieldDefinition[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -449,11 +438,10 @@ export default function CustomFieldsSettingsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
-            Benutzerdefinierte Felder
+            {t("title")}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Eigene Felder für Materialien, Werkzeuge, Schlüssel und Lagerorte
-            definieren.
+            {t("description")}
           </p>
         </div>
         <Button
@@ -463,7 +451,7 @@ export default function CustomFieldsSettingsPage() {
           }}
         >
           <IconPlus className="size-4" />
-          Neues Feld
+          {t("newField")}
         </Button>
       </div>
 
@@ -484,22 +472,20 @@ export default function CustomFieldsSettingsPage() {
                   <div className="flex items-center gap-2">
                     <IconSettings2 className="size-4 text-muted-foreground" />
                     <CardTitle className="text-base">
-                      {ENTITY_TYPE_LABELS[et]}
+                      {t(`entityTypes.${et}`)}
                     </CardTitle>
                     <Badge variant="secondary" className="ml-1 text-xs">
                       {group.length}
                     </Badge>
                   </div>
                   <CardDescription>
-                    Felder die bei jedem{" "}
-                    {et === "location" ? "Lagerort" : ENTITY_TYPE_LABELS[et]}{" "}
-                    angezeigt werden.
+                    {t("fieldsShown", { entity: et === "location" ? t("entityTypes.location") : t(`entityTypes.${et}`) })}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {group.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-4 text-center">
-                      Noch keine Felder. Klicken Sie auf &laquo;Neues Feld&raquo;.
+                      {t("noFieldsYet")}
                     </p>
                   ) : (
                     <div className="divide-y rounded-md border">
@@ -515,7 +501,7 @@ export default function CustomFieldsSettingsPage() {
                               className="rounded p-0.5 text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                               onClick={() => handleReorder(et, def.id, "up")}
                               disabled={idx === 0}
-                              aria-label="Nach oben"
+                              aria-label={t("moveUp")}
                             >
                               <IconChevronUp className="size-3.5" />
                             </button>
@@ -524,7 +510,7 @@ export default function CustomFieldsSettingsPage() {
                               className="rounded p-0.5 text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                               onClick={() => handleReorder(et, def.id, "down")}
                               disabled={idx === group.length - 1}
-                              aria-label="Nach unten"
+                              aria-label={t("moveDown")}
                             >
                               <IconChevronDown className="size-3.5" />
                             </button>
@@ -540,7 +526,7 @@ export default function CustomFieldsSettingsPage() {
                                 variant="outline"
                                 className="text-xs py-0 px-1.5 h-4"
                               >
-                                {FIELD_TYPE_LABELS[def.fieldType]}
+                                {t(`fieldTypes.${def.fieldType}`)}
                               </Badge>
                               {def.fieldType === "select" &&
                                 def.options &&
@@ -565,7 +551,7 @@ export default function CustomFieldsSettingsPage() {
                                 setEditingField(def)
                                 setDialogOpen(true)
                               }}
-                              aria-label="Bearbeiten"
+                              aria-label={t("editLabel")}
                             >
                               <IconEdit className="size-4" />
                             </Button>
@@ -574,7 +560,7 @@ export default function CustomFieldsSettingsPage() {
                               size="sm"
                               className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                               onClick={() => setDeleteTarget(def)}
-                              aria-label="Löschen"
+                              aria-label={t("deleteLabel")}
                             >
                               <IconTrash className="size-4" />
                             </Button>
@@ -600,6 +586,7 @@ export default function CustomFieldsSettingsPage() {
         onSave={editingField ? handleEdit : handleCreate}
         initial={editingField}
         saving={saving}
+        t={t}
       />
 
       {/* Delete Confirm Dialog */}
@@ -609,6 +596,7 @@ export default function CustomFieldsSettingsPage() {
         onConfirm={handleDelete}
         fieldName={deleteTarget?.name ?? ""}
         deleting={deleting}
+        t={t}
       />
     </div>
   )

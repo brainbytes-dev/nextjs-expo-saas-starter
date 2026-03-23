@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import {
   IconPlus,
   IconTrash,
@@ -79,6 +80,7 @@ function formatDate(iso: string | null): string {
 
 // ── Component ──────────────────────────────────────────────────────────
 export function SupplierPricesTab({ materialId }: SupplierPricesTabProps) {
+  const t = useTranslations("supplierPrices")
   const { orgId } = useOrganization()
 
   const [prices, setPrices] = useState<SupplierPriceRow[]>([])
@@ -141,11 +143,11 @@ export function SupplierPricesTab({ materialId }: SupplierPricesTabProps) {
     setError(null)
     const unitPriceCHF = parseFloat(form.unitPriceCHF.replace(",", "."))
     if (!form.supplierId) {
-      setError("Bitte Lieferanten auswählen.")
+      setError(t("selectSupplierError"))
       return
     }
     if (isNaN(unitPriceCHF) || unitPriceCHF < 0) {
-      setError("Ungültiger Preis.")
+      setError(t("invalidPriceError"))
       return
     }
 
@@ -169,13 +171,13 @@ export function SupplierPricesTab({ materialId }: SupplierPricesTabProps) {
       })
       if (!res.ok) {
         const body = await res.json() as { error?: string }
-        throw new Error(body.error ?? "Fehler beim Speichern")
+        throw new Error(body.error ?? t("saveError"))
       }
       setShowAdd(false)
       setForm({ supplierId: "", unitPriceCHF: "", minOrderQuantity: "1", leadTimeDays: "", validFrom: "", validTo: "" })
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Fehler")
+      setError(err instanceof Error ? err.message : t("saveError"))
     } finally {
       setSaving(false)
     }
@@ -215,16 +217,16 @@ export function SupplierPricesTab({ materialId }: SupplierPricesTabProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-foreground">Lieferantenpreise</p>
+          <p className="text-sm font-medium text-foreground">{t("title")}</p>
           <p className="text-xs text-muted-foreground">
             {prices.length > 0
-              ? `${prices.length} Bezugsquelle${prices.length !== 1 ? "n" : ""} — günstigster Preis hervorgehoben`
-              : "Noch keine Preise erfasst"}
+              ? t("sourcesCount", { count: prices.length })
+              : t("noPrices")}
           </p>
         </div>
         <Button size="sm" className="gap-2" onClick={() => setShowAdd(true)}>
           <IconPlus className="size-3.5" />
-          Preis hinzufügen
+          {t("addPrice")}
         </Button>
       </div>
 
@@ -233,18 +235,18 @@ export function SupplierPricesTab({ materialId }: SupplierPricesTabProps) {
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <IconPackage className="size-10 text-muted-foreground/40 mb-3" />
           <p className="text-sm text-muted-foreground">
-            Fügen Sie den ersten Lieferantenpreis hinzu.
+            {t("addFirstPrice")}
           </p>
         </div>
       ) : (
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Lieferant</TableHead>
-              <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider text-right w-[150px]">Preis/Stk.</TableHead>
-              <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider text-right w-[130px]">Mindestmenge</TableHead>
-              <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider text-right w-[130px]">Lieferzeit</TableHead>
-              <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[120px]">Gültig bis</TableHead>
+              <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("colSupplier")}</TableHead>
+              <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider text-right w-[150px]">{t("colUnitPrice")}</TableHead>
+              <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider text-right w-[130px]">{t("colMinQty")}</TableHead>
+              <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider text-right w-[130px]">{t("colLeadTime")}</TableHead>
+              <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[120px]">{t("colValidUntil")}</TableHead>
               <TableHead className="w-[60px]" />
             </TableRow>
           </TableHeader>
@@ -266,7 +268,7 @@ export function SupplierPricesTab({ materialId }: SupplierPricesTabProps) {
                           className="gap-1 text-xs bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800"
                         >
                           <IconStar className="size-2.5" />
-                          Günstigster
+                          {t("cheapest")}
                         </Badge>
                       )}
                     </div>
@@ -283,7 +285,7 @@ export function SupplierPricesTab({ materialId }: SupplierPricesTabProps) {
                     {price.leadTimeDays != null ? (
                       <div className="flex items-center justify-end gap-1 text-sm text-muted-foreground">
                         <IconClock className="size-3.5" />
-                        {price.leadTimeDays} {price.leadTimeDays === 1 ? "Tag" : "Tage"}
+                        {price.leadTimeDays} {price.leadTimeDays === 1 ? t("day") : t("daysUnit")}
                       </div>
                     ) : (
                       <span className="text-sm text-muted-foreground">—</span>
@@ -321,9 +323,9 @@ export function SupplierPricesTab({ materialId }: SupplierPricesTabProps) {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Lieferantenpreis hinzufügen</DialogTitle>
+            <DialogTitle>{t("addPriceTitle")}</DialogTitle>
             <DialogDescription>
-              Erfassen Sie einen neuen Preis für dieses Material.
+              {t("addPriceDescription")}
             </DialogDescription>
           </DialogHeader>
 
@@ -335,13 +337,13 @@ export function SupplierPricesTab({ materialId }: SupplierPricesTabProps) {
 
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label>Lieferant</Label>
+              <Label>{t("colSupplier")}</Label>
               <Select
                 value={form.supplierId}
                 onValueChange={(v) => setForm((f) => ({ ...f, supplierId: v }))}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Lieferanten auswählen" />
+                  <SelectValue placeholder={t("selectSupplier")} />
                 </SelectTrigger>
                 <SelectContent>
                   {supplierOptions.map((s) => (
@@ -353,7 +355,7 @@ export function SupplierPricesTab({ materialId }: SupplierPricesTabProps) {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>Preis pro Stück (CHF)</Label>
+                <Label>{t("pricePerUnit")}</Label>
                 <Input
                   type="number"
                   min="0"
@@ -364,7 +366,7 @@ export function SupplierPricesTab({ materialId }: SupplierPricesTabProps) {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>Mindestbestellmenge</Label>
+                <Label>{t("minOrderQty")}</Label>
                 <Input
                   type="number"
                   min="1"
@@ -376,7 +378,7 @@ export function SupplierPricesTab({ materialId }: SupplierPricesTabProps) {
             </div>
 
             <div className="space-y-1.5">
-              <Label>Lieferzeit (Tage)</Label>
+              <Label>{t("leadTimeDays")}</Label>
               <Input
                 type="number"
                 min="0"
@@ -388,7 +390,7 @@ export function SupplierPricesTab({ materialId }: SupplierPricesTabProps) {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>Gültig von</Label>
+                <Label>{t("validFrom")}</Label>
                 <Input
                   type="date"
                   value={form.validFrom}
@@ -396,7 +398,7 @@ export function SupplierPricesTab({ materialId }: SupplierPricesTabProps) {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>Gültig bis</Label>
+                <Label>{t("colValidUntil")}</Label>
                 <Input
                   type="date"
                   value={form.validTo}
@@ -412,11 +414,11 @@ export function SupplierPricesTab({ materialId }: SupplierPricesTabProps) {
               onClick={() => { setShowAdd(false); setError(null) }}
               disabled={saving}
             >
-              Abbrechen
+              {t("cancel")}
             </Button>
             <Button onClick={handleAdd} disabled={saving}>
               <IconCheck className="size-4" />
-              {saving ? "Speichern..." : "Preis speichern"}
+              {saving ? t("saving") : t("savePrice")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -429,21 +431,21 @@ export function SupplierPricesTab({ materialId }: SupplierPricesTabProps) {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Preis löschen</DialogTitle>
+            <DialogTitle>{t("deleteTitle")}</DialogTitle>
             <DialogDescription>
-              Möchten Sie diesen Lieferantenpreis wirklich löschen?
+              {t("deleteConfirm")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteId(null)} disabled={deleting}>
-              Abbrechen
+              {t("cancel")}
             </Button>
             <Button
               variant="destructive"
               onClick={() => deleteId && void handleDelete(deleteId)}
               disabled={deleting}
             >
-              {deleting ? "Löschen..." : "Löschen"}
+              {deleting ? t("deleting") : t("delete")}
             </Button>
           </DialogFooter>
         </DialogContent>

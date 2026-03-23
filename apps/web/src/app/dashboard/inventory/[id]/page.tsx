@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
+import { useTranslations } from "next-intl"
 import { useRouter, useParams } from "next/navigation"
 import {
   IconArrowLeft,
@@ -64,12 +65,7 @@ interface InventoryCountDetail {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-const STATUS_LABELS: Record<string, string> = {
-  draft: "Entwurf",
-  in_progress: "In Bearbeitung",
-  completed: "Abgeschlossen",
-  cancelled: "Storniert",
-}
+const STATUS_KEYS = ["draft", "in_progress", "completed", "cancelled"] as const
 
 const STATUS_VARIANTS: Record<
   string,
@@ -118,9 +114,11 @@ interface EditableCellProps {
   item: CountItem
   readonly: boolean
   onSave: (itemId: string, value: number) => void
+  clickToEditLabel: string
+  inputPlaceholder: string
 }
 
-function EditableQuantityCell({ item, readonly, onSave }: EditableCellProps) {
+function EditableQuantityCell({ item, readonly, onSave, clickToEditLabel, inputPlaceholder }: EditableCellProps) {
   const [editing, setEditing] = useState(false)
   const [value, setValue] = useState<string>(
     item.countedQuantity !== null ? String(item.countedQuantity) : ""
@@ -181,10 +179,10 @@ function EditableQuantityCell({ item, readonly, onSave }: EditableCellProps) {
     <button
       onClick={() => { setValue(item.countedQuantity !== null ? String(item.countedQuantity) : ""); setEditing(true) }}
       className="min-h-[28px] min-w-[4rem] rounded border border-dashed border-border px-2 py-1 text-left text-sm hover:border-primary hover:bg-primary/5"
-      title="Klicken zum Bearbeiten"
+      title={clickToEditLabel}
     >
       {item.countedQuantity !== null ? item.countedQuantity : (
-        <span className="text-muted-foreground">Eingabe</span>
+        <span className="text-muted-foreground">{inputPlaceholder}</span>
       )}
     </button>
   )
@@ -194,6 +192,7 @@ function EditableQuantityCell({ item, readonly, onSave }: EditableCellProps) {
 // Main component
 // ---------------------------------------------------------------------------
 export default function InventoryDetailPage() {
+  const t = useTranslations("inventoryDetail")
   const router = useRouter()
   const params = useParams<{ id: string }>()
   const countId = params.id
@@ -340,14 +339,14 @@ export default function InventoryDetailPage() {
   if (!count) {
     return (
       <div className="flex flex-col items-center justify-center py-32">
-        <p className="text-muted-foreground">Inventur nicht gefunden</p>
+        <p className="text-muted-foreground">{t("notFound")}</p>
         <Button
           variant="outline"
           className="mt-4"
           onClick={() => router.push("/dashboard/inventory")}
         >
           <IconArrowLeft className="size-4" />
-          Zurück
+          {t("back")}
         </Button>
       </div>
     )
@@ -365,17 +364,17 @@ export default function InventoryDetailPage() {
             onClick={() => router.push("/dashboard/inventory")}
           >
             <IconArrowLeft className="size-4" />
-            Inventurübersicht
+            {t("overview")}
           </Button>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-semibold tracking-tight">{count.name}</h1>
             <Badge variant={STATUS_VARIANTS[count.status] ?? "secondary"}>
-              {STATUS_LABELS[count.status] ?? count.status}
+              {t(`status.${count.status}` as Parameters<typeof t>[0]) || count.status}
             </Badge>
           </div>
           {count.locationName && (
             <p className="text-sm text-muted-foreground">
-              Standort: {count.locationName}
+              {t("location")}: {count.locationName}
             </p>
           )}
         </div>
@@ -388,7 +387,7 @@ export default function InventoryDetailPage() {
               onClick={handleSaveNow}
               disabled={saving}
             >
-              {saving ? "Speichern..." : `${pendingUpdates.size} speichern`}
+              {saving ? t("saving") : t("saveCount", { count: pendingUpdates.size })}
             </Button>
           )}
           {!readonly && count.status === "in_progress" && (
@@ -397,7 +396,7 @@ export default function InventoryDetailPage() {
               disabled={countedItems === 0}
             >
               <IconClipboardCheck className="size-4" />
-              Inventur abschliessen
+              {t("completeCount")}
             </Button>
           )}
         </div>
@@ -408,7 +407,7 @@ export default function InventoryDetailPage() {
         <Card>
           <CardHeader className="pb-1 pt-4">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Positionen gesamt
+              {t("totalItems")}
             </CardTitle>
           </CardHeader>
           <CardContent className="pb-4">
@@ -418,7 +417,7 @@ export default function InventoryDetailPage() {
         <Card>
           <CardHeader className="pb-1 pt-4">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Gezählt
+              {t("counted")}
             </CardTitle>
           </CardHeader>
           <CardContent className="pb-4">
@@ -428,7 +427,7 @@ export default function InventoryDetailPage() {
         <Card>
           <CardHeader className="pb-1 pt-4">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Ausstehend
+              {t("pending")}
             </CardTitle>
           </CardHeader>
           <CardContent className="pb-4">
@@ -440,7 +439,7 @@ export default function InventoryDetailPage() {
         <Card>
           <CardHeader className="pb-1 pt-4">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Differenzen
+              {t("discrepancies")}
             </CardTitle>
           </CardHeader>
           <CardContent className="pb-4">
@@ -458,18 +457,18 @@ export default function InventoryDetailPage() {
         {displayItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
             <p className="text-muted-foreground">
-              Keine Positionen in dieser Inventur
+              {t("noItems")}
             </p>
           </div>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Material</TableHead>
-                <TableHead>Standort</TableHead>
-                <TableHead className="text-right">Soll-Bestand</TableHead>
-                <TableHead className="text-right">Ist-Bestand</TableHead>
-                <TableHead className="text-right">Differenz</TableHead>
+                <TableHead>{t("colMaterial")}</TableHead>
+                <TableHead>{t("colLocation")}</TableHead>
+                <TableHead className="text-right">{t("colExpected")}</TableHead>
+                <TableHead className="text-right">{t("colActual")}</TableHead>
+                <TableHead className="text-right">{t("colDifference")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -501,6 +500,8 @@ export default function InventoryDetailPage() {
                       item={item}
                       readonly={readonly}
                       onSave={handleCellSave}
+                      clickToEditLabel={t("clickToEdit")}
+                      inputPlaceholder={t("input")}
                     />
                   </TableCell>
                   <TableCell className="text-right">
@@ -531,34 +532,30 @@ export default function InventoryDetailPage() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Inventur abschliessen</DialogTitle>
+            <DialogTitle>{t("completeCount")}</DialogTitle>
             <DialogDescription>
               {discrepancies > 0 ? (
                 <>
-                  Es wurden <strong>{discrepancies} Differenz(en)</strong> festgestellt.
-                  Beim Abschliessen werden automatisch Bestandskorrekturen
-                  (Typ&nbsp;&ldquo;Inventur&rdquo;) erstellt. Ausstehende Positionen werden
-                  nicht korrigiert.
+                  {t("completeDiscrepancies", { count: discrepancies })}
                 </>
               ) : (
                 <>
-                  Alle gezählten Positionen stimmen mit dem Soll-Bestand überein.
-                  Die Inventur wird als abgeschlossen markiert.
+                  {t("completeAllMatch")}
                 </>
               )}
             </DialogDescription>
           </DialogHeader>
           <div className="rounded-md bg-muted px-4 py-3 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Positionen gesamt</span>
+              <span className="text-muted-foreground">{t("totalItems")}</span>
               <span className="font-medium">{totalItems}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Gezählt</span>
+              <span className="text-muted-foreground">{t("counted")}</span>
               <span className="font-medium">{countedItems}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Differenzen</span>
+              <span className="text-muted-foreground">{t("discrepancies")}</span>
               <span className={`font-medium ${discrepancies > 0 ? "text-destructive" : "text-green-600"}`}>
                 {discrepancies}
               </span>
@@ -570,10 +567,10 @@ export default function InventoryDetailPage() {
               onClick={() => setCompleteOpen(false)}
               disabled={completing}
             >
-              Abbrechen
+              {t("cancel")}
             </Button>
             <Button onClick={handleComplete} disabled={completing}>
-              {completing ? "Wird abgeschlossen..." : "Inventur abschliessen"}
+              {completing ? t("completing") : t("completeCount")}
             </Button>
           </DialogFooter>
         </DialogContent>

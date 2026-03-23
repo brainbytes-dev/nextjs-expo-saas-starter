@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,16 +51,10 @@ interface PluginDetail {
   } | null;
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  import: "Import",
-  export: "Export",
-  integration: "Integration",
-  utility: "Werkzeug",
-};
-
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function PluginDetailPage() {
+  const t = useTranslations("pluginDetail");
   const router = useRouter();
   const params = useParams<{ id: string }>();
   useOrganization();
@@ -69,6 +64,13 @@ export default function PluginDetailPage() {
   const [saving, setSaving] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [configValues, setConfigValues] = useState<Record<string, unknown>>({});
+
+  const CATEGORY_LABELS: Record<string, string> = {
+    import: t("categoryLabels.import"),
+    export: t("categoryLabels.export"),
+    integration: t("categoryLabels.integration"),
+    utility: t("categoryLabels.utility"),
+  };
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
 
@@ -180,9 +182,9 @@ export default function PluginDetailPage() {
           onClick={() => router.push("/dashboard/settings/plugins")}
         >
           <IconArrowLeft className="mr-1.5 size-4" />
-          Zurück
+          {t("back")}
         </Button>
-        <p className="text-sm text-muted-foreground">Plugin nicht gefunden.</p>
+        <p className="text-sm text-muted-foreground">{t("notFound")}</p>
       </div>
     );
   }
@@ -201,7 +203,7 @@ export default function PluginDetailPage() {
         onClick={() => router.push("/dashboard/settings/plugins")}
       >
         <IconArrowLeft className="mr-1.5 size-4" />
-        Marketplace
+        {t("backToMarketplace")}
       </Button>
 
       {/* Header */}
@@ -221,7 +223,7 @@ export default function PluginDetailPage() {
             )}
             {plugin.author && (
               <span className="text-xs text-muted-foreground">
-                von {plugin.author}
+                {t("by")} {plugin.author}
               </span>
             )}
           </div>
@@ -241,7 +243,7 @@ export default function PluginDetailPage() {
               ) : (
                 <IconTrash className="mr-1.5 size-3.5" />
               )}
-              Deinstallieren
+              {t("uninstall")}
             </Button>
           ) : (
             <Button
@@ -254,7 +256,7 @@ export default function PluginDetailPage() {
               ) : (
                 <IconDownload className="mr-1.5 size-3.5" />
               )}
-              Installieren
+              {t("install")}
             </Button>
           )}
         </div>
@@ -265,11 +267,11 @@ export default function PluginDetailPage() {
       {/* Description */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Beschreibung</CardTitle>
+          <CardTitle className="text-sm">{t("description")}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            {plugin.description ?? "Keine Beschreibung verfügbar."}
+            {plugin.description ?? t("noDescription")}
           </p>
         </CardContent>
       </Card>
@@ -278,9 +280,9 @@ export default function PluginDetailPage() {
       {plugin.events && plugin.events.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Unterstützte Events</CardTitle>
+            <CardTitle className="text-sm">{t("supportedEvents")}</CardTitle>
             <CardDescription>
-              Dieses Plugin reagiert auf folgende Ereignisse
+              {t("eventsDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -303,9 +305,9 @@ export default function PluginDetailPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-sm">Plugin aktiviert</CardTitle>
+                  <CardTitle className="text-sm">{t("pluginEnabled")}</CardTitle>
                   <CardDescription>
-                    Plugin ein- oder ausschalten, ohne es zu deinstallieren
+                    {t("toggleDesc")}
                   </CardDescription>
                 </div>
                 <Switch
@@ -321,9 +323,9 @@ export default function PluginDetailPage() {
           {configFields.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">Konfiguration</CardTitle>
+                <CardTitle className="text-sm">{t("configuration")}</CardTitle>
                 <CardDescription>
-                  Einstellungen für dieses Plugin
+                  {t("configDesc")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -361,7 +363,7 @@ export default function PluginDetailPage() {
                   ) : (
                     <IconCheck className="mr-1.5 size-3.5" />
                   )}
-                  Speichern
+                  {t("save")}
                 </Button>
               </CardContent>
             </Card>

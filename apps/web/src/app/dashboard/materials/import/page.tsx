@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
@@ -183,13 +184,8 @@ function downloadTemplate() {
 // ---------------------------------------------------------------------------
 // Steps
 // ---------------------------------------------------------------------------
-const STEPS = [
-  { key: "upload",  label: "Datei"    },
-  { key: "map",     label: "Spalten"  },
-  { key: "preview", label: "Vorschau" },
-  { key: "done",    label: "Fertig"   },
-] as const
-type Step = (typeof STEPS)[number]["key"]
+const STEP_KEYS = ["upload", "map", "preview", "done"] as const
+type Step = (typeof STEP_KEYS)[number]
 
 // ---------------------------------------------------------------------------
 // AI Confidence Badge
@@ -201,12 +197,13 @@ function AiConfidenceBadge({
   confidence: MappingConfidence
   score?: number
 }) {
+  const ti = useTranslations("materialImport")
   const pct = score !== undefined ? Math.round(score * 100) : null
 
   if (confidence === "ai-high")
     return (
       <span
-        title={`KI-Vorschlag (${pct}% Konfidenz)`}
+        title={ti("aiSuggestionTooltip", { pct: String(pct) })}
         className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] font-mono px-1.5 py-0.5 rounded bg-green-500/10 text-green-600 border border-green-500/20"
       >
         <IconSparkles className="size-2.5" />
@@ -216,7 +213,7 @@ function AiConfidenceBadge({
   if (confidence === "ai-mid")
     return (
       <span
-        title={`KI-Vorschlag (${pct}% Konfidenz)`}
+        title={ti("aiSuggestionTooltip", { pct: String(pct) })}
         className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] font-mono px-1.5 py-0.5 rounded bg-yellow-500/10 text-yellow-600 border border-yellow-500/20"
       >
         <IconSparkles className="size-2.5" />
@@ -226,7 +223,7 @@ function AiConfidenceBadge({
   if (confidence === "ai-low")
     return (
       <span
-        title={`KI-Vorschlag (${pct}% Konfidenz)`}
+        title={ti("aiSuggestionTooltip", { pct: String(pct) })}
         className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-500/10 text-red-500 border border-red-500/20"
       >
         <IconSparkles className="size-2.5" />
@@ -236,7 +233,7 @@ function AiConfidenceBadge({
   if (confidence === "rule")
     return (
       <span
-        title="Automatisch erkannt"
+        title={ti("autoDetected")}
         className="ml-1.5 text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 border border-blue-500/20"
       >
         auto
@@ -245,10 +242,10 @@ function AiConfidenceBadge({
   if (confidence === "manual")
     return (
       <span
-        title="Manuell zugeordnet"
+        title={ti("manuallyAssigned")}
         className="ml-1.5 text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border"
       >
-        manuell
+        {ti("manualLabel")}
       </span>
     )
   return null
@@ -258,6 +255,7 @@ function AiConfidenceBadge({
 // Page component
 // ---------------------------------------------------------------------------
 export default function MaterialImportPage() {
+  const t = useTranslations("materialImport")
   const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -289,7 +287,7 @@ export default function MaterialImportPage() {
       try {
         parsedFile = await parseExcel(file)
       } catch {
-        alert("Excel-Datei konnte nicht gelesen werden. Bitte als CSV exportieren.")
+        alert(t("excelError"))
         return
       }
     } else {
@@ -298,7 +296,7 @@ export default function MaterialImportPage() {
     }
 
     const { headers: h, rows } = parsedFile
-    if (h.length === 0) { alert("Die Datei enthält keine erkennbaren Spalten."); return }
+    if (h.length === 0) { alert(t("noColumnsError")); return }
 
     setHeaders(h)
     setRawRows(rows)
@@ -385,7 +383,7 @@ export default function MaterialImportPage() {
         }
       })
       const valid = !!mapped.name
-      return { raw, mapped, valid, error: valid ? undefined : "Name ist Pflichtfeld" }
+      return { raw, mapped, valid, error: valid ? undefined : t("nameRequired") }
     })
     setParsed(rows)
     setStep("preview")
@@ -425,14 +423,14 @@ export default function MaterialImportPage() {
         const err = await res.json()
         setParsed((prev) =>
           prev.map((r, i) =>
-            i === rowIndex ? { ...r, eanLooking: false, eanError: err.error ?? "Nicht gefunden" } : r
+            i === rowIndex ? { ...r, eanLooking: false, eanError: err.error ?? t("eanNotFound") } : r
           )
         )
       }
     } catch {
       setParsed((prev) =>
         prev.map((r, i) =>
-          i === rowIndex ? { ...r, eanLooking: false, eanError: "Netzwerkfehler" } : r
+          i === rowIndex ? { ...r, eanLooking: false, eanError: t("networkError") } : r
         )
       )
     }
@@ -481,10 +479,10 @@ export default function MaterialImportPage() {
         setResults({ imported: data.imported, failed: data.failed, errors: data.errors ?? [] })
       } else {
         const err = await res.json()
-        setResults({ imported: 0, failed: validRows.length, errors: [err.error ?? "Unbekannter Fehler"] })
+        setResults({ imported: 0, failed: validRows.length, errors: [err.error ?? t("unknownError")] })
       }
     } catch {
-      setResults({ imported: 0, failed: validRows.length, errors: ["Netzwerkfehler"] })
+      setResults({ imported: 0, failed: validRows.length, errors: [t("networkError")] })
     }
 
     setImporting(false)
@@ -512,9 +510,9 @@ export default function MaterialImportPage() {
           </Button>
         </Link>
         <div>
-          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-0.5">Materialien</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-0.5">{t("breadcrumb")}</p>
           <h1 className="text-2xl font-semibold tracking-tight">
-            Import
+            {t("title")}
             {fileName && (
               <span className="ml-2 text-sm font-mono text-muted-foreground font-normal">{fileName}</span>
             )}
@@ -523,18 +521,18 @@ export default function MaterialImportPage() {
 
         {/* Step indicator */}
         <div className="ml-auto flex items-center gap-3">
-          {STEPS.map((s, i) => {
-            const isDone = STEPS.findIndex((x) => x.key === step) > i
+          {STEP_KEYS.map((s, i) => {
+            const isDone = STEP_KEYS.indexOf(step) > i
             return (
               <div
-                key={s.key}
+                key={s}
                 className={`flex items-center gap-1.5 text-xs font-mono ${
-                  step === s.key ? "text-primary" : isDone ? "text-secondary" : "text-muted-foreground"
+                  step === s ? "text-primary" : isDone ? "text-secondary" : "text-muted-foreground"
                 }`}
               >
                 <div
                   className={`size-5 rounded-full flex items-center justify-center text-[10px] font-bold border ${
-                    step === s.key
+                    step === s
                       ? "border-primary bg-primary/10 text-primary"
                       : isDone
                         ? "border-secondary bg-secondary/10 text-secondary"
@@ -543,7 +541,7 @@ export default function MaterialImportPage() {
                 >
                   {isDone ? <IconCheck className="size-3" /> : i + 1}
                 </div>
-                <span className="hidden sm:inline">{s.label}</span>
+                <span className="hidden sm:inline">{t(`step.${s}`)}</span>
               </div>
             )
           })}
@@ -565,7 +563,7 @@ export default function MaterialImportPage() {
               }}
             >
               <IconFileSpreadsheet className="size-10 text-muted-foreground mx-auto mb-4" />
-              <p className="text-sm font-medium mb-1">Datei hierher ziehen oder klicken</p>
+              <p className="text-sm font-medium mb-1">{t("dropOrClick")}</p>
               <p className="text-xs text-muted-foreground font-mono">
                 .xlsx &middot; .xls &middot; .csv &middot; .txt &nbsp;&mdash;&nbsp;
                 UTF-8, Komma- oder Semikolon-getrennt
@@ -585,7 +583,7 @@ export default function MaterialImportPage() {
             <div className="flex justify-center">
               <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={downloadTemplate}>
                 <IconDownload className="size-3.5" />
-                Vorlage herunterladen (.csv)
+                {t("downloadTemplate")}
               </Button>
             </div>
           </CardContent>
@@ -597,7 +595,7 @@ export default function MaterialImportPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between gap-3 flex-wrap">
-              <CardTitle className="text-base">Spalten zuordnen</CardTitle>
+              <CardTitle className="text-base">{t("mapColumns")}</CardTitle>
 
               <div className="flex items-center gap-2">
                 {/* AI suggest button */}
@@ -613,7 +611,7 @@ export default function MaterialImportPage() {
                   ) : (
                     <IconSparkles className="size-3.5" />
                   )}
-                  {aiLoading ? "KI analysiert\u2026" : "KI-Mapping vorschlagen"}
+                  {aiLoading ? t("aiAnalyzing") : t("aiSuggest")}
                 </Button>
 
                 {/* Accept all AI suggestions */}
@@ -632,7 +630,7 @@ export default function MaterialImportPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground font-mono">
-              {rawRows.length} Zeilen erkannt &middot; {headers.length} Spalten
+              {t("rowsDetected", { rows: rawRows.length, cols: headers.length })}
             </p>
 
             {/* AI info strip */}
@@ -697,16 +695,16 @@ export default function MaterialImportPage() {
 
             <div className="flex gap-2 pt-2">
               <Button onClick={applyMapping} disabled={!Object.values(mapping).includes("name")}>
-                Weiter zur Vorschau
+                {t("toPreview")}
               </Button>
               <Button variant="outline" onClick={() => setStep("upload")}>
-                Zur&uuml;ck
+                {t("back")}
               </Button>
             </div>
 
             {!Object.values(mapping).includes("name") && (
               <p className="text-xs text-destructive">
-                Mindestens eine Spalte muss auf &laquo;Name *&raquo; gemappt werden.
+                {t("nameColumnRequired")}
               </p>
             )}
           </CardContent>
@@ -740,7 +738,7 @@ export default function MaterialImportPage() {
                 ) : (
                   <IconBarcode className="size-3.5" />
                 )}
-                Alle {eanCandidates} EANs nachschlagen
+                {t("lookupAllEans", { count: eanCandidates })}
               </Button>
             )}
           </div>
@@ -772,7 +770,7 @@ export default function MaterialImportPage() {
                         )}
                       </TableCell>
                       <TableCell className="font-medium">
-                        {row.mapped.name || <span className="text-destructive text-xs">fehlt</span>}
+                        {row.mapped.name || <span className="text-destructive text-xs">{t("missing")}</span>}
                       </TableCell>
                       <TableCell className="font-mono text-xs text-muted-foreground">
                         {row.mapped.number ?? "\u2014"}
@@ -815,7 +813,7 @@ export default function MaterialImportPage() {
 
           {parsed.length > 50 && (
             <p className="text-xs text-muted-foreground font-mono text-center">
-              Alle {parsed.length} Zeilen werden importiert.
+              {t("allRowsImported", { count: parsed.length })}
             </p>
           )}
 
@@ -824,13 +822,13 @@ export default function MaterialImportPage() {
               {importing ? (
                 <>
                   <IconLoader2 className="size-4 animate-spin" />
-                  Importiert&hellip;
+                  {t("importing")}
                 </>
               ) : (
-                `${validCount} Materialien importieren`
+                t("importCount", { count: validCount })
               )}
             </Button>
-            <Button variant="outline" onClick={() => setStep("map")}>Zur&uuml;ck</Button>
+            <Button variant="outline" onClick={() => setStep("map")}>{t("back")}</Button>
           </div>
         </div>
       )}
@@ -843,7 +841,7 @@ export default function MaterialImportPage() {
               <IconCheck className="size-8 text-secondary" />
             </div>
             <div>
-              <p className="text-xl font-bold">{results.imported} Materialien importiert</p>
+              <p className="text-xl font-bold">{t("importedCount", { count: results.imported })}</p>
               {results.failed > 0 && (
                 <p className="text-sm text-muted-foreground mt-1">
                   {results.failed} Fehler &mdash; {results.errors.slice(0, 3).join(", ")}
@@ -852,7 +850,7 @@ export default function MaterialImportPage() {
               )}
             </div>
             <div className="flex justify-center gap-2">
-              <Button onClick={() => router.push("/dashboard/materials")}>Zur Materialliste</Button>
+              <Button onClick={() => router.push("/dashboard/materials")}>{t("toMaterialList")}</Button>
               <Button
                 variant="outline"
                 onClick={() => {
@@ -861,7 +859,7 @@ export default function MaterialImportPage() {
                   setResults({ imported: 0, failed: 0, errors: [] })
                 }}
               >
-                Weitere Datei importieren
+                {t("importAnother")}
               </Button>
             </div>
           </CardContent>

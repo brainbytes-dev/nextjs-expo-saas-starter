@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useCallback, useTransition } from "react"
+import { useTranslations } from "next-intl"
 import {
   IconLayoutKanban,
   IconPlus,
@@ -124,11 +125,7 @@ const INITIAL_CARDS: KanbanCard[] = [
 ]
 
 // ── Config ─────────────────────────────────────────────────────────────
-const COLUMNS: { id: CardStatus; label: string }[] = [
-  { id: "open", label: "Offen" },
-  { id: "inProgress", label: "In Bearbeitung" },
-  { id: "done", label: "Abgeschlossen" },
-]
+const COLUMN_IDS: CardStatus[] = ["open", "inProgress", "done"]
 
 const PRIORITY_STRIPE: Record<Priority, string> = {
   urgent: "bg-destructive",
@@ -137,12 +134,7 @@ const PRIORITY_STRIPE: Record<Priority, string> = {
   low: "bg-muted-foreground/40",
 }
 
-const PRIORITY_LABEL: Record<Priority, string> = {
-  urgent: "Dringend",
-  high: "Hoch",
-  normal: "Normal",
-  low: "Niedrig",
-}
+const PRIORITY_KEYS: Priority[] = ["urgent", "high", "normal", "low"]
 
 const COLUMN_BG: Record<CardStatus, string> = {
   open: "bg-muted/30",
@@ -173,9 +165,11 @@ function isOverdue(dueDate: string | null, status: CardStatus) {
 function KanbanCardItem({
   card,
   onDragStart,
+  t,
 }: {
   card: KanbanCard
   onDragStart: (e: React.DragEvent, cardId: string) => void
+  t: (key: string) => string
 }) {
   const overdue = isOverdue(card.dueDate, card.status)
 
@@ -212,17 +206,17 @@ function KanbanCardItem({
           {card.type === "commission" ? (
             <>
               <IconClipboardList className="size-2.5 mr-0.5 inline" />
-              Kommission
+              {t("commission")}
             </>
           ) : (
             <>
               <IconChecklist className="size-2.5 mr-0.5 inline" />
-              Task
+              {t("task")}
             </>
           )}
         </Badge>
         <span className="text-[10px] text-muted-foreground/60 font-medium uppercase tracking-wide shrink-0">
-          {PRIORITY_LABEL[card.priority]}
+          {t(`priority.${card.priority}`)}
         </span>
       </div>
 
@@ -270,6 +264,7 @@ function KanbanColumn({
   showAddForm,
   onToggleAddForm,
   onAddCard,
+  t,
 }: {
   column: { id: CardStatus; label: string }
   cards: KanbanCard[]
@@ -281,6 +276,7 @@ function KanbanColumn({
   showAddForm: boolean
   onToggleAddForm: () => void
   onAddCard: (title: string) => void
+  t: (key: string) => string
 }) {
   const [newTitle, setNewTitle] = useState("")
 
@@ -315,7 +311,7 @@ function KanbanColumn({
             size="icon"
             className="size-6 text-muted-foreground hover:text-foreground"
             onClick={onToggleAddForm}
-            aria-label="Neue Aufgabe hinzufügen"
+            aria-label={t("addTask")}
           >
             {showAddForm ? (
               <IconX className="size-3.5" />
@@ -345,14 +341,14 @@ function KanbanColumn({
           >
             <Input
               autoFocus
-              placeholder="Aufgabentitel eingeben…"
+              placeholder={t("taskTitlePlaceholder")}
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               className="h-8 text-sm border-0 shadow-none focus-visible:ring-0 p-0"
             />
             <div className="flex gap-1.5">
               <Button type="submit" size="sm" className="h-7 px-3 text-xs">
-                Hinzufügen
+                {t("add")}
               </Button>
               <Button
                 type="button"
@@ -364,7 +360,7 @@ function KanbanColumn({
                   onToggleAddForm()
                 }}
               >
-                Abbrechen
+                {t("cancel")}
               </Button>
             </div>
           </form>
@@ -375,6 +371,7 @@ function KanbanColumn({
             key={card.id}
             card={card}
             onDragStart={onDragStart}
+            t={t}
           />
         ))}
 
@@ -382,7 +379,7 @@ function KanbanColumn({
         {cards.length === 0 && !showAddForm && (
           <div className="flex flex-1 items-center justify-center py-8">
             <p className="text-xs text-muted-foreground/50 text-center">
-              Keine Karten
+              {t("noCards")}
             </p>
           </div>
         )}
@@ -393,6 +390,7 @@ function KanbanColumn({
 
 // ── Page ────────────────────────────────────────────────────────────────
 export default function KanbanPage() {
+  const t = useTranslations("kanbanBoard")
   const [cards, setCards] = useState<KanbanCard[]>(INITIAL_CARDS)
   const [filter, setFilter] = useState<"all" | "task" | "commission">("all")
   const [dragOverCol, setDragOverCol] = useState<CardStatus | null>(null)
@@ -491,9 +489,9 @@ export default function KanbanPage() {
             </h1>
           </div>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {totalByStatus.open} offen &middot;{" "}
-            {totalByStatus.inProgress} in Bearbeitung &middot;{" "}
-            {totalByStatus.done} abgeschlossen
+            {totalByStatus.open} {t("column.open")} &middot;{" "}
+            {totalByStatus.inProgress} {t("column.inProgress")} &middot;{" "}
+            {totalByStatus.done} {t("column.done")}
           </p>
         </div>
 
@@ -507,9 +505,9 @@ export default function KanbanPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Alle Einträge</SelectItem>
-              <SelectItem value="task">Nur Aufgaben</SelectItem>
-              <SelectItem value="commission">Nur Kommissionen</SelectItem>
+              <SelectItem value="all">{t("filterAll")}</SelectItem>
+              <SelectItem value="task">{t("filterTasks")}</SelectItem>
+              <SelectItem value="commission">{t("filterCommissions")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -517,34 +515,35 @@ export default function KanbanPage() {
 
       {/* Board */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-        {COLUMNS.map((col) => (
+        {COLUMN_IDS.map((colId) => (
           <KanbanColumn
-            key={col.id}
-            column={col}
-            cards={cardsForColumn(col.id)}
+            key={colId}
+            column={{ id: colId, label: t(`column.${colId}`) }}
+            cards={cardsForColumn(colId)}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
             onDragLeave={handleDragLeave}
-            isDragOver={dragOverCol === col.id}
-            showAddForm={showAddForm && col.id === "open"}
+            isDragOver={dragOverCol === colId}
+            showAddForm={showAddForm && colId === "open"}
             onToggleAddForm={() => setShowAddForm((v) => !v)}
             onAddCard={handleAddCard}
+            t={t}
           />
         ))}
       </div>
 
       {/* Legend */}
       <div className="flex flex-wrap gap-4 pt-2 border-t border-border">
-        <p className="text-xs text-muted-foreground font-medium">Priorität:</p>
-        {(["urgent", "high", "normal", "low"] as Priority[]).map((p) => (
+        <p className="text-xs text-muted-foreground font-medium">{t("priorityLabel")}:</p>
+        {PRIORITY_KEYS.map((p) => (
           <span key={p} className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <span className={cn("size-2.5 rounded-sm flex-shrink-0", PRIORITY_STRIPE[p])} />
-            {PRIORITY_LABEL[p]}
+            {t(`priority.${p}`)}
           </span>
         ))}
         <span className="ml-4 text-xs text-muted-foreground/50">
-          Karten per Drag &amp; Drop verschieben
+          {t("dragHint")}
         </span>
       </div>
     </div>

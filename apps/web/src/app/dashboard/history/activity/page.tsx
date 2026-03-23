@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect } from "react"
+import { useTranslations } from "next-intl"
 import {
   IconSearch,
   IconDownload,
@@ -57,16 +58,9 @@ interface PageResponse {
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
-const OBJECT_TYPE_LABELS: Record<string, string> = {
-  material: "Material",
-  tool: "Werkzeug",
-  location: "Lagerort",
-  key: "Schlüssel",
-  commission: "Kommission",
-  supplier: "Lieferant",
-  order: "Bestellung",
-  task: "Aufgabe",
-}
+const OBJECT_TYPE_KEYS: string[] = [
+  "material", "tool", "location", "key", "commission", "supplier", "order", "task",
+]
 
 const PAGE_SIZE = 50
 
@@ -111,6 +105,7 @@ function downloadCsv(
 // Component
 // ---------------------------------------------------------------------------
 export default function ActivityLogPage() {
+  const t = useTranslations("activityLog")
   const [entries, setEntries] = useState<ActivityEntry[]>([])
   const [total, setTotal] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
@@ -140,14 +135,14 @@ export default function ActivityLogPage() {
         if (dateTo) params.set("to", dateTo)
 
         const res = await fetch(`/api/activity?${params.toString()}`)
-        if (!res.ok) throw new Error("Fehler beim Laden")
+        if (!res.ok) throw new Error(t("loadError"))
         const data: PageResponse = await res.json()
         setEntries(data.data)
         setTotal(data.total)
         setTotalPages(data.totalPages)
         setPage(data.page)
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Unbekannter Fehler")
+        setError(err instanceof Error ? err.message : t("unknownError"))
       } finally {
         setLoading(false)
       }
@@ -171,15 +166,15 @@ export default function ActivityLogPage() {
       if (dateTo) params.set("to", dateTo)
 
       const res = await fetch(`/api/activity?${params.toString()}`)
-      if (!res.ok) throw new Error("Export fehlgeschlagen")
+      if (!res.ok) throw new Error(t("exportFailed"))
       const data: PageResponse = await res.json()
 
       downloadCsv(
-        ["Zeitpunkt", "Benutzer", "Typ", "Objekt-ID", "Feld", "Alter Wert", "Neuer Wert"],
+        [t("colTimestamp"), t("colUser"), t("colType"), t("colObjectId"), t("colField"), t("colOldValue"), t("colNewValue")],
         data.data.map((e) => [
           formatDateTime(e.createdAt),
           e.userName ?? e.userEmail ?? "",
-          OBJECT_TYPE_LABELS[e.objectType] ?? e.objectType,
+          t(`objectType.${e.objectType}` as Parameters<typeof t>[0]) || e.objectType,
           e.objectId,
           e.field ?? "",
           e.oldValue ?? "",
@@ -188,7 +183,7 @@ export default function ActivityLogPage() {
         `aktivitaetsprotokoll-${new Date().toISOString().slice(0, 10)}.csv`
       )
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Export fehlgeschlagen")
+      setError(err instanceof Error ? err.message : t("exportFailed"))
     } finally {
       setExporting(false)
     }
@@ -203,11 +198,11 @@ export default function ActivityLogPage() {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-            Verlauf
+            {t("breadcrumb")}
           </p>
           <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
             <IconHistory className="size-6 text-muted-foreground" />
-            Aktivitätsprotokoll
+            {t("title")}
           </h1>
         </div>
         <Button
@@ -221,7 +216,7 @@ export default function ActivityLogPage() {
           ) : (
             <IconDownload className="size-4" />
           )}
-          Export CSV
+          {t("exportCsv")}
         </Button>
       </div>
 
@@ -237,7 +232,7 @@ export default function ActivityLogPage() {
         <div className="relative flex-1 min-w-48 max-w-sm">
           <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
-            placeholder="Feld, Wert oder Objekt…"
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -249,13 +244,13 @@ export default function ActivityLogPage() {
           onValueChange={(v) => setObjectTypeFilter(v)}
         >
           <SelectTrigger className="w-44">
-            <SelectValue placeholder="Alle Typen" />
+            <SelectValue placeholder={t("allTypes")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Alle Typen</SelectItem>
-            {Object.entries(OBJECT_TYPE_LABELS).map(([key, label]) => (
+            <SelectItem value="all">{t("allTypes")}</SelectItem>
+            {OBJECT_TYPE_KEYS.map((key) => (
               <SelectItem key={key} value={key}>
-                {label}
+                {t(`objectType.${key}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -263,7 +258,7 @@ export default function ActivityLogPage() {
 
         <div className="flex items-center gap-2">
           <label className="text-sm text-muted-foreground whitespace-nowrap">
-            Von
+            {t("from")}
           </label>
           <input
             type="date"
@@ -275,7 +270,7 @@ export default function ActivityLogPage() {
 
         <div className="flex items-center gap-2">
           <label className="text-sm text-muted-foreground whitespace-nowrap">
-            Bis
+            {t("to")}
           </label>
           <input
             type="date"
@@ -298,26 +293,26 @@ export default function ActivityLogPage() {
           ) : entries.length === 0 ? (
             <div className="flex flex-col items-center gap-2 py-16 text-muted-foreground">
               <IconHistory className="size-10 opacity-20" />
-              <p className="text-sm">Keine Einträge gefunden</p>
+              <p className="text-sm">{t("noEntries")}</p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-b border-border">
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[160px]">
-                    Zeitpunkt
+                    {t("colTimestamp")}
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[130px]">
-                    Benutzer
+                    {t("colUser")}
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[110px]">
-                    Objekt-Typ
+                    {t("colObjectType")}
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[120px]">
-                    Feld
+                    {t("colField")}
                   </TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Änderung
+                    {t("colChange")}
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -339,7 +334,7 @@ export default function ActivityLogPage() {
                     </TableCell>
                     <TableCell>
                       <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-md bg-muted text-muted-foreground">
-                        {OBJECT_TYPE_LABELS[entry.objectType] ?? entry.objectType}
+                        {t(`objectType.${entry.objectType}`, { defaultValue: entry.objectType })}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -354,7 +349,7 @@ export default function ActivityLogPage() {
                             {entry.oldValue}
                           </span>
                         ) : (
-                          <span className="text-muted-foreground italic text-xs">leer</span>
+                          <span className="text-muted-foreground italic text-xs">{t("empty")}</span>
                         )}
                         <IconArrowRight className="size-3.5 text-muted-foreground/40 shrink-0" />
                         <span className="font-medium text-foreground">
@@ -374,8 +369,8 @@ export default function ActivityLogPage() {
       <div className="flex items-center justify-between text-sm text-muted-foreground">
         <span>
           {total === 0
-            ? "Keine Einträge"
-            : `Zeige ${from}–${to} von ${total.toLocaleString("de-CH")} Einträgen`}
+            ? t("noEntries")
+            : t("pagination", { from, to, total: total.toLocaleString("de-CH") })}
         </span>
         <div className="flex items-center gap-1">
           <Button

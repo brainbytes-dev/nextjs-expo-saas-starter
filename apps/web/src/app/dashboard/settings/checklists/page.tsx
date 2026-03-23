@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import {
   IconPlus,
   IconTrash,
@@ -53,6 +54,7 @@ interface ChecklistEditorProps {
   items: ChecklistItem[]
   onChange: (items: ChecklistItem[]) => void
   preview: boolean
+  t: (key: string) => string
 }
 
 function ChecklistEditor({
@@ -61,6 +63,7 @@ function ChecklistEditor({
   items,
   onChange,
   preview,
+  t,
 }: ChecklistEditorProps) {
   const addItem = () => onChange([...items, newItem()])
 
@@ -90,7 +93,7 @@ function ChecklistEditor({
       {preview ? (
         // ── Preview mode ──
         items.length === 0 ? (
-          <p className="text-xs text-muted-foreground italic">Keine Punkte definiert.</p>
+          <p className="text-xs text-muted-foreground italic">{t("noItems")}</p>
         ) : (
           <div className="rounded-lg border divide-y">
             {items.map((item) => (
@@ -98,13 +101,13 @@ function ChecklistEditor({
                 <div className="size-4 rounded border border-input flex items-center justify-center shrink-0">
                   {/* empty checkbox preview */}
                 </div>
-                <span className="flex-1 text-sm">{item.label || "(leer)"}</span>
+                <span className="flex-1 text-sm">{item.label || t("emptyLabel")}</span>
                 {item.required && (
                   <Badge
                     variant="outline"
                     className="text-[10px] border-destructive/40 text-destructive shrink-0"
                   >
-                    Pflicht
+                    {t("required")}
                   </Badge>
                 )}
               </div>
@@ -116,7 +119,7 @@ function ChecklistEditor({
         <div className="space-y-2">
           {items.length === 0 ? (
             <p className="text-xs text-muted-foreground italic py-2">
-              Noch keine Punkte. Klicke auf &bdquo;Punkt hinzufügen&rdquo;.
+              {t("noItemsYet")}
             </p>
           ) : (
             <div className="rounded-lg border divide-y">
@@ -132,7 +135,7 @@ function ChecklistEditor({
                       onClick={() => moveItem(item.id, "up")}
                       disabled={idx === 0}
                       className="text-muted-foreground hover:text-foreground disabled:opacity-30"
-                      aria-label="Nach oben"
+                      aria-label={t("moveUp")}
                     >
                       <IconChevronUp className="size-3" />
                     </button>
@@ -141,7 +144,7 @@ function ChecklistEditor({
                       onClick={() => moveItem(item.id, "down")}
                       disabled={idx === items.length - 1}
                       className="text-muted-foreground hover:text-foreground disabled:opacity-30"
-                      aria-label="Nach unten"
+                      aria-label={t("moveDown")}
                     >
                       <IconChevronDown className="size-3" />
                     </button>
@@ -150,7 +153,7 @@ function ChecklistEditor({
                   {/* Label input */}
                   <Input
                     className="h-8 text-sm flex-1"
-                    placeholder="Beschreibung des Prüfpunkts..."
+                    placeholder={t("itemPlaceholder")}
                     value={item.label}
                     onChange={(e) =>
                       updateItem(item.id, { label: e.target.value })
@@ -170,7 +173,7 @@ function ChecklistEditor({
                       htmlFor={`req-${item.id}`}
                       className="text-xs text-muted-foreground cursor-pointer whitespace-nowrap"
                     >
-                      Pflicht
+                      {t("required")}
                     </Label>
                   </div>
 
@@ -179,7 +182,7 @@ function ChecklistEditor({
                     type="button"
                     onClick={() => removeItem(item.id)}
                     className="shrink-0 text-muted-foreground hover:text-destructive"
-                    aria-label="Punkt entfernen"
+                    aria-label={t("removeItem")}
                   >
                     <IconTrash className="size-4" />
                   </button>
@@ -196,7 +199,7 @@ function ChecklistEditor({
             className="w-full"
           >
             <IconPlus className="size-4" />
-            Punkt hinzufügen
+            {t("addItem")}
           </Button>
         </div>
       )}
@@ -213,9 +216,10 @@ interface GroupCardProps {
     pickupChecklist: ChecklistItem[],
     returnChecklist: ChecklistItem[]
   ) => Promise<void>
+  t: (key: string) => string
 }
 
-function GroupCard({ group, onSave }: GroupCardProps) {
+function GroupCard({ group, onSave, t }: GroupCardProps) {
   const [pickup, setPickup] = useState<ChecklistItem[]>(
     group.pickupChecklist ?? []
   )
@@ -258,7 +262,7 @@ function GroupCard({ group, onSave }: GroupCardProps) {
             )}
             <CardTitle className="text-base">{group.name}</CardTitle>
             <Badge variant="outline" className="text-xs">
-              {pickup.length + ret.length} Punkte
+              {pickup.length + ret.length} {t("items")}
             </Badge>
           </div>
 
@@ -270,7 +274,7 @@ function GroupCard({ group, onSave }: GroupCardProps) {
               className="text-muted-foreground"
             >
               <IconEye className="size-4" />
-              {preview ? "Bearbeiten" : "Vorschau"}
+              {preview ? t("edit") : t("preview")}
             </Button>
 
             {isDirty && (
@@ -282,33 +286,35 @@ function GroupCard({ group, onSave }: GroupCardProps) {
                 ) : (
                   <IconDeviceFloppy className="size-4" />
                 )}
-                {saving ? "Speichert…" : saved ? "Gespeichert" : "Speichern"}
+                {saving ? t("saving") : saved ? t("saved") : t("save")}
               </Button>
             )}
           </div>
         </div>
         <CardDescription className="text-xs">
-          Prüflisten werden beim Auschecken (Abholung) und Einchecken (Rückgabe) angezeigt.
+          {t("checklistDescription")}
         </CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-5">
         <ChecklistEditor
-          title="Abholungs-Checkliste (Ausbuchung)"
-          description="Wird angezeigt, wenn das Werkzeug ausgecheckt wird."
+          title={t("pickupTitle")}
+          description={t("pickupDesc")}
           items={pickup}
           onChange={setPickup}
           preview={preview}
+          t={t}
         />
 
         <Separator />
 
         <ChecklistEditor
-          title="Rückgabe-Checkliste (Einbuchung)"
-          description="Wird angezeigt, wenn das Werkzeug zurückgegeben wird."
+          title={t("returnTitle")}
+          description={t("returnDesc")}
           items={ret}
           onChange={setRet}
           preview={preview}
+          t={t}
         />
       </CardContent>
     </Card>
@@ -318,6 +324,7 @@ function GroupCard({ group, onSave }: GroupCardProps) {
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function ChecklistsSettingsPage() {
+  const t = useTranslations("checklists")
   const [groups, setGroups] = useState<ToolGroup[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -327,15 +334,15 @@ export default function ChecklistsSettingsPage() {
     setError(null)
     try {
       const res = await fetch("/api/tool-groups")
-      if (!res.ok) throw new Error("Laden fehlgeschlagen")
+      if (!res.ok) throw new Error()
       const data = await res.json()
       setGroups(Array.isArray(data) ? data : [])
     } catch {
-      setError("Werkzeuggruppen konnten nicht geladen werden.")
+      setError(t("loadError"))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     void fetchGroups()
@@ -353,7 +360,7 @@ export default function ChecklistsSettingsPage() {
         body: JSON.stringify({ pickupChecklist, returnChecklist }),
       })
       if (!res.ok) {
-        throw new Error("Speichern fehlgeschlagen")
+        throw new Error()
       }
       // Update local state so the dirty-check reflects saved state
       const updated: ToolGroup = await res.json()
@@ -375,10 +382,9 @@ export default function ChecklistsSettingsPage() {
   return (
     <div className="space-y-6 px-4 py-4 md:px-6 md:py-6 lg:px-8 lg:py-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Wartungs-Checklisten</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
         <p className="mt-1 text-muted-foreground text-sm">
-          Definiere Prüflisten pro Werkzeuggruppe. Diese werden beim Auschecken und
-          Einchecken von Werkzeugen angezeigt.
+          {t("description")}
         </p>
       </div>
 
@@ -399,21 +405,21 @@ export default function ChecklistsSettingsPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <p className="text-muted-foreground text-sm">
-              Keine Werkzeuggruppen gefunden. Lege zuerst Gruppen unter{" "}
+              {t("emptyState")}{" "}
               <a
                 href="/dashboard/master/tool-groups"
                 className="text-primary underline underline-offset-2"
               >
-                Stammdaten &rsaquo; Werkzeuggruppen
+                {t("emptyStateLink")}
               </a>{" "}
-              an.
+              {t("emptyStateSuffix")}
             </p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-4">
           {groups.map((group) => (
-            <GroupCard key={group.id} group={group} onSave={handleSave} />
+            <GroupCard key={group.id} group={group} onSave={handleSave} t={t} />
           ))}
         </div>
       )}

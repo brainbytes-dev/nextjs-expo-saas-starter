@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import QRCode from "qrcode"
 import { code128Svg } from "@/lib/code128"
@@ -117,6 +118,7 @@ ${labelHtmls.join("\n")}
 // Component
 // ---------------------------------------------------------------------------
 export default function MaterialLabelsPage() {
+  const t = useTranslations("materialLabels")
   const router = useRouter()
   const [materials, setMaterials] = useState<MaterialRow[]>([])
   const [total, setTotal] = useState(0)
@@ -238,10 +240,10 @@ export default function MaterialLabelsPage() {
           <div>
             <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
               <IconTag className="size-5 text-muted-foreground" />
-              Etiketten drucken
+              {t("title")}
             </h1>
             <p className="text-sm text-muted-foreground mt-0.5">
-              Materialien auswählen und Etiketten mit Barcode und QR-Code drucken
+              {t("subtitle")}
             </p>
           </div>
         </div>
@@ -267,10 +269,10 @@ export default function MaterialLabelsPage() {
           >
             <IconPrinter className="size-4" />
             {printing
-              ? "Vorbereitung…"
+              ? t("preparing")
               : selected.size > 0
-              ? `${selected.size} drucken`
-              : "Alle drucken"}
+              ? t("printCount", { count: selected.size })
+              : t("printAll")}
           </Button>
         </div>
       </div>
@@ -284,7 +286,7 @@ export default function MaterialLabelsPage() {
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Material suchen…"
+              placeholder={t("searchPlaceholder")}
               className="pl-9"
             />
           </div>
@@ -296,11 +298,11 @@ export default function MaterialLabelsPage() {
                 checked={allPageSelected ? true : somePageSelected ? "indeterminate" : false}
                 onCheckedChange={toggleAll}
               />
-              Alle auf dieser Seite
+              {t("allOnPage")}
             </label>
             {selected.size > 0 && (
               <Badge variant="secondary" className="text-xs">
-                {selected.size} ausgewählt
+                {t("selected", { count: selected.size })}
               </Badge>
             )}
           </div>
@@ -321,7 +323,7 @@ export default function MaterialLabelsPage() {
               </div>
             ) : materials.length === 0 ? (
               <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
-                Keine Materialien gefunden
+                {t("noMaterials")}
               </div>
             ) : (
               <div className="divide-y max-h-[540px] overflow-y-auto">
@@ -359,10 +361,10 @@ export default function MaterialLabelsPage() {
               </span>
               <div className="flex gap-1">
                 <Button variant="outline" size="sm" className="h-7 text-xs" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-                  Zurück
+                  {t("back")}
                 </Button>
                 <Button variant="outline" size="sm" className="h-7 text-xs" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
-                  Weiter
+                  {t("next")}
                 </Button>
               </div>
             </div>
@@ -373,17 +375,17 @@ export default function MaterialLabelsPage() {
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-medium text-muted-foreground">
-              Vorschau
+              {t("preview")}
               {selected.size > 0
-                ? ` (${Math.min(selected.size, 12)} von ${selected.size} ausgewählt)`
-                : " (erste 6 Materialien)"}
+                ? ` (${Math.min(selected.size, 12)} / ${selected.size})`
+                : ` (${t("firstSix")})`}
             </h2>
           </div>
 
           {previewItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-20 text-sm text-muted-foreground">
               <IconTag className="size-8 mb-3 text-muted-foreground/40" />
-              Materialien auswählen um Vorschau zu sehen
+              {t("selectForPreview")}
             </div>
           ) : (
             <div
@@ -397,8 +399,7 @@ export default function MaterialLabelsPage() {
           )}
 
           <p className="text-xs text-muted-foreground">
-            Die Etiketten werden in einem neuen Fenster geöffnet und können direkt gedruckt werden.
-            Für beste Ergebnisse: Papierformat auf Etikettengrösse einstellen, Ränder auf 0 setzen.
+            {t("printHint")}
           </p>
         </div>
       </div>

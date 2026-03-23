@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import {
   IconBuildingSkyscraper,
   IconLoader2,
@@ -82,6 +83,7 @@ function getOrgId(): string | null {
 // Component
 // ---------------------------------------------------------------------------
 export default function SsoSettingsPage() {
+  const t = useTranslations("ssoSettings")
   const [orgId, setOrgId] = useState<string | null>(null)
   const [config, setConfig] = useState<SsoConfig>(DEFAULT_CONFIG)
   const [loading, setLoading] = useState(true)
@@ -106,7 +108,7 @@ export default function SsoSettingsPage() {
       const res = await fetch(`/api/organizations/${orgId}/sso`)
       if (!res.ok) {
         if (res.status === 403) {
-          setError("Sie haben keine Berechtigung, SSO-Einstellungen zu verwalten.")
+          setError(t("noPermission"))
           return
         }
         throw new Error(await res.text())
@@ -128,11 +130,11 @@ export default function SsoSettingsPage() {
         setConfig(DEFAULT_CONFIG)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Fehler beim Laden der SSO-Konfiguration")
+      setError(err instanceof Error ? err.message : t("loadError"))
     } finally {
       setLoading(false)
     }
-  }, [orgId])
+  }, [orgId, t])
 
   useEffect(() => {
     if (orgId) fetchConfig()
@@ -155,7 +157,7 @@ export default function SsoSettingsPage() {
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({ error: res.statusText }))
-        throw new Error(body.error ?? "Speichern fehlgeschlagen")
+        throw new Error(body.error ?? t("saveFailed"))
       }
 
       const saved = await res.json()
@@ -165,10 +167,10 @@ export default function SsoSettingsPage() {
         clientSecret: saved.clientSecret, // masked
       }))
       setHasExisting(true)
-      setSuccessMsg("SSO-Konfiguration erfolgreich gespeichert.")
+      setSuccessMsg(t("savedSuccess"))
       setTimeout(() => setSuccessMsg(null), 4000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Speichern fehlgeschlagen")
+      setError(err instanceof Error ? err.message : t("saveFailed"))
     } finally {
       setSaving(false)
     }
@@ -178,7 +180,7 @@ export default function SsoSettingsPage() {
   const handleTest = async () => {
     if (!config.issuerUrl) {
       setTestResult("error")
-      setError("Bitte geben Sie eine Issuer URL ein, um die Verbindung zu testen.")
+      setError(t("testIssuerFirst"))
       return
     }
     setTesting(true)
@@ -203,7 +205,7 @@ export default function SsoSettingsPage() {
       }
     } catch {
       setTestResult("error")
-      setError("Verbindung fehlgeschlagen. Bitte überprüfen Sie die Issuer URL.")
+      setError(t("connectionFailed"))
     } finally {
       setTesting(false)
     }
@@ -222,7 +224,7 @@ export default function SsoSettingsPage() {
     return (
       <div className="flex flex-col gap-6 px-4 py-6 lg:px-6">
         <div className="rounded-md border bg-muted/40 p-6 text-center text-sm text-muted-foreground">
-          Keine Organisation ausgewählt. Bitte wählen Sie zuerst eine Organisation.
+          {t("noOrg")}
         </div>
       </div>
     )
@@ -232,10 +234,9 @@ export default function SsoSettingsPage() {
     <div className="flex flex-col gap-6 px-4 py-6 lg:px-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Enterprise SSO</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Konfigurieren Sie Single Sign-On (OIDC) für Ihre Organisation. Mitarbeiter
-          mit der konfigurierten E-Mail-Domain werden automatisch weitergeleitet.
+          {t("description")}
         </p>
       </div>
 
@@ -244,14 +245,14 @@ export default function SsoSettingsPage() {
         <div className="flex items-center gap-3 rounded-lg border bg-muted/40 px-4 py-3">
           <IconShieldCheck className="size-5 shrink-0 text-green-500" />
           <div className="flex-1 text-sm">
-            <span className="font-medium">SSO konfiguriert</span>
+            <span className="font-medium">{t("configured")}</span>
             {" — "}
             <span className="text-muted-foreground">
               {PROVIDER_LABELS[config.provider] ?? config.provider}
             </span>
           </div>
           <Badge variant={config.isActive ? "default" : "secondary"}>
-            {config.isActive ? "Aktiv" : "Inaktiv"}
+            {config.isActive ? t("active") : t("inactive")}
           </Badge>
         </div>
       )}
@@ -286,9 +287,9 @@ export default function SsoSettingsPage() {
                   <IconBuildingSkyscraper className="size-5 text-primary" />
                 </div>
                 <div>
-                  <CardTitle className="text-base">Identity Provider</CardTitle>
+                  <CardTitle className="text-base">{t("identityProvider")}</CardTitle>
                   <CardDescription className="text-xs">
-                    Wählen Sie Ihren SSO-Anbieter und geben Sie die OIDC-Zugangsdaten ein.
+                    {t("identityProviderDesc")}
                   </CardDescription>
                 </div>
               </div>
@@ -296,7 +297,7 @@ export default function SsoSettingsPage() {
             <CardContent className="grid gap-5">
               {/* Provider */}
               <div className="grid gap-1.5">
-                <Label htmlFor="provider">Anbieter</Label>
+                <Label htmlFor="provider">{t("provider")}</Label>
                 <Select
                   value={config.provider}
                   onValueChange={(v) => setConfig((prev) => ({ ...prev, provider: v }))}
@@ -317,7 +318,7 @@ export default function SsoSettingsPage() {
 
               {/* Client ID */}
               <div className="grid gap-1.5">
-                <Label htmlFor="clientId">Client ID</Label>
+                <Label htmlFor="clientId">{t("clientId")}</Label>
                 <Input
                   id="clientId"
                   placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
@@ -325,28 +326,28 @@ export default function SsoSettingsPage() {
                   {...field("clientId")}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Die Application/Client ID aus Ihrem Identity Provider.
+                  {t("clientIdDesc")}
                 </p>
               </div>
 
               {/* Client Secret */}
               <div className="grid gap-1.5">
-                <Label htmlFor="clientSecret">Client Secret</Label>
+                <Label htmlFor="clientSecret">{t("clientSecret")}</Label>
                 <Input
                   id="clientSecret"
                   type="password"
-                  placeholder={hasExisting ? "Leer lassen zum Beibehalten" : "Ihr Client Secret"}
+                  placeholder={hasExisting ? t("clientSecretPlaceholderKeep") : t("clientSecretPlaceholderNew")}
                   required={!hasExisting}
                   {...field("clientSecret")}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Das Client Secret wird verschlüsselt gespeichert und nie im Klartext angezeigt.
+                  {t("clientSecretDesc")}
                 </p>
               </div>
 
               {/* Issuer URL */}
               <div className="grid gap-1.5">
-                <Label htmlFor="issuerUrl">Issuer URL</Label>
+                <Label htmlFor="issuerUrl">{t("issuerUrl")}</Label>
                 <div className="flex gap-2">
                   <Input
                     id="issuerUrl"
@@ -375,19 +376,19 @@ export default function SsoSettingsPage() {
                     ) : (
                       <IconRefresh className="size-4" />
                     )}
-                    Verbindung testen
+                    {t("testConnection")}
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Die OIDC-Issuer-URL. Das Discovery-Dokument muss unter{" "}
+                  {t("issuerUrlDesc")}{" "}
                   <code className="rounded bg-muted px-1 text-[10px]">
                     {"{issuerUrl}"}/.well-known/openid-configuration
                   </code>{" "}
-                  erreichbar sein.
+                  {t("issuerUrlDescSuffix")}
                 </p>
                 {testResult === "success" && (
                   <p className="text-xs font-medium text-green-600 dark:text-green-400">
-                    Verbindung erfolgreich.
+                    {t("connectionSuccess")}
                   </p>
                 )}
               </div>
@@ -397,15 +398,14 @@ export default function SsoSettingsPage() {
           {/* Domain Allowlist */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Domain-Zuweisung</CardTitle>
+              <CardTitle className="text-base">{t("domainTitle")}</CardTitle>
               <CardDescription className="text-xs">
-                Benutzer, die sich mit einer E-Mail-Adresse dieser Domain anmelden, werden
-                automatisch zu Ihrer Organisation hinzugefügt und via SSO weitergeleitet.
+                {t("domainDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
               <div className="grid gap-1.5">
-                <Label htmlFor="domain">E-Mail-Domain</Label>
+                <Label htmlFor="domain">{t("emailDomain")}</Label>
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm text-muted-foreground">@</span>
                   <Input
@@ -416,7 +416,7 @@ export default function SsoSettingsPage() {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Ohne das @-Zeichen eingeben, z.B. <code className="rounded bg-muted px-1 text-[10px]">firma.ch</code>
+                  {t("domainHint")} <code className="rounded bg-muted px-1 text-[10px]">firma.ch</code>
                 </p>
               </div>
             </CardContent>
@@ -426,9 +426,9 @@ export default function SsoSettingsPage() {
           <Card>
             <CardContent className="flex items-center justify-between pt-6">
               <div>
-                <p className="font-medium">SSO aktivieren</p>
+                <p className="font-medium">{t("enableSso")}</p>
                 <p className="mt-0.5 text-sm text-muted-foreground">
-                  Wenn aktiviert, werden Benutzer der konfigurierten Domain über SSO angemeldet.
+                  {t("enableSsoDesc")}
                 </p>
               </div>
               <button
@@ -455,10 +455,10 @@ export default function SsoSettingsPage() {
               {saving ? (
                 <>
                   <IconLoader2 className="size-4 animate-spin" />
-                  Speichern...
+                  {t("saving")}
                 </>
               ) : (
-                "Einstellungen speichern"
+                t("saveSettings")
               )}
             </Button>
           </div>
@@ -468,19 +468,19 @@ export default function SsoSettingsPage() {
       {/* Info box */}
       <Card className="border-dashed bg-muted/30">
         <CardContent className="pt-6">
-          <p className="text-xs font-medium text-muted-foreground">Hinweis</p>
+          <p className="text-xs font-medium text-muted-foreground">{t("noteTitle")}</p>
           <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-muted-foreground">
             <li>
-              Redirect URI:{" "}
+              {t("noteRedirectUri")}{" "}
               <code className="rounded bg-muted px-1">
                 {typeof window !== "undefined" ? window.location.origin : "https://ihre-domain.ch"}
                 /api/auth/callback/oidc
               </code>
             </li>
-            <li>Stellen Sie sicher, dass die Redirect URI in Ihrem Identity Provider eingetragen ist.</li>
-            <li>Client Secrets werden serverseitig verschlüsselt gespeichert.</li>
+            <li>{t("noteRedirectUriCheck")}</li>
+            <li>{t("noteEncrypted")}</li>
             <li>
-              Bei Problemen wenden Sie sich an{" "}
+              {t("noteSupport")}{" "}
               <a href="mailto:support@zentory.ch" className="underline underline-offset-2">
                 support@zentory.ch
               </a>

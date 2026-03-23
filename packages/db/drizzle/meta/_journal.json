@@ -22,6 +22,13 @@
       "when": 1773986190598,
       "tag": "0002_thankful_warpath",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1774252578505,
+      "tag": "0003_orange_sister_grimm",
+      "breakpoints": true
     }
   ]
 }

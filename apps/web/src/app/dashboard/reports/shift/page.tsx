@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import {
   IconClockHour5,
   IconLoader2,
@@ -117,27 +118,6 @@ function fmtTime(d: string): string {
   })
 }
 
-const changeTypeLabels: Record<string, string> = {
-  in: "Eingang",
-  out: "Ausgang",
-  transfer: "Transfer",
-  correction: "Korrektur",
-  inventory: "Inventur",
-}
-
-const bookingTypeLabels: Record<string, string> = {
-  checkout: "Ausgabe",
-  checkin: "Rückgabe",
-  transfer: "Transfer",
-}
-
-const commissionStatusLabels: Record<string, string> = {
-  open: "Offen",
-  in_progress: "In Bearbeitung",
-  completed: "Abgeschlossen",
-  cancelled: "Storniert",
-}
-
 function changeTypeIcon(type: string) {
   switch (type) {
     case "in":
@@ -151,37 +131,44 @@ function changeTypeIcon(type: string) {
   }
 }
 
-function commissionStatusBadge(status: string | null) {
-  const variant =
-    status === "completed"
-      ? "default"
-      : status === "cancelled"
-        ? "destructive"
-        : "secondary"
-  return (
-    <Badge variant={variant} className="text-xs">
-      {commissionStatusLabels[status ?? ""] ?? status ?? "—"}
-    </Badge>
-  )
-}
-
 // ---------------------------------------------------------------------------
 // Print the shift report (opens a new window and calls window.print())
 // ---------------------------------------------------------------------------
-function printShiftReport(report: ShiftReport) {
+function printShiftReport(report: ShiftReport, t: (key: string) => string) {
   const fmtDateStr = fmtDate(report.date)
+
+  const changeTypeLabels: Record<string, string> = {
+    in: t("changeTypes.in"),
+    out: t("changeTypes.out"),
+    transfer: t("changeTypes.transfer"),
+    correction: t("changeTypes.correction"),
+    inventory: t("changeTypes.inventory"),
+  }
+
+  const bookingTypeLabels: Record<string, string> = {
+    checkout: t("bookingTypes.checkout"),
+    checkin: t("bookingTypes.checkin"),
+    transfer: t("bookingTypes.transfer"),
+  }
+
+  const commissionStatusLabels: Record<string, string> = {
+    open: t("commissionStatuses.open"),
+    in_progress: t("commissionStatuses.inProgress"),
+    completed: t("commissionStatuses.completed"),
+    cancelled: t("commissionStatuses.cancelled"),
+  }
 
   // Build HTML sections
   const summaryHtml = `
     <div class="summary-grid">
-      <div class="summary-item"><span class="label">Lagerbewegungen</span><span class="value">${report.summary.totalStockChanges}</span></div>
-      <div class="summary-item"><span class="label">Eingänge</span><span class="value green">${report.summary.inCount}</span></div>
-      <div class="summary-item"><span class="label">Ausgänge</span><span class="value red">${report.summary.outCount}</span></div>
-      <div class="summary-item"><span class="label">Transfers</span><span class="value">${report.summary.transferCount}</span></div>
-      <div class="summary-item"><span class="label">Korrekturen</span><span class="value">${report.summary.correctionCount}</span></div>
-      <div class="summary-item"><span class="label">Werkzeug-Ausgaben</span><span class="value">${report.summary.checkoutCount}</span></div>
-      <div class="summary-item"><span class="label">Werkzeug-Rückgaben</span><span class="value">${report.summary.checkinCount}</span></div>
-      <div class="summary-item"><span class="label">Lieferscheine</span><span class="value">${report.summary.commissionsUpdated}</span></div>
+      <div class="summary-item"><span class="label">${t("stockMovements")}</span><span class="value">${report.summary.totalStockChanges}</span></div>
+      <div class="summary-item"><span class="label">${t("receipts")}</span><span class="value green">${report.summary.inCount}</span></div>
+      <div class="summary-item"><span class="label">${t("issues")}</span><span class="value red">${report.summary.outCount}</span></div>
+      <div class="summary-item"><span class="label">${t("transfers")}</span><span class="value">${report.summary.transferCount}</span></div>
+      <div class="summary-item"><span class="label">${t("corrections")}</span><span class="value">${report.summary.correctionCount}</span></div>
+      <div class="summary-item"><span class="label">${t("toolCheckouts")}</span><span class="value">${report.summary.checkoutCount}</span></div>
+      <div class="summary-item"><span class="label">${t("toolCheckins")}</span><span class="value">${report.summary.checkinCount}</span></div>
+      <div class="summary-item"><span class="label">${t("commissionsLabel")}</span><span class="value">${report.summary.commissionsUpdated}</span></div>
     </div>`
 
   const stockSections = report.stockChangesByUser
@@ -190,7 +177,7 @@ function printShiftReport(report: ShiftReport) {
       <h3 class="user-heading">${ug.userName}</h3>
       <table>
         <thead><tr>
-          <th>Zeit</th><th>Typ</th><th>Material</th><th>Lagerort</th><th>Menge</th><th>Notiz</th>
+          <th>${t("thTime")}</th><th>${t("thType")}</th><th>${t("thMaterial")}</th><th>${t("thLocation")}</th><th>${t("thQuantity")}</th><th>${t("thNote")}</th>
         </tr></thead>
         <tbody>
           ${ug.changes
@@ -216,7 +203,7 @@ function printShiftReport(report: ShiftReport) {
       <h3 class="user-heading">${ug.userName}</h3>
       <table>
         <thead><tr>
-          <th>Zeit</th><th>Typ</th><th>Werkzeug</th><th>Notiz</th>
+          <th>${t("thTime")}</th><th>${t("thType")}</th><th>${t("thTool")}</th><th>${t("thNote")}</th>
         </tr></thead>
         <tbody>
           ${ug.bookings
@@ -237,7 +224,7 @@ function printShiftReport(report: ShiftReport) {
   const commissionSection =
     report.commissions.length > 0
       ? `<table>
-          <thead><tr><th>Lieferschein</th><th>Status</th><th>Geändert</th></tr></thead>
+          <thead><tr><th>${t("thCommission")}</th><th>${t("thStatus")}</th><th>${t("thModified")}</th></tr></thead>
           <tbody>
             ${report.commissions
               .map(
@@ -250,13 +237,13 @@ function printShiftReport(report: ShiftReport) {
               .join("")}
           </tbody>
         </table>`
-      : "<p>Keine Lieferschein-Aktivität.</p>"
+      : `<p>${t("noCommissionActivity")}</p>`
 
   const html = `<!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <title>Schicht-Übergabe-Bericht ${fmtDateStr}</title>
+  <title>${t("printReportTitle")} ${fmtDateStr}</title>
   <style>
     @page { size: A4 portrait; margin: 15mm; }
     * { box-sizing: border-box; }
@@ -285,19 +272,19 @@ function printShiftReport(report: ShiftReport) {
 </head>
 <body>
   <div class="report-header">
-    <h1>Schicht-Übergabe-Bericht &mdash; ${fmtDateStr}</h1>
-    <span class="report-date">Erstellt am ${new Date().toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
+    <h1>${t("printReportTitle")} &mdash; ${fmtDateStr}</h1>
+    <span class="report-date">${t("printCreatedAt")} ${new Date().toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>
   </div>
 
-  <h2>Zusammenfassung</h2>
+  <h2>${t("summary")}</h2>
   ${summaryHtml}
 
-  ${report.stockChangesByUser.length > 0 ? `<h2>Lagerbewegungen</h2>${stockSections}` : ""}
-  ${report.toolBookingsByUser.length > 0 ? `<h2>Werkzeug-Buchungen</h2>${toolSections}` : ""}
-  <h2>Lieferscheine</h2>
+  ${report.stockChangesByUser.length > 0 ? `<h2>${t("stockMovements")}</h2>${stockSections}` : ""}
+  ${report.toolBookingsByUser.length > 0 ? `<h2>${t("toolBookingsTitle")}</h2>${toolSections}` : ""}
+  <h2>${t("commissionsLabel")}</h2>
   ${commissionSection}
 
-  <div class="report-footer">Schicht-Übergabe-Bericht &mdash; Zentory &mdash; ${fmtDateStr}</div>
+  <div class="report-footer">${t("printReportTitle")} &mdash; Zentory &mdash; ${fmtDateStr}</div>
   <script>window.onload = function() { window.print(); }<\/script>
 </body>
 </html>`
@@ -312,18 +299,54 @@ function printShiftReport(report: ShiftReport) {
 // Main page
 // ---------------------------------------------------------------------------
 export default function ShiftReportPage() {
+  const t = useTranslations("shiftReport")
   const [date, setDate] = useState(today())
   const [report, setReport] = useState<ShiftReport | null>(null)
   const [loading, setLoading] = useState<"fetch" | "print" | "email" | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [emailSuccess, setEmailSuccess] = useState(false)
 
+  const changeTypeLabels: Record<string, string> = {
+    in: t("changeTypes.in"),
+    out: t("changeTypes.out"),
+    transfer: t("changeTypes.transfer"),
+    correction: t("changeTypes.correction"),
+    inventory: t("changeTypes.inventory"),
+  }
+
+  const bookingTypeLabels: Record<string, string> = {
+    checkout: t("bookingTypes.checkout"),
+    checkin: t("bookingTypes.checkin"),
+    transfer: t("bookingTypes.transfer"),
+  }
+
+  const commissionStatusLabels: Record<string, string> = {
+    open: t("commissionStatuses.open"),
+    in_progress: t("commissionStatuses.inProgress"),
+    completed: t("commissionStatuses.completed"),
+    cancelled: t("commissionStatuses.cancelled"),
+  }
+
+  function commissionStatusBadge(status: string | null) {
+    const variant =
+      status === "completed"
+        ? "default"
+        : status === "cancelled"
+          ? "destructive"
+          : "secondary"
+    return (
+      <Badge variant={variant} className="text-xs">
+        {commissionStatusLabels[status ?? ""] ?? status ?? "—"}
+      </Badge>
+    )
+  }
+
   const fetchReport = useCallback(async (): Promise<ShiftReport> => {
     const params = new URLSearchParams({ date })
     const res = await fetch(`/api/reports/shift?${params}`)
-    if (!res.ok) throw new Error("Fehler beim Laden des Schichtberichts")
+    if (!res.ok) throw new Error(t("fetchError"))
     return res.json() as Promise<ShiftReport>
-  }, [date])
+  }, [date, t])
 
   const handleFetch = useCallback(async () => {
     setLoading("fetch")
@@ -333,11 +356,11 @@ export default function ShiftReportPage() {
       const data = await fetchReport()
       setReport(data)
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unbekannter Fehler")
+      setError(e instanceof Error ? e.message : t("unknownError"))
     } finally {
       setLoading(null)
     }
-  }, [fetchReport])
+  }, [fetchReport, t])
 
   const handlePrint = useCallback(async () => {
     setLoading("print")
@@ -345,13 +368,13 @@ export default function ShiftReportPage() {
     try {
       const data = report ?? (await fetchReport())
       if (!report) setReport(data)
-      printShiftReport(data)
+      printShiftReport(data, t)
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unbekannter Fehler")
+      setError(e instanceof Error ? e.message : t("unknownError"))
     } finally {
       setLoading(null)
     }
-  }, [report, fetchReport])
+  }, [report, fetchReport, t])
 
   const handleEmail = useCallback(async () => {
     setLoading("email")
@@ -365,15 +388,15 @@ export default function ShiftReportPage() {
       })
       if (!res.ok) {
         const json = await res.json().catch(() => ({}))
-        throw new Error((json as { error?: string }).error ?? "E-Mail-Versand fehlgeschlagen")
+        throw new Error((json as { error?: string }).error ?? t("emailSendError"))
       }
       setEmailSuccess(true)
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unbekannter Fehler")
+      setError(e instanceof Error ? e.message : t("unknownError"))
     } finally {
       setLoading(null)
     }
-  }, [date])
+  }, [date, t])
 
   const isBusy = loading !== null
 
@@ -382,10 +405,10 @@ export default function ShiftReportPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">
-          Schicht-Übergabe-Bericht
+          {t("title")}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Automatisch generierte Zusammenfassung aller Aktivitäten einer Schicht.
+          {t("description")}
         </p>
       </div>
 
@@ -397,9 +420,9 @@ export default function ShiftReportPage() {
               <IconClockHour5 className="size-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-base">Schichtdatum</CardTitle>
+              <CardTitle className="text-base">{t("shiftDate")}</CardTitle>
               <CardDescription className="text-xs">
-                Bericht wird täglich um 17:00 Uhr automatisch per E-Mail versandt.
+                {t("autoEmailNote")}
               </CardDescription>
             </div>
           </div>
@@ -407,7 +430,7 @@ export default function ShiftReportPage() {
         <CardContent>
           <div className="flex flex-wrap items-end gap-4">
             <div className="flex flex-col gap-1.5">
-              <Label className="text-xs">Datum</Label>
+              <Label className="text-xs">{t("dateLabel")}</Label>
               <Input
                 type="date"
                 value={date}
@@ -427,7 +450,7 @@ export default function ShiftReportPage() {
               ) : (
                 <IconClockHour5 className="size-4" />
               )}
-              Bericht generieren
+              {t("generateReport")}
             </Button>
             <div className="ml-auto flex gap-2">
               <Button
@@ -442,7 +465,7 @@ export default function ShiftReportPage() {
                 ) : (
                   <IconPrinter className="size-4" />
                 )}
-                PDF drucken
+                {t("printPdf")}
               </Button>
               <Button
                 variant="outline"
@@ -456,14 +479,14 @@ export default function ShiftReportPage() {
                 ) : (
                   <IconMail className="size-4" />
                 )}
-                Per E-Mail senden
+                {t("sendEmail")}
               </Button>
             </div>
           </div>
           {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
           {emailSuccess && (
             <p className="mt-3 text-sm text-green-600">
-              Schichtbericht wurde erfolgreich an alle Organisations-Admins versandt.
+              {t("emailSuccess")}
             </p>
           )}
         </CardContent>
@@ -476,28 +499,28 @@ export default function ShiftReportPage() {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {[
               {
-                label: "Lagerbewegungen",
+                label: t("stockMovements"),
                 value: report.summary.totalStockChanges,
                 icon: IconPackage,
-                sub: `${report.summary.inCount} Ein / ${report.summary.outCount} Aus`,
+                sub: `${report.summary.inCount} ${t("inLabel")} / ${report.summary.outCount} ${t("outLabel")}`,
               },
               {
-                label: "Korrekturen / Transfers",
+                label: t("correctionsTransfers"),
                 value: report.summary.correctionCount + report.summary.transferCount,
                 icon: IconAdjustments,
-                sub: `${report.summary.transferCount} Transfers`,
+                sub: `${report.summary.transferCount} ${t("transfers")}`,
               },
               {
-                label: "Werkzeug-Buchungen",
+                label: t("toolBookings"),
                 value: report.summary.checkoutCount + report.summary.checkinCount,
                 icon: IconTool,
-                sub: `${report.summary.checkoutCount} Aus / ${report.summary.checkinCount} Zurück`,
+                sub: `${report.summary.checkoutCount} ${t("outLabel")} / ${report.summary.checkinCount} ${t("returnLabel")}`,
               },
               {
-                label: "Lieferscheine",
+                label: t("commissionsLabel"),
                 value: report.summary.commissionsUpdated,
                 icon: IconClipboardList,
-                sub: "aktualisiert",
+                sub: t("updatedLabel"),
               },
             ].map(({ label, value, icon: Icon, sub }) => (
               <Card key={label} className="p-4">
@@ -520,11 +543,10 @@ export default function ShiftReportPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">
-                  Lagerbewegungen ({report.summary.totalStockChanges})
+                  {t("stockChangesTitle")} ({report.summary.totalStockChanges})
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Alle Ein-/Ausgänge, Transfers und Korrekturen vom{" "}
-                  {fmtDate(report.date)}.
+                  {t("stockChangesDesc", { date: fmtDate(report.date) })}
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
@@ -534,19 +556,19 @@ export default function ShiftReportPage() {
                       <IconUser className="size-4 text-muted-foreground" />
                       <span className="text-sm font-medium">{ug.userName}</span>
                       <Badge variant="secondary" className="ml-auto text-xs">
-                        {ug.changes.length} Buchungen
+                        {ug.changes.length} {t("bookings")}
                       </Badge>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="border-b text-xs text-muted-foreground">
-                            <th className="px-4 py-2 text-left font-medium">Zeit</th>
-                            <th className="px-4 py-2 text-left font-medium">Typ</th>
-                            <th className="px-4 py-2 text-left font-medium">Material</th>
-                            <th className="px-4 py-2 text-left font-medium">Lagerort</th>
-                            <th className="px-4 py-2 text-right font-medium">Menge</th>
-                            <th className="px-4 py-2 text-left font-medium">Notiz</th>
+                            <th className="px-4 py-2 text-left font-medium">{t("thTime")}</th>
+                            <th className="px-4 py-2 text-left font-medium">{t("thType")}</th>
+                            <th className="px-4 py-2 text-left font-medium">{t("thMaterial")}</th>
+                            <th className="px-4 py-2 text-left font-medium">{t("thLocation")}</th>
+                            <th className="px-4 py-2 text-right font-medium">{t("thQuantity")}</th>
+                            <th className="px-4 py-2 text-left font-medium">{t("thNote")}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y">
@@ -597,11 +619,11 @@ export default function ShiftReportPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">
-                  Werkzeug-Buchungen (
+                  {t("toolBookingsTitle")} (
                   {report.summary.checkoutCount + report.summary.checkinCount})
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Ausgaben und Rückgaben vom {fmtDate(report.date)}.
+                  {t("toolBookingsDesc", { date: fmtDate(report.date) })}
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
@@ -611,17 +633,17 @@ export default function ShiftReportPage() {
                       <IconUser className="size-4 text-muted-foreground" />
                       <span className="text-sm font-medium">{ug.userName}</span>
                       <Badge variant="secondary" className="ml-auto text-xs">
-                        {ug.bookings.length} Buchungen
+                        {ug.bookings.length} {t("bookings")}
                       </Badge>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="border-b text-xs text-muted-foreground">
-                            <th className="px-4 py-2 text-left font-medium">Zeit</th>
-                            <th className="px-4 py-2 text-left font-medium">Typ</th>
-                            <th className="px-4 py-2 text-left font-medium">Werkzeug</th>
-                            <th className="px-4 py-2 text-left font-medium">Notiz</th>
+                            <th className="px-4 py-2 text-left font-medium">{t("thTime")}</th>
+                            <th className="px-4 py-2 text-left font-medium">{t("thType")}</th>
+                            <th className="px-4 py-2 text-left font-medium">{t("thTool")}</th>
+                            <th className="px-4 py-2 text-left font-medium">{t("thNote")}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y">
@@ -669,10 +691,10 @@ export default function ShiftReportPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">
-                  Lieferscheine ({report.commissions.length})
+                  {t("commissionsTitle")} ({report.commissions.length})
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Erstellt oder aktualisiert am {fmtDate(report.date)}.
+                  {t("commissionsDesc", { date: fmtDate(report.date) })}
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
@@ -680,9 +702,9 @@ export default function ShiftReportPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b text-xs text-muted-foreground">
-                        <th className="px-4 py-2 text-left font-medium">Lieferschein</th>
-                        <th className="px-4 py-2 text-left font-medium">Status</th>
-                        <th className="px-4 py-2 text-left font-medium">Geändert</th>
+                        <th className="px-4 py-2 text-left font-medium">{t("thCommission")}</th>
+                        <th className="px-4 py-2 text-left font-medium">{t("thStatus")}</th>
+                        <th className="px-4 py-2 text-left font-medium">{t("thModified")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -714,7 +736,7 @@ export default function ShiftReportPage() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <p className="text-sm text-muted-foreground">
-                    Keine Aktivitäten am {fmtDate(report.date)} gefunden.
+                    {t("noActivities", { date: fmtDate(report.date) })}
                   </p>
                 </CardContent>
               </Card>

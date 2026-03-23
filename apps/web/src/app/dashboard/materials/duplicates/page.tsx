@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import {
   IconArrowLeft,
@@ -63,19 +64,10 @@ interface DuplicatesResponse {
 // Helpers
 // ---------------------------------------------------------------------------
 
-const reasonLabel: Record<DuplicateGroup["reason"], { label: string; className: string }> = {
-  exact_barcode: {
-    label: "Gleicher Barcode",
-    className: "bg-destructive/10 text-destructive border-destructive/20",
-  },
-  similar_name: {
-    label: "Ähnlicher Name",
-    className: "bg-primary/10 text-primary border-primary/20",
-  },
-  same_manufacturer: {
-    label: "Gleicher Hersteller",
-    className: "bg-amber-500/10 text-amber-600 border-amber-500/20",
-  },
+const reasonStyle: Record<DuplicateGroup["reason"], string> = {
+  exact_barcode: "bg-destructive/10 text-destructive border-destructive/20",
+  similar_name: "bg-primary/10 text-primary border-primary/20",
+  same_manufacturer: "bg-amber-500/10 text-amber-600 border-amber-500/20",
 }
 
 function ScoreBar({ score }: { score: number }) {
@@ -97,6 +89,7 @@ function ScoreBar({ score }: { score: number }) {
 // ---------------------------------------------------------------------------
 
 export default function DuplicatesPage() {
+  const t = useTranslations("duplicatesPage")
   const router = useRouter()
 
   const [groups, setGroups] = useState<DuplicateGroup[]>([])
@@ -185,16 +178,16 @@ export default function DuplicatesPage() {
             className="gap-1.5"
           >
             <IconArrowLeft className="size-4" />
-            Zurück
+            {t("back")}
           </Button>
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">
-              Duplikate prüfen
+              {t("title")}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {loading
-                ? "Analysiere…"
-                : `${visibleGroups.length} mögliche Duplikatgruppen gefunden`}
+                ? t("analyzing")
+                : t("groupsFound", { count: visibleGroups.length })}
             </p>
           </div>
         </div>
@@ -206,7 +199,7 @@ export default function DuplicatesPage() {
           className="gap-1.5"
         >
           <IconRefresh className={`size-4 ${loading ? "animate-spin" : ""}`} />
-          Neu analysieren
+          {t("reanalyze")}
         </Button>
       </div>
 
@@ -231,9 +224,9 @@ export default function DuplicatesPage() {
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
             <IconPackage className="size-8 text-muted-foreground" />
           </div>
-          <h3 className="mt-4 text-lg font-medium">Keine Duplikate gefunden</h3>
+          <h3 className="mt-4 text-lg font-medium">{t("noDuplicates")}</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Alle Materialien scheinen eindeutig zu sein.
+            {t("allUnique")}
           </p>
           <Button
             className="mt-6"
@@ -241,13 +234,13 @@ export default function DuplicatesPage() {
             onClick={() => router.push("/dashboard/materials")}
           >
             <IconArrowLeft className="size-4" />
-            Zurück zur Übersicht
+            {t("backToOverview")}
           </Button>
         </div>
       ) : (
         <div className="space-y-4">
           {visibleGroups.map((group) => {
-            const cfg = reasonLabel[group.reason]
+            const cfg = { label: t(`reason.${group.reason}`), className: reasonStyle[group.reason] }
             return (
               <Card key={group.id} className="overflow-hidden">
                 {/* Group header */}
@@ -258,7 +251,7 @@ export default function DuplicatesPage() {
                     </Badge>
                     <ScoreBar score={group.similarityScore} />
                     <span className="text-xs text-muted-foreground">
-                      {group.items.length} Einträge
+                      {t("entries", { count: group.items.length })}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -269,7 +262,7 @@ export default function DuplicatesPage() {
                       onClick={() => setMergeTarget(group)}
                     >
                       <IconCopy className="size-3.5" />
-                      Zusammenführen
+                      {t("merge")}
                     </Button>
                     <Button
                       size="sm"
@@ -278,7 +271,7 @@ export default function DuplicatesPage() {
                       onClick={() => dismissGroup(group.id)}
                     >
                       <IconCheck className="size-3.5" />
-                      Kein Duplikat
+                      {t("notDuplicate")}
                     </Button>
                   </div>
                 </div>
@@ -292,7 +285,7 @@ export default function DuplicatesPage() {
                     <div key={item.id} className="p-4">
                       {idx === 0 && (
                         <Badge variant="secondary" className="mb-2 text-xs">
-                          Primär
+                          {t("primary")}
                         </Badge>
                       )}
                       <button
@@ -306,24 +299,24 @@ export default function DuplicatesPage() {
                       <dl className="mt-2 space-y-1 text-xs text-muted-foreground">
                         {item.number && (
                           <div className="flex gap-1.5">
-                            <dt className="font-medium text-foreground/60">Nr.</dt>
+                            <dt className="font-medium text-foreground/60">{t("fieldNumber")}</dt>
                             <dd className="font-mono">{item.number}</dd>
                           </div>
                         )}
                         {item.barcode && (
                           <div className="flex gap-1.5">
-                            <dt className="font-medium text-foreground/60">Barcode</dt>
+                            <dt className="font-medium text-foreground/60">{t("fieldBarcode")}</dt>
                             <dd className="font-mono">{item.barcode}</dd>
                           </div>
                         )}
                         {item.manufacturer && (
                           <div className="flex gap-1.5">
-                            <dt className="font-medium text-foreground/60">Hersteller</dt>
+                            <dt className="font-medium text-foreground/60">{t("fieldManufacturer")}</dt>
                             <dd>{item.manufacturer}</dd>
                           </div>
                         )}
                         <div className="flex gap-1.5">
-                          <dt className="font-medium text-foreground/60">Bestand</dt>
+                          <dt className="font-medium text-foreground/60">{t("fieldStock")}</dt>
                           <dd
                             className={
                               item.totalStock === 0 ? "text-muted-foreground/50" : ""
@@ -334,13 +327,13 @@ export default function DuplicatesPage() {
                         </div>
                         {item.groupName && (
                           <div className="flex gap-1.5">
-                            <dt className="font-medium text-foreground/60">Gruppe</dt>
+                            <dt className="font-medium text-foreground/60">{t("fieldGroup")}</dt>
                             <dd>{item.groupName}</dd>
                           </div>
                         )}
                         {item.mainLocationName && (
                           <div className="flex gap-1.5">
-                            <dt className="font-medium text-foreground/60">Standort</dt>
+                            <dt className="font-medium text-foreground/60">{t("fieldLocation")}</dt>
                             <dd>{item.mainLocationName}</dd>
                           </div>
                         )}
@@ -363,11 +356,9 @@ export default function DuplicatesPage() {
       >
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Materialien zusammenführen</DialogTitle>
+            <DialogTitle>{t("mergeTitle")}</DialogTitle>
             <DialogDescription>
-              Wählen Sie das Material, das beibehalten werden soll. Alle
-              Bestände, Buchungen und Kommissionseinträge der anderen werden
-              übertragen. Die Duplikate werden danach gelöscht.
+              {t("mergeDescription")}
             </DialogDescription>
           </DialogHeader>
 
@@ -376,15 +367,15 @@ export default function DuplicatesPage() {
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary/10">
                 <IconCheck className="size-6 text-secondary" />
               </div>
-              <p className="text-sm font-medium">Zusammenführung erfolgreich</p>
+              <p className="text-sm font-medium">{t("mergeSuccess")}</p>
             </div>
           ) : (
             <>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Material behalten</label>
+                <label className="text-sm font-medium">{t("keepMaterial")}</label>
                 <Select value={keepId} onValueChange={setKeepId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Material auswählen…" />
+                    <SelectValue placeholder={t("selectMaterial")} />
                   </SelectTrigger>
                   <SelectContent>
                     {mergeTarget?.items.map((item) => (
@@ -425,10 +416,10 @@ export default function DuplicatesPage() {
                   onClick={() => setMergeTarget(null)}
                   disabled={merging}
                 >
-                  Abbrechen
+                  {t("cancel")}
                 </Button>
                 <Button onClick={handleMerge} disabled={!keepId || merging}>
-                  {merging ? "Wird zusammengeführt…" : "Zusammenführen"}
+                  {merging ? t("merging") : t("merge")}
                 </Button>
               </DialogFooter>
             </>

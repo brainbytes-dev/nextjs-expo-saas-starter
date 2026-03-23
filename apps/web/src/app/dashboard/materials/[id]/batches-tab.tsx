@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import {
   IconArrowDown,
@@ -104,14 +105,16 @@ function isExpiringSoon(dateStr: string | null): boolean {
 function BatchStatusBadge({
   quantity,
   expiryDate,
+  t,
 }: {
   quantity: number
   expiryDate: string | null
+  t: (key: string) => string
 }) {
   if (isExpired(expiryDate)) {
     return (
       <Badge variant="destructive" className="text-xs">
-        Abgelaufen
+        {t("expired")}
       </Badge>
     )
   }
@@ -121,20 +124,20 @@ function BatchStatusBadge({
         variant="outline"
         className="text-xs text-muted-foreground border-muted-foreground/30"
       >
-        Leer
+        {t("emptyBatch")}
       </Badge>
     )
   }
   if (isExpiringSoon(expiryDate)) {
     return (
       <Badge className="bg-orange-100 text-orange-800 border border-orange-300 text-xs dark:bg-orange-900/40 dark:text-orange-400 dark:border-orange-800">
-        Ablaufend bald
+        {t("expiringSoon")}
       </Badge>
     )
   }
   return (
     <Badge className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs dark:bg-emerald-900/40 dark:text-emerald-400 dark:border-emerald-800">
-      Aktiv
+      {t("active")}
     </Badge>
   )
 }
@@ -158,15 +161,10 @@ function ChangeIcon({ changeType }: { changeType: string }) {
   }
 }
 
-function changeTypeLabel(changeType: string): string {
-  switch (changeType) {
-    case "in": return "Eingang"
-    case "out": return "Ausgang"
-    case "transfer": return "Umbuchung"
-    case "correction": return "Korrektur"
-    case "inventory": return "Inventur"
-    default: return changeType
-  }
+function changeTypeLabel(changeType: string, t: (key: string) => string): string {
+  const key = `changeType.${changeType}`
+  const translated = t(key)
+  return translated === key ? changeType : translated
 }
 
 // ---------------------------------------------------------------------------
@@ -175,14 +173,16 @@ function changeTypeLabel(changeType: string): string {
 function HistoryTimeline({
   history,
   unit,
+  t,
 }: {
   history: StockChange[]
   unit: string
+  t: (key: string) => string
 }) {
   if (history.length === 0) {
     return (
       <p className="py-4 text-center text-xs text-muted-foreground">
-        Keine Buchungshistorie vorhanden
+        {t("noHistory")}
       </p>
     )
   }
@@ -202,7 +202,7 @@ function HistoryTimeline({
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-xs font-medium">
-                  {changeTypeLabel(change.changeType)}
+                  {changeTypeLabel(change.changeType, t)}
                 </p>
                 <span
                   className={`text-xs font-semibold ${
@@ -224,7 +224,7 @@ function HistoryTimeline({
               </p>
               {change.previousQuantity != null && change.newQuantity != null && (
                 <p className="mt-0.5 text-[11px] text-muted-foreground">
-                  Bestand: {change.previousQuantity} &rarr; {change.newQuantity} {unit}
+                  {t("stock")}: {change.previousQuantity} &rarr; {change.newQuantity} {unit}
                 </p>
               )}
               {change.notes && (
@@ -250,6 +250,7 @@ export function BatchesTab({
   materialId: string
   unit: string
 }) {
+  const t = useTranslations("batchesTab")
   const router = useRouter()
   const [data, setData] = useState<BatchData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -262,13 +263,13 @@ export function BatchesTab({
     try {
       const res = await fetch(`/api/materials/${materialId}/batches`)
       if (!res.ok) {
-        setError("Fehler beim Laden der Chargen-Daten")
+        setError(t("loadError"))
         return
       }
       const json: BatchData = await res.json()
       setData(json)
     } catch {
-      setError("Verbindungsfehler")
+      setError(t("connectionError"))
     } finally {
       setLoading(false)
     }
@@ -325,10 +326,10 @@ export function BatchesTab({
       <div className="flex flex-col items-center justify-center py-16 gap-2">
         <IconPackage className="size-10 text-muted-foreground/40" />
         <p className="text-sm text-muted-foreground font-medium">
-          Kein Bestand vorhanden
+          {t("noStock")}
         </p>
         <p className="text-xs text-muted-foreground">
-          Beim Einbuchen Chargennummer oder Seriennummer angeben.
+          {t("noStockHint")}
         </p>
       </div>
     )
@@ -338,12 +339,10 @@ export function BatchesTab({
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-2">
         <p className="text-sm text-muted-foreground font-medium">
-          Keine Chargen- oder Seriennummern erfasst
+          {t("noBatchSerial")}
         </p>
         <p className="text-xs text-muted-foreground text-center max-w-sm">
-          {noBatchSerialEntries.length} Lagerposten vorhanden, aber ohne
-          Chargennummer oder Seriennummer. Beim Einbuchen die entsprechenden
-          Felder ausfüllen.
+          {t("noBatchSerialHint", { count: noBatchSerialEntries.length })}
         </p>
       </div>
     )
@@ -355,12 +354,12 @@ export function BatchesTab({
         <TableHeader>
           <TableRow>
             <TableHead className="w-8" />
-            <TableHead>Charge / Serie</TableHead>
-            <TableHead>Standort</TableHead>
-            <TableHead>Menge</TableHead>
-            <TableHead>Ablaufdatum</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="w-16 text-right">Trace</TableHead>
+            <TableHead>{t("colBatchSerial")}</TableHead>
+            <TableHead>{t("colLocation")}</TableHead>
+            <TableHead>{t("colQuantity")}</TableHead>
+            <TableHead>{t("colExpiryDate")}</TableHead>
+            <TableHead>{t("colStatus")}</TableHead>
+            <TableHead className="w-16 text-right">{t("colTrace")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -434,6 +433,7 @@ export function BatchesTab({
                     <BatchStatusBadge
                       quantity={batch.quantity}
                       expiryDate={batch.expiryDate}
+                      t={t}
                     />
                   </TableCell>
                   <TableCell className="py-2 text-right">
@@ -448,7 +448,7 @@ export function BatchesTab({
                         if (batch.serialNumber) params.set("serial", batch.serialNumber)
                         router.push(`/dashboard/traceability?${params.toString()}`)
                       }}
-                      title="Vollständige Rückverfolgung anzeigen"
+                      title={t("showTraceability")}
                     >
                       <IconExternalLink className="size-3.5" />
                     </Button>
@@ -462,11 +462,12 @@ export function BatchesTab({
                     <TableCell colSpan={6} className="py-0 pb-4">
                       <div className="rounded-md border bg-muted/30 px-3 py-2">
                         <p className="mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                          Buchungshistorie
+                          {t("bookingHistory")}
                         </p>
                         <HistoryTimeline
                           history={batch.history}
                           unit={unit}
+                          t={t}
                         />
                       </div>
                     </TableCell>
