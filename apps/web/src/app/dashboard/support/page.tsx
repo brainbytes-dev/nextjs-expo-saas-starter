@@ -65,22 +65,20 @@ function QuickLinkCard({
       className="group block"
     >
       <Card className="h-full transition-colors hover:border-primary/40 hover:bg-muted/30">
-        <CardHeader className="flex flex-row items-start gap-3 space-y-0 pb-2">
+        <CardContent className="flex flex-col items-center text-center gap-2 p-5">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <Icon className="size-5" />
           </div>
-          <div className="flex-1">
-            <CardTitle className="flex items-center gap-1.5 text-sm font-medium">
-              {title}
-              {external && (
-                <IconExternalLink className="size-3.5 text-muted-foreground" />
-              )}
-            </CardTitle>
-            <CardDescription className="mt-0.5 text-xs">
-              {description}
-            </CardDescription>
+          <div className="flex items-center gap-1.5 text-sm font-medium">
+            {title}
+            {external && (
+              <IconExternalLink className="size-3 text-muted-foreground" />
+            )}
           </div>
-        </CardHeader>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {description}
+          </p>
+        </CardContent>
       </Card>
     </a>
   )
@@ -355,7 +353,7 @@ export default function SupportPage() {
       {/* Section 1: Quick Links */}
       <section>
         <h2 className="mb-4 text-lg font-semibold">{t("quickLinksTitle")}</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <QuickLinkCard
             icon={IconBook}
             title={t("quickDocs")}
