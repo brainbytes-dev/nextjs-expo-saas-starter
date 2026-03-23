@@ -1285,11 +1285,11 @@ export default function LandingPage() {
             </div>
             {/* Legal row */}
             <div className="flex items-center justify-center gap-6 border-t border-border pt-4">
-              <Link href="/datenschutz" className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase hover:text-foreground transition-colors">{t("footerPrivacy")}</Link>
+              <Link href="/datenschutz" target="_blank" className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase hover:text-foreground transition-colors">{t("footerPrivacy")}</Link>
               <span className="text-border font-mono text-[10px]">·</span>
-              <Link href="/agb" className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase hover:text-foreground transition-colors">{t("footerTerms")}</Link>
+              <Link href="/agb" target="_blank" className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase hover:text-foreground transition-colors">{t("footerTerms")}</Link>
               <span className="text-border font-mono text-[10px]">·</span>
-              <Link href="/impressum" className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase hover:text-foreground transition-colors">{t("footerImprint")}</Link>
+              <Link href="/impressum" target="_blank" className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase hover:text-foreground transition-colors">{t("footerImprint")}</Link>
             </div>
           </div>
         </footer>
