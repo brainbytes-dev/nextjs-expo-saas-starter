@@ -4,7 +4,7 @@ title: Webhooks
 
 # Webhooks
 
-Webhooks ermöglichen es, externe Systeme in Echtzeit über Ereignisse in Zentory zu informieren. Bei jedem auslösenden Ereignis sendet Zentory einen HTTP POST-Request an die von Ihnen konfigurierte URL.
+Webhooks ermöglichen es, externe Systeme in Echtzeit über Ereignisse in **ZEN**TORY zu informieren. Bei jedem auslösenden Ereignis sendet **ZEN**TORY einen HTTP POST-Request an die von Ihnen konfigurierte URL.
 
 ## Webhook erstellen
 
@@ -61,7 +61,7 @@ Alle Webhooks senden JSON im folgenden Format:
 
 ## Signatur prüfen
 
-Wenn Sie ein **Geheimnis** gesetzt haben, enthält jeder Request den Header `X-Zentory-Signature`. Dieser ist ein HMAC-SHA256-Hash des Request-Body mit Ihrem Geheimnis:
+Wenn Sie ein **Geheimnis** gesetzt haben, enthält jeder Request den Header `X-**ZEN**TORY-Signature`. Dieser ist ein HMAC-SHA256-Hash des Request-Body mit Ihrem Geheimnis:
 
 ```javascript
 // Node.js Beispiel
@@ -78,7 +78,7 @@ if (signature !== expected) {
 
 ## Wiederholungsversuche
 
-Bei fehlgeschlagenen Requests (HTTP 4xx/5xx oder Timeout) versucht Zentory es erneut:
+Bei fehlgeschlagenen Requests (HTTP 4xx/5xx oder Timeout) versucht **ZEN**TORY es erneut:
 
 - Nach 1 Minute
 - Nach 5 Minuten

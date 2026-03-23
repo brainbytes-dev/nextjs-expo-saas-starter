@@ -4,7 +4,7 @@ title: Barcode-Generator
 
 # Barcode-Generator
 
-Für Artikel ohne EAN oder Seriennummer können Sie in Zentory eigene Barcodes generieren und drucken.
+Für Artikel ohne EAN oder Seriennummer können Sie in **ZEN**TORY eigene Barcodes generieren und drucken.
 
 ## Wozu eigene Barcodes?
 
@@ -12,13 +12,13 @@ Nicht alle Artikel haben einen aufgedruckten Barcode — zum Beispiel selbst her
 
 ## Format der generierten Barcodes
 
-Zentory generiert Barcodes nach folgendem Schema:
+**ZEN**TORY generiert Barcodes nach folgendem Schema:
 
 ```
 LA-{ORG}-{000001}
 ```
 
-- `LA` — Präfix für Zentory (unterscheidet von externen EANs)
+- `LA` — Präfix für **ZEN**TORY (unterscheidet von externen EANs)
 - `{ORG}` — Kürzel Ihrer Organisation (2–4 Zeichen, aus Einstellungen)
 - `{000001}` — Fortlaufende 6-stellige Nummer, auto-inkrementiert
 
@@ -29,7 +29,7 @@ Beispiel: `LA-MBK-000042`
 1. Öffnen Sie einen Artikel (Material oder Werkzeug).
 2. Klicken Sie auf **Bearbeiten** und scrollen Sie zu **Barcode / EAN**.
 3. Falls kein Barcode hinterlegt ist, erscheint die Schaltfläche **Barcode generieren**.
-4. Zentory weist automatisch den nächsten freien Code zu.
+4. **ZEN**TORY weist automatisch den nächsten freien Code zu.
 5. Speichern Sie den Artikel.
 
 ## Batch-Generierung
@@ -40,7 +40,7 @@ Für mehrere Artikel gleichzeitig:
 2. Filtern Sie nach **Barcode: leer** (Filterleiste oben).
 3. Aktivieren Sie die Checkboxen und wählen Sie die gewünschten Artikel.
 4. Klicken Sie in der Aktionsleiste auf **Barcode generieren**.
-5. Zentory weist jedem Artikel automatisch einen eindeutigen Code zu.
+5. **ZEN**TORY weist jedem Artikel automatisch einen eindeutigen Code zu.
 
 > **Hinweis:** Die Batch-Generierung ist auf **200 Artikel** pro Vorgang begrenzt.
 
@@ -62,7 +62,7 @@ Jedes Etikett enthält:
 
 ## Barcode-Kollision verhindern
 
-Zentory prüft bei jeder Generierung, ob der Code bereits vergeben ist. Da das Format organisations-spezifisch ist (`LA-{ORG}-`), entstehen keine Konflikte zwischen verschiedenen Organisationen im Multi-Unternehmen-Modus.
+**ZEN**TORY prüft bei jeder Generierung, ob der Code bereits vergeben ist. Da das Format organisations-spezifisch ist (`LA-{ORG}-`), entstehen keine Konflikte zwischen verschiedenen Organisationen im Multi-Unternehmen-Modus.
 
 ## Verwandte Funktionen
 

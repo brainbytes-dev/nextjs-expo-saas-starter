@@ -4,7 +4,7 @@ title: Single Sign-On (SSO)
 
 # Single Sign-On (SSO)
 
-SSO ermöglicht es Ihren Mitarbeitenden, sich mit dem bestehenden Unternehmensaccount (Microsoft, Google oder Okta) bei Zentory anzumelden — ohne separates Passwort.
+SSO ermöglicht es Ihren Mitarbeitenden, sich mit dem bestehenden Unternehmensaccount (Microsoft, Google oder Okta) bei **ZEN**TORY anzumelden — ohne separates Passwort.
 
 > **Verfügbarkeit:** SSO ist ab dem **Business-Plan** verfügbar.
 
@@ -19,26 +19,26 @@ SSO ermöglicht es Ihren Mitarbeitenden, sich mit dem bestehenden Unternehmensac
 
 ## Microsoft Entra ID konfigurieren
 
-1. Gehen Sie in Zentory zu **Einstellungen → SSO**.
+1. Gehen Sie in **ZEN**TORY zu **Einstellungen → SSO**.
 2. Klicken Sie auf **+ SSO-Provider hinzufügen → Microsoft Entra ID**.
 3. Kopieren Sie die angezeigte **Redirect URI** (z.B. `https://app.zentory.ch/api/auth/callback/microsoft`).
 4. Öffnen Sie das **Azure-Portal** → Entra ID → App-Registrierungen → Neue Registrierung.
 5. Fügen Sie die Redirect URI hinzu.
-6. Kopieren Sie **Client-ID** und **Mandanten-ID** zurück in Zentory.
-7. Erstellen Sie ein **Client-Geheimnis** in Azure und kopieren Sie es in Zentory.
+6. Kopieren Sie **Client-ID** und **Mandanten-ID** zurück in **ZEN**TORY.
+7. Erstellen Sie ein **Client-Geheimnis** in Azure und kopieren Sie es in **ZEN**TORY.
 8. Klicken Sie auf **Speichern und testen**.
 
 ## Google Workspace konfigurieren
 
 1. Gehen Sie zu **Google Cloud Console → OAuth 2.0-Anmeldedaten**.
 2. Erstellen Sie eine neue OAuth-2.0-Client-ID (Webanwendung).
-3. Tragen Sie die Redirect URI aus Zentory ein.
-4. Kopieren Sie **Client-ID** und **Client-Geheimnis** in Zentory.
+3. Tragen Sie die Redirect URI aus **ZEN**TORY ein.
+4. Kopieren Sie **Client-ID** und **Client-Geheimnis** in **ZEN**TORY.
 5. Klicken Sie auf **Speichern und testen**.
 
 ## Just-in-Time Provisioning
 
-Mit JIT-Provisioning werden neue Benutzer automatisch in Zentory angelegt, wenn sie sich zum ersten Mal per SSO anmelden — ohne manuelle Einladung.
+Mit JIT-Provisioning werden neue Benutzer automatisch in **ZEN**TORY angelegt, wenn sie sich zum ersten Mal per SSO anmelden — ohne manuelle Einladung.
 
 Aktivieren Sie JIT unter **SSO → [Provider] → Just-in-Time Provisioning** und legen Sie die Standard-Rolle für neue Benutzer fest.
 
