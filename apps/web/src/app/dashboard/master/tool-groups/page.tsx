@@ -1,7 +1,8 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
+import { toast } from "sonner"
 import {
   IconPlus,
   IconSearch,
@@ -45,14 +46,6 @@ const PRESET_COLORS = [
   "#ec4899", "#06b6d4", "#f97316", "#14b8a6", "#6366f1",
 ]
 
-const placeholderData: ToolGroup[] = [
-  { id: "1", name: "Bohrmaschinen", color: "#ef4444" },
-  { id: "2", name: "Akkuschrauber", color: "#3b82f6" },
-  { id: "3", name: "Messgeräte", color: "#22c55e" },
-  { id: "4", name: "Sägen", color: "#f59e0b" },
-  { id: "5", name: "Schleifgeräte", color: "#8b5cf6" },
-  { id: "6", name: "Leitern & Gerüste", color: "#06b6d4" },
-]
 
 export default function ToolGroupsPage() {
   const t = useTranslations("masterData")
@@ -63,30 +56,51 @@ export default function ToolGroupsPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [form, setForm] = useState({ name: "", color: "#3b82f6" })
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setItems(placeholderData)
+  const fetchGroups = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch("/api/tool-groups")
+      if (!res.ok) throw new Error("Failed to fetch")
+      const data = await res.json()
+      setItems(Array.isArray(data) ? data : [])
+    } catch {
+      toast.error("Werkzeuggruppen konnten nicht geladen werden")
+    } finally {
       setLoading(false)
-    }, 400)
-    return () => clearTimeout(timer)
+    }
   }, [])
+
+  useEffect(() => { fetchGroups() }, [fetchGroups])
 
   const filtered = items.filter((item) =>
     item.name.toLowerCase().includes(search.toLowerCase())
   )
 
-  const handleCreate = () => {
-    const newItem: ToolGroup = {
-      id: crypto.randomUUID(),
-      ...form,
+  const handleCreate = async () => {
+    try {
+      const res = await fetch("/api/tool-groups", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      })
+      if (!res.ok) throw new Error("Failed to create")
+      const created: ToolGroup = await res.json()
+      setItems((prev) => [...prev, created])
+      setForm({ name: "", color: "#3b82f6" })
+      setDialogOpen(false)
+    } catch {
+      toast.error("Gruppe konnte nicht erstellt werden")
     }
-    setItems((prev) => [...prev, newItem])
-    setForm({ name: "", color: "#3b82f6" })
-    setDialogOpen(false)
   }
 
-  const handleDelete = (id: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== id))
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await fetch(`/api/tool-groups/${id}`, { method: "DELETE" })
+      if (!res.ok) throw new Error("Failed to delete")
+      setItems((prev) => prev.filter((item) => item.id !== id))
+    } catch {
+      toast.error("Gruppe konnte nicht gelöscht werden")
+    }
   }
 
   return (

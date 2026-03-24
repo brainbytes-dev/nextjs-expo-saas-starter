@@ -3,6 +3,39 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { storeAbacusToken } from "@/lib/integrations/abacus";
+import { getSessionAndOrg } from "@/app/api/_helpers/auth";
+import { createHmac, timingSafeEqual } from "crypto";
+
+function verifyAbacusState(state: string): { valid: boolean; orgId: string } {
+  const secret = process.env.BETTER_AUTH_SECRET;
+  if (!secret) return { valid: false, orgId: "" };
+
+  // State format: "{nonce}.{orgId}.{hmac}"
+  const lastDot = state.lastIndexOf(".");
+  if (lastDot === -1) return { valid: false, orgId: "" };
+
+  const payload = state.slice(0, lastDot);
+  const receivedHmac = state.slice(lastDot + 1);
+
+  const firstDot = payload.indexOf(".");
+  if (firstDot === -1) return { valid: false, orgId: "" };
+
+  const orgId = payload.slice(firstDot + 1);
+  if (!orgId) return { valid: false, orgId: "" };
+
+  const expectedHmac = createHmac("sha256", secret)
+    .update(payload)
+    .digest("hex");
+
+  try {
+    const a = Buffer.from(expectedHmac, "hex");
+    const b = Buffer.from(receivedHmac, "hex");
+    if (a.length !== b.length) return { valid: false, orgId: "" };
+    return { valid: timingSafeEqual(a, b), orgId };
+  } catch {
+    return { valid: false, orgId: "" };
+  }
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
@@ -17,13 +50,27 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL(`${redirectBase}?error=${reason}`, req.url));
   }
 
-  // Extract orgId from state: "<nonce>.<orgId>"
-  const dotIdx = state.indexOf(".");
-  const orgId = dotIdx !== -1 ? state.slice(dotIdx + 1) : "";
+  // Verify user is authenticated
+  const sessionResult = await getSessionAndOrg(req);
+  if (sessionResult.error) {
+    return NextResponse.redirect(
+      new URL(`${redirectBase}?error=unauthorized`, req.url)
+    );
+  }
 
-  if (!orgId) {
+  // Verify HMAC signature on state parameter
+  const { valid, orgId } = verifyAbacusState(state);
+
+  if (!valid || !orgId) {
     return NextResponse.redirect(
       new URL(`${redirectBase}?error=invalid_state`, req.url)
+    );
+  }
+
+  // Verify the authenticated user belongs to the org in the state
+  if (sessionResult.orgId !== orgId) {
+    return NextResponse.redirect(
+      new URL(`${redirectBase}?error=forbidden`, req.url)
     );
   }
 

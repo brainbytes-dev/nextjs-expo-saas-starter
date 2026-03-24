@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
 import { tools, toolGroups, locations, users } from "@repo/db/schema";
-import { eq, and, ilike, sql } from "drizzle-orm";
+import { eq, and, or, ilike, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 export async function GET(request: Request) {
   try {
@@ -15,6 +16,7 @@ export async function GET(request: Request) {
     const search = url.searchParams.get("search") || "";
     const groupId = url.searchParams.get("groupId");
     const assignedToId = url.searchParams.get("assignedToId");
+    const locationId = url.searchParams.get("locationId");
     const offset = (page - 1) * limit;
 
     const conditions = [
@@ -31,9 +33,15 @@ export async function GET(request: Request) {
     if (assignedToId) {
       conditions.push(eq(tools.assignedToId, assignedToId));
     }
+    if (locationId) {
+      conditions.push(
+        or(eq(tools.homeLocationId, locationId), eq(tools.assignedLocationId, locationId))!
+      );
+    }
 
-    // Alias for home location vs assigned location
-    const homeLocation = locations;
+    // Aliases for the two location joins (home vs assigned)
+    const homeLocation = alias(locations, "home_location");
+    const assignedLocation = alias(locations, "assigned_location");
 
     const [items, countResult] = await Promise.all([
       db
@@ -48,6 +56,7 @@ export async function GET(request: Request) {
           assignedToId: tools.assignedToId,
           assignedUserName: users.name,
           assignedLocationId: tools.assignedLocationId,
+          assignedLocationName: assignedLocation.name,
           barcode: tools.barcode,
           image: tools.image,
           manufacturer: tools.manufacturer,
@@ -61,6 +70,7 @@ export async function GET(request: Request) {
         .from(tools)
         .leftJoin(toolGroups, eq(tools.groupId, toolGroups.id))
         .leftJoin(homeLocation, eq(tools.homeLocationId, homeLocation.id))
+        .leftJoin(assignedLocation, eq(tools.assignedLocationId, assignedLocation.id))
         .leftJoin(users, eq(tools.assignedToId, users.id))
         .where(and(...conditions))
         .orderBy(tools.name)

@@ -136,7 +136,7 @@ export const deleteUserDataFn = inngest.createFunction(
         // Notify admin
         await resend.emails.send({
           from: process.env.RESEND_FROM_EMAIL || "noreply@zentory.ch",
-          to: "support@zentory.ch",
+          to: process.env.ADMIN_NOTIFICATION_EMAIL || "support@zentory.ch",
           subject: `Konto geloescht: ${email}`,
           html: `
             <h2>Kontolöschung durchgeführt</h2>

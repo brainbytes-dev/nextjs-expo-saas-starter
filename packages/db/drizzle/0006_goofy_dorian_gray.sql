@@ -1,0 +1,2 @@
+ALTER TABLE "keys" ADD COLUMN "assigned_location_id" uuid;--> statement-breakpoint
+ALTER TABLE "keys" ADD CONSTRAINT "keys_assigned_location_id_locations_id_fk" FOREIGN KEY ("assigned_location_id") REFERENCES "public"."locations"("id") ON DELETE no action ON UPDATE no action;

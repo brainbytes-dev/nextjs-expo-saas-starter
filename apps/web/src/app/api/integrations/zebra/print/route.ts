@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@/lib/auth"
 import * as net from "net"
 
 export async function POST(req: NextRequest) {
+  const session = await auth.api.getSession({ headers: req.headers })
+  if (!session) {
+    return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 })
+  }
+
   const { zpl, printerIp } = await req.json()
 
   if (!zpl || !printerIp) {

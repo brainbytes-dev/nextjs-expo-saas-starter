@@ -434,9 +434,13 @@ export default function MaterialDetailPage() {
         if (bookingPhotoUrl) URL.revokeObjectURL(bookingPhotoUrl)
         setBookingPhotoFile(null)
         setBookingPhotoUrl(null)
+        toast.success("Buchung erfolgreich")
+      } else {
+        const errData = await res.json().catch(() => ({}))
+        toast.error(errData.error ?? "Buchung fehlgeschlagen")
       }
     } catch {
-      // TODO: toast
+      toast.error("Buchung fehlgeschlagen")
     } finally {
       setBookingLoading(false)
     }

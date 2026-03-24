@@ -384,16 +384,8 @@ export default function CalendarPage() {
   const STATUS_CONFIG = getStatusConfig(t)
   const FILTER_LABELS = getFilterLabels(t)
 
-  const MONTHS = [
-    t("months.jan"), t("months.feb"), t("months.mar"), t("months.apr"),
-    t("months.may"), t("months.jun"), t("months.jul"), t("months.aug"),
-    t("months.sep"), t("months.oct"), t("months.nov"), t("months.dec"),
-  ]
-
-  const WEEKDAYS = [
-    t("weekdays.mon"), t("weekdays.tue"), t("weekdays.wed"), t("weekdays.thu"),
-    t("weekdays.fri"), t("weekdays.sat"), t("weekdays.sun"),
-  ]
+  const MONTHS = t("months").split(",")
+  const WEEKDAYS = t("weekdays").split(",")
 
   // ── Calendar state ─────────────────────────────────────────────────
   const today = new Date()

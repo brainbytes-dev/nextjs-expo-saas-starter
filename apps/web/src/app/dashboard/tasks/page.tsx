@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect, useCallback, useRef } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import { useTranslations } from "next-intl"
 import {
   IconPlus,
@@ -152,7 +152,6 @@ export default function TasksPage() {
   const [newTitle, setNewTitle] = useState("")
   const [newDescription, setNewDescription] = useState("")
   const [newTopic, setNewTopic] = useState("maintenance")
-  const [newPriority, setNewPriority] = useState("normal")
 
   const fetchTasks = useCallback(async () => {
     try {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { useTranslations } from "next-intl"
-import { IconSearch, IconCar, IconCheck } from "@tabler/icons-react"
+import { IconSearch, IconCar, IconCheck, IconBuildingFactory2 } from "@tabler/icons-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -22,6 +22,7 @@ import {
 interface VehicleLocation {
   id: string
   name: string
+  type?: string
   metadata: {
     make?: string
     model?: string
@@ -65,7 +66,7 @@ export function BookToVehicleDialog({
     setSearch("")
     setSelectedVehicleId(null)
     setQuantity(1)
-    fetch("/api/locations?type=vehicle")
+    fetch("/api/locations?type=vehicle,site")
       .then((r) => (r.ok ? r.json() : []))
       .then((data) => {
         const list = Array.isArray(data) ? data : (data.data ?? [])
@@ -101,7 +102,7 @@ export function BookToVehicleDialog({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             toLocationId: selectedVehicleId,
-            type: "checkout",
+            bookingType: "checkout",
           }),
         })
         ok = res.ok
@@ -196,6 +197,8 @@ export function BookToVehicleDialog({
                   <div className="flex size-8 items-center justify-center rounded-md bg-muted">
                     {isSelected ? (
                       <IconCheck className="size-4 text-primary" />
+                    ) : v.type === "site" ? (
+                      <IconBuildingFactory2 className="size-4 text-muted-foreground" />
                     ) : (
                       <IconCar className="size-4 text-muted-foreground" />
                     )}

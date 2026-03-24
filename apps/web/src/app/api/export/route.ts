@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSessionAndOrg } from "@/app/api/_helpers/auth";
+import { withPermission } from "@/lib/rbac";
 import {
   materials,
   tools,
@@ -17,11 +17,8 @@ type ExportFormat = "csv" | "json";
 
 // ─── GET /api/export ────────────────────────────────────────────────────────
 
-export async function GET(request: Request) {
+export const GET = withPermission("materials", "read")(async (request, { db, orgId }) => {
   try {
-    const result = await getSessionAndOrg(request);
-    if (result.error) return result.error;
-    const { db, orgId } = result;
 
     const url = new URL(request.url);
     const entity = url.searchParams.get("entity") as ExportEntity | null;
@@ -69,7 +66,7 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
-}
+});
 
 // ─── Data fetchers ──────────────────────────────────────────────────────────
 

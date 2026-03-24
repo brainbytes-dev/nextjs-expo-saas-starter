@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
+import { parseJsonBody } from "@/app/api/_helpers/parse-body";
 import { stockChanges, materials, materialStocks, locations, users, projects } from "@repo/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { dispatchWebhook } from "@/lib/webhooks";
@@ -98,8 +99,12 @@ export async function POST(request: Request) {
     if (result.error) return result.error;
     const { db, orgId, session } = result;
 
-    const body = await request.json();
-    const { materialId, locationId, changeType, quantity, notes, batchNumber, serialNumber, projectId } = body;
+    const parsed = await parseJsonBody(request);
+    if ("error" in parsed) return parsed.error;
+    const { materialId, locationId, changeType, quantity, notes, batchNumber, serialNumber, projectId } = parsed.data as {
+      materialId: unknown; locationId: unknown; changeType: unknown; quantity: unknown;
+      notes?: string; batchNumber?: string; serialNumber?: string; projectId?: string;
+    };
 
     if (!materialId || !locationId || !changeType || quantity === undefined) {
       return NextResponse.json(
@@ -108,8 +113,16 @@ export async function POST(request: Request) {
       );
     }
 
+    // Validate that IDs are non-empty strings
+    if (typeof materialId !== "string" || materialId.trim() === "") {
+      return NextResponse.json({ error: "materialId must be a non-empty string" }, { status: 400 });
+    }
+    if (typeof locationId !== "string" || locationId.trim() === "") {
+      return NextResponse.json({ error: "locationId must be a non-empty string" }, { status: 400 });
+    }
+
     const validTypes = ["in", "out", "correction", "inventory", "transfer"];
-    if (!validTypes.includes(changeType)) {
+    if (typeof changeType !== "string" || !validTypes.includes(changeType)) {
       return NextResponse.json(
         { error: `changeType must be one of: ${validTypes.join(", ")}` },
         { status: 400 }
@@ -124,11 +137,16 @@ export async function POST(request: Request) {
       );
     }
 
+    // Type-narrowed values (validated above)
+    const typedMaterialId = materialId as string;
+    const typedLocationId = locationId as string;
+    const typedChangeType = changeType as string;
+
     // Verify material belongs to org
     const [material] = await db
       .select({ id: materials.id, name: materials.name, number: materials.number, reorderLevel: materials.reorderLevel })
       .from(materials)
-      .where(and(eq(materials.id, materialId), eq(materials.organizationId, orgId)))
+      .where(and(eq(materials.id, typedMaterialId), eq(materials.organizationId, orgId)))
       .limit(1);
 
     if (!material) {
@@ -148,7 +166,7 @@ export async function POST(request: Request) {
     }
 
     // Compute delta: "out" quantities should be negative in the DB
-    const delta = changeType === "out" ? -Math.abs(quantity) : Number(quantity);
+    const delta = typedChangeType === "out" ? -Math.abs(qty) : qty;
 
     // Transaction: read current stock → compute new qty → upsert materialStocks → insert stockChange
     const stockChange = await db.transaction(async (tx) => {
@@ -157,8 +175,8 @@ export async function POST(request: Request) {
         .from(materialStocks)
         .where(
           and(
-            eq(materialStocks.materialId, materialId),
-            eq(materialStocks.locationId, locationId)
+            eq(materialStocks.materialId, typedMaterialId),
+            eq(materialStocks.locationId, typedLocationId)
           )
         )
         .limit(1);
@@ -172,15 +190,15 @@ export async function POST(request: Request) {
           .set({ quantity: newQty, updatedAt: new Date() })
           .where(
             and(
-              eq(materialStocks.materialId, materialId),
-              eq(materialStocks.locationId, locationId)
+              eq(materialStocks.materialId, typedMaterialId),
+              eq(materialStocks.locationId, typedLocationId)
             )
           );
       } else {
         await tx.insert(materialStocks).values({
           organizationId: orgId,
-          materialId,
-          locationId,
+          materialId: typedMaterialId,
+          locationId: typedLocationId,
           quantity: newQty,
         });
       }
@@ -189,10 +207,10 @@ export async function POST(request: Request) {
         .insert(stockChanges)
         .values({
           organizationId: orgId,
-          materialId,
-          locationId,
+          materialId: typedMaterialId,
+          locationId: typedLocationId,
           userId: session.user.id,
-          changeType,
+          changeType: typedChangeType,
           quantity: delta,
           previousQuantity: previousQty,
           newQuantity: newQty,
@@ -209,11 +227,11 @@ export async function POST(request: Request) {
     // Build event context — shared by both the webhook and the rules engine
     const eventContext = {
       id: stockChange.id,
-      materialId,
+      materialId: typedMaterialId,
       materialName: material.name,
       materialNumber: material.number,
-      locationId,
-      changeType,
+      locationId: typedLocationId,
+      changeType: typedChangeType,
       quantity: delta,
       previousQuantity: stockChange.previousQuantity,
       newQuantity: stockChange.newQuantity,
@@ -237,7 +255,7 @@ export async function POST(request: Request) {
         orgId,
         "Niedriger Bestand",
         `${material.name} ist unter dem Meldebestand (${newQty}/${reorderLevel})`,
-        { type: "low_stock", materialId }
+        { type: "low_stock", materialId: typedMaterialId }
       ).catch((err) => console.error("Push (low stock) failed:", err));
     }
 

@@ -189,13 +189,3 @@ export const POST = withPermission("materials", "create")(async (request, { db, 
   }
 });
 
-// TODO: Apply withPermission to the following routes once RBAC is fully rolled out:
-// - /api/materials/[id] (PATCH → "materials","update" / DELETE → "materials","delete")
-// - /api/tools (GET → "tools","read" / POST → "tools","create")
-// - /api/tools/[id] (PATCH → "tools","update" / DELETE → "tools","delete")
-// - /api/keys (GET → "keys","read" / POST → "keys","create")
-// - /api/locations (GET → "locations","read" / POST → "locations","create")
-// - /api/commissions (GET → "commissions","read" / POST → "commissions","create")
-// - /api/orders (GET → "orders","read" / POST → "orders","create")
-// - /api/suppliers (GET → "suppliers","read" / POST → "suppliers","create")
-// - /api/customers (GET → "customers","read" / POST → "customers","create")

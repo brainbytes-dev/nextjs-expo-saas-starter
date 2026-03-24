@@ -254,6 +254,15 @@
       "safe": "Sejf",
       "cabinet": "Szafka",
       "other": "Inne"
+    },
+    "status": "Status",
+    "changeStatus": "Zmień status",
+    "statuses": {
+      "available": "Dostępny",
+      "issued": "Wydany",
+      "lost": "Zagubiony",
+      "defective": "Uszkodzony",
+      "retired": "Wycofany"
     }
   },
   "tasks": {

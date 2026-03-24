@@ -774,6 +774,15 @@
       "safe": "Coffre-fort",
       "cabinet": "Armoire",
       "other": "Autre"
+    },
+    "status": "Statut",
+    "changeStatus": "Changer le statut",
+    "statuses": {
+      "available": "Disponible",
+      "issued": "Émis",
+      "lost": "Perdu",
+      "defective": "Défectueux",
+      "retired": "Retiré"
     }
   },
   "tasks": {

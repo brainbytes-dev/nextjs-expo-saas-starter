@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
 import { locations } from "@repo/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 
 export async function GET(request: Request) {
   try {
@@ -18,7 +18,12 @@ export async function GET(request: Request) {
     ];
 
     if (type) {
-      conditions.push(eq(locations.type, type));
+      const types = type.split(",").map((t) => t.trim()).filter(Boolean);
+      if (types.length === 1) {
+        conditions.push(eq(locations.type, types[0]!));
+      } else if (types.length > 1) {
+        conditions.push(inArray(locations.type, types));
+      }
     }
 
     const items = await db

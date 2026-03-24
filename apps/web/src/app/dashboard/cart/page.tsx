@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from "react"
 import { useTranslations } from "next-intl"
-import { toast } from "sonner"
 import {
   IconShoppingCart,
   IconTrash,
@@ -38,7 +37,7 @@ import {
   EmptyDescription,
 } from "@/components/ui/empty"
 
-import { type CartItem, getCart, saveCart, clearCart } from "@/lib/cart"
+import { type CartItem, getCart } from "@/lib/cart"
 
 function formatCHF(val: number) {
   return `CHF ${val.toFixed(2)}`
@@ -103,8 +102,35 @@ export default function CartPage() {
 
   async function handleGenerateOrder() {
     setGeneratingOrder(true)
-    await new Promise(r => setTimeout(r, 1500))
-    setGeneratingOrder(false)
+    try {
+      // Create one order per supplier
+      const results = await Promise.allSettled(
+        bySupplier.map(({ name, items: supplierItems }) => {
+          const supplierId = supplierItems[0].supplierId
+          return fetch("/api/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              supplierId,
+              orderDate: new Date().toISOString().split("T")[0],
+              items: supplierItems.map(i => ({
+                materialId: i.id,
+                quantity: i.quantity,
+                unitPrice: i.purchasePrice,
+              })),
+            }),
+          }).then(r => {
+            if (!r.ok) throw new Error(`Order for ${name} failed`)
+          })
+        })
+      )
+      const failed = results.filter(r => r.status === "rejected").length
+      if (failed === 0) {
+        setItems([])
+      }
+    } finally {
+      setGeneratingOrder(false)
+    }
   }
 
   if (items.length === 0) {

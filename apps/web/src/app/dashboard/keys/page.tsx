@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { useTranslations } from "next-intl"
 import {
   IconPlus,
@@ -14,6 +14,11 @@ import {
   IconChevronLeft,
   IconChevronRight,
   IconCar,
+  IconCircleCheck,
+  IconCircleDotted,
+  IconAlertTriangle,
+  IconTool,
+  IconArchive,
 } from "@tabler/icons-react"
 import { BookToVehicleDialog } from "@/components/book-to-vehicle-dialog"
 import { Button } from "@/components/ui/button"
@@ -33,6 +38,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -68,6 +76,7 @@ interface KeyItem {
   assignedToName: string | null
   image: string | null
   notes: string | null
+  status: string
   isActive: boolean
   createdAt: string
   updatedAt: string
@@ -95,6 +104,48 @@ interface OrgMember {
 
 // ── Constants ─────────────────────────────────────────────────────────
 const ITEMS_PER_PAGE = 20
+
+type KeyStatus = "available" | "issued" | "lost" | "defective" | "retired"
+
+const KEY_STATUSES: KeyStatus[] = ["available", "issued", "lost", "defective", "retired"]
+
+function KeyStatusBadge({ status }: { status: string }) {
+  const config: Record<KeyStatus, { label: string; className: string; icon: React.ReactNode }> = {
+    available: {
+      label: "available",
+      className: "bg-green-500/10 text-green-600 dark:text-green-400",
+      icon: <IconCircleCheck className="size-3" />,
+    },
+    issued: {
+      label: "issued",
+      className: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+      icon: <IconCircleDotted className="size-3" />,
+    },
+    lost: {
+      label: "lost",
+      className: "bg-red-500/10 text-red-600 dark:text-red-400",
+      icon: <IconAlertTriangle className="size-3" />,
+    },
+    defective: {
+      label: "defective",
+      className: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+      icon: <IconTool className="size-3" />,
+    },
+    retired: {
+      label: "retired",
+      className: "bg-muted text-muted-foreground",
+      icon: <IconArchive className="size-3" />,
+    },
+  }
+  const s = status as KeyStatus
+  const c = config[s] ?? config.available
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${c.className}`}>
+      {c.icon}
+      {c.label}
+    </span>
+  )
+}
 
 // ── Page ───────────────────────────────────────────────────────────────
 export default function KeysPage() {
@@ -312,13 +363,14 @@ export default function KeysPage() {
     }
   }, [editTarget, editForm, fetchKeys])
 
-  // Inline assignment change
-  const handleAssignChange = useCallback(async (key: KeyItem, newAssignedToId: string | null) => {
+  // Inline status change
+  const handleStatusChange = useCallback(async (key: KeyItem, newStatus: KeyStatus) => {
+    if (key.status === newStatus) return
     try {
       const res = await fetch(`/api/keys/${key.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ assignedToId: newAssignedToId }),
+        body: JSON.stringify({ status: newStatus }),
       })
       if (res.ok) {
         fetchKeys()
@@ -406,6 +458,7 @@ export default function KeysPage() {
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("home")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("assignedTo")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[70px] text-right">{t("quantity")}</TableHead>
+                  <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[110px]">{t("status")}</TableHead>
                   <TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider w-[80px] text-center">{t("isHome")}</TableHead>
                   <TableHead className="w-[50px]" />
                 </TableRow>
@@ -439,6 +492,9 @@ export default function KeysPage() {
                       <TableCell className="text-right font-mono text-sm font-medium">
                         {key.quantity}
                       </TableCell>
+                      <TableCell>
+                        <KeyStatusBadge status={key.status ?? "available"} />
+                      </TableCell>
                       <TableCell className="text-center">
                         {isHome ? (
                           <span className="inline-flex items-center justify-center size-6 rounded-full bg-secondary/10">
@@ -461,6 +517,24 @@ export default function KeysPage() {
                             <DropdownMenuItem className="gap-2" onClick={() => openEdit(key)}>
                               <IconEdit className="size-4" /> {tc("edit")}
                             </DropdownMenuItem>
+                            <DropdownMenuSub>
+                              <DropdownMenuSubTrigger className="gap-2">
+                                <KeyStatusBadge status={key.status ?? "available"} />
+                                {t("changeStatus")}
+                              </DropdownMenuSubTrigger>
+                              <DropdownMenuSubContent>
+                                {KEY_STATUSES.map((s) => (
+                                  <DropdownMenuItem
+                                    key={s}
+                                    className="gap-2"
+                                    onClick={() => handleStatusChange(key, s)}
+                                  >
+                                    <KeyStatusBadge status={s} />
+                                    {key.status === s && <IconCheck className="size-3 ml-auto" />}
+                                  </DropdownMenuItem>
+                                ))}
+                              </DropdownMenuSubContent>
+                            </DropdownMenuSub>
                             <DropdownMenuItem
                               className="gap-2"
                               onClick={() => setVehicleBookTarget({ id: key.id, name: key.name })}
@@ -645,6 +719,123 @@ export default function KeysPage() {
               disabled={deleting}
             >
               {deleting ? tc("loading") : tc("delete")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Key Dialog */}
+      <Dialog open={editOpen} onOpenChange={(open: boolean) => {
+        setEditOpen(open)
+        if (!open) setEditTarget(null)
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{tc("edit")} — {editTarget?.name}</DialogTitle>
+            <DialogDescription>
+              {t("addFirstKey")}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-key-name">{t("name")} *</Label>
+              <Input
+                id="edit-key-name"
+                value={editForm.name}
+                onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder={t("name")}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-key-number">{t("number")}</Label>
+                <Input
+                  id="edit-key-number"
+                  value={editForm.number}
+                  onChange={(e) => setEditForm((f) => ({ ...f, number: e.target.value }))}
+                  placeholder="SCH-001"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-key-barcode">Barcode</Label>
+                <Input
+                  id="edit-key-barcode"
+                  value={editForm.barcode}
+                  onChange={(e) => setEditForm((f) => ({ ...f, barcode: e.target.value }))}
+                  placeholder="Barcode"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-key-location">{t("home")}</Label>
+                <select
+                  id="edit-key-location"
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  value={editForm.homeLocationId}
+                  onChange={(e) => setEditForm((f) => ({ ...f, homeLocationId: e.target.value }))}
+                >
+                  <option value="">{"\u2014"}</option>
+                  {locations.map((loc) => (
+                    <option key={loc.id} value={loc.id}>
+                      {loc.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-key-quantity">{t("quantity")}</Label>
+                <Input
+                  id="edit-key-quantity"
+                  type="number"
+                  min={1}
+                  value={editForm.quantity}
+                  onChange={(e) => setEditForm((f) => ({ ...f, quantity: parseInt(e.target.value) || 1 }))}
+                />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-key-assigned">{t("assignedTo")}</Label>
+              <select
+                id="edit-key-assigned"
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                value={editForm.assignedToId}
+                onChange={(e) => setEditForm((f) => ({ ...f, assignedToId: e.target.value }))}
+              >
+                <option value="">{"\u2014"}</option>
+                {members.map((m) => (
+                  <option key={m.userId} value={m.userId}>
+                    {m.user.name || m.user.email}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-key-address">{t("address")}</Label>
+              <Input
+                id="edit-key-address"
+                value={editForm.address}
+                onChange={(e) => setEditForm((f) => ({ ...f, address: e.target.value }))}
+                placeholder={t("address")}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-key-notes">{t("notes")}</Label>
+              <Textarea
+                id="edit-key-notes"
+                value={editForm.notes}
+                onChange={(e) => setEditForm((f) => ({ ...f, notes: e.target.value }))}
+                placeholder={t("notes")}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setEditOpen(false); setEditTarget(null) }} disabled={editing}>
+              {tc("cancel")}
+            </Button>
+            <Button onClick={handleEdit} disabled={editing || !editForm.name.trim()}>
+              {editing ? tc("loading") : tc("save")}
             </Button>
           </DialogFooter>
         </DialogContent>

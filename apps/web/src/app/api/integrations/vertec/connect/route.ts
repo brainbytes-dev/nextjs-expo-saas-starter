@@ -10,8 +10,14 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
+import { auth } from "@/lib/auth"
 
 export async function POST(req: NextRequest) {
+  const session = await auth.api.getSession({ headers: req.headers })
+  if (!session) {
+    return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 })
+  }
+
   let body: unknown
   try {
     body = await req.json()
@@ -28,7 +34,18 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const base = serverUrl.replace(/\/$/, "")
+  // Validate URL — only https:// allowed to prevent SSRF
+  let parsedUrl: URL
+  try {
+    parsedUrl = new URL(serverUrl)
+  } catch {
+    return NextResponse.json({ error: "Ungültige serverUrl" }, { status: 400 })
+  }
+  if (parsedUrl.protocol !== "https:") {
+    return NextResponse.json({ error: "serverUrl muss HTTPS verwenden" }, { status: 400 })
+  }
+
+  const base = parsedUrl.origin
 
   // Validate credentials against the Vertec identity endpoint
   try {

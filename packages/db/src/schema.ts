@@ -438,9 +438,11 @@ export const keys = pgTable(
     quantity: integer("quantity").default(1),
     homeLocationId: uuid("home_location_id").references(() => locations.id),
     assignedToId: uuid("assigned_to_id").references(() => users.id),
+    assignedLocationId: uuid("assigned_location_id").references(() => locations.id),
     barcode: text("barcode"),
     image: text("image"),
     notes: text("notes"),
+    status: text("status").default("available").notNull(), // "available" | "issued" | "lost" | "defective" | "retired"
     isActive: boolean("is_active").default(true),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -472,6 +474,7 @@ export const materialStocks = pgTable(
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => [
+    uniqueIndex("uq_material_stocks_material_location").on(table.materialId, table.locationId),
     index("idx_material_stocks_material_id").on(table.materialId),
     index("idx_material_stocks_location_id").on(table.locationId),
     index("idx_material_stocks_org_id").on(table.organizationId),

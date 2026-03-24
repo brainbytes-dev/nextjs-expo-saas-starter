@@ -928,7 +928,7 @@ export default function VehiclesPage() {
         ),
       },
     ],
-    [t, tc, router]
+    [t, tc, router, handleToggleStatus]
   )
 
   const table = useReactTable({

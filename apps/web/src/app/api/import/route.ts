@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getSessionAndOrg } from "@/app/api/_helpers/auth";
+import { withPermission } from "@/lib/rbac";
+import { parseJsonBody } from "@/app/api/_helpers/parse-body";
 import {
   materials,
   tools,
@@ -62,13 +63,11 @@ function getFieldMap(entityType: EntityType): Record<string, string> {
 
 // ─── POST /api/import ───────────────────────────────────────────────────────
 
-export async function POST(request: Request) {
+export const POST = withPermission("materials", "create")(async (request, { db, orgId }) => {
   try {
-    const result = await getSessionAndOrg(request);
-    if (result.error) return result.error;
-    const { db, orgId } = result;
 
-    const body = await request.json();
+    const parsed = await parseJsonBody(request);
+    if ("error" in parsed) return parsed.error;
     const {
       entityType,
       rows,
@@ -79,7 +78,8 @@ export async function POST(request: Request) {
       rows: Record<string, string>[]
       mapping: Record<string, string>
       duplicateAction: "skip" | "update"
-    } = body;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } = parsed.data as any;
 
     if (!entityType || !rows || !mapping) {
       return NextResponse.json(
@@ -165,7 +165,7 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}
+});
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 

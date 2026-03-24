@@ -254,6 +254,15 @@
       "safe": "Cofre",
       "cabinet": "Armário",
       "other": "Outros"
+    },
+    "status": "Estado",
+    "changeStatus": "Alterar estado",
+    "statuses": {
+      "available": "Disponível",
+      "issued": "Emitido",
+      "lost": "Perdido",
+      "defective": "Defeituoso",
+      "retired": "Aposentado"
     }
   },
   "tasks": {

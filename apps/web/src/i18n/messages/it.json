@@ -774,6 +774,15 @@
       "safe": "Cassaforte",
       "cabinet": "Armadio",
       "other": "Altro"
+    },
+    "status": "Stato",
+    "changeStatus": "Cambia stato",
+    "statuses": {
+      "available": "Disponibile",
+      "issued": "Emesso",
+      "lost": "Perso",
+      "defective": "Difettoso",
+      "retired": "Ritirato"
     }
   },
   "tasks": {

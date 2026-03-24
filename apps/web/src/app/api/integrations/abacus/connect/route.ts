@@ -12,6 +12,16 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
+import { createHmac } from "crypto";
+
+export function signAbacusState(nonce: string, orgId: string): string {
+  const secret = process.env.BETTER_AUTH_SECRET;
+  if (!secret) throw new Error("BETTER_AUTH_SECRET is not set");
+  const hmac = createHmac("sha256", secret)
+    .update(`${nonce}.${orgId}`)
+    .digest("hex");
+  return `${nonce}.${orgId}.${hmac}`;
+}
 
 export async function GET(req: NextRequest) {
   const clientId = process.env.ABACUS_CLIENT_ID;
@@ -26,7 +36,8 @@ export async function GET(req: NextRequest) {
   const baseUrl =
     (process.env.ABACUS_BASE_URL ?? "https://abaninja.ch").replace(/\/$/, "");
 
-  const state = `${crypto.randomUUID()}.${orgId}`;
+  const nonce = crypto.randomUUID();
+  const state = signAbacusState(nonce, orgId);
 
   const params = new URLSearchParams({
     response_type: "code",

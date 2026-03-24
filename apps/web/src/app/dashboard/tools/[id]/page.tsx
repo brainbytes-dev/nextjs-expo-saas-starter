@@ -49,6 +49,7 @@ import { CustomFieldsSection } from "@/components/custom-fields"
 import { InsuranceWarrantyPanel } from "@/components/insurance-warranty-panel"
 import { AttachmentsPanel } from "@/components/attachments-panel"
 import { ReservationPanel } from "@/components/reservation-panel"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -355,13 +356,16 @@ export default function ToolDetailPage() {
           setForm((prev) => ({ ...prev, ...updated }))
         }
         setIsEditing(false)
+        toast.success(t("saved") ?? "Gespeichert")
+      } else {
+        toast.error(t("saveError") ?? "Speichern fehlgeschlagen")
       }
     } catch {
-      // TODO: toast
+      toast.error(t("saveError") ?? "Speichern fehlgeschlagen")
     } finally {
       setSaving(false)
     }
-  }, [tool, toolId, form])
+  }, [tool, toolId, form, t])
 
   // Delete handler
   const handleDelete = useCallback(async () => {

@@ -254,6 +254,15 @@
       "safe": "Kasa",
       "cabinet": "Dolap",
       "other": "Diğer"
+    },
+    "status": "Durum",
+    "changeStatus": "Durum değiştir",
+    "statuses": {
+      "available": "Mevcut",
+      "issued": "Verildi",
+      "lost": "Kayıp",
+      "defective": "Arızalı",
+      "retired": "Emekli"
     }
   },
   "tasks": {

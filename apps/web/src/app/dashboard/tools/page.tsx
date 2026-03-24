@@ -31,6 +31,7 @@ import {
   IconLogin,
   IconLogout,
   IconCar,
+  IconMapPin,
 } from "@tabler/icons-react"
 import { toast } from "sonner"
 import { BookToVehicleDialog } from "@/components/book-to-vehicle-dialog"
@@ -96,6 +97,7 @@ interface ToolRow {
   assignedToId: string | null
   assignedUserName: string | null
   assignedLocationId: string | null
+  assignedLocationName: string | null
   barcode: string | null
   manufacturer: string | null
   serialNumber: string | null
@@ -581,18 +583,28 @@ export default function ToolsPage() {
           </button>
         ),
         size: 150,
-        cell: ({ row }) => (
-          <span className="text-sm">
-            {row.original.assignedToId ? (
-              <Badge variant="outline" className="bg-primary/10 text-primary border-transparent text-xs">
-                <IconLogout className="mr-1 size-3" />
-                {row.original.assignedUserName ?? t("checkedOut")}
-              </Badge>
-            ) : (
-              <span className="text-muted-foreground">{"\u2014"}</span>
-            )}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const { assignedToId, assignedUserName, assignedLocationId, assignedLocationName } = row.original
+          if (!assignedToId && !assignedLocationId) {
+            return <span className="text-sm text-muted-foreground">{"\u2014"}</span>
+          }
+          return (
+            <span className="flex flex-col gap-0.5 text-sm">
+              {assignedToId && (
+                <Badge variant="outline" className="bg-primary/10 text-primary border-transparent text-xs w-fit">
+                  <IconLogout className="mr-1 size-3" />
+                  {assignedUserName ?? t("checkedOut")}
+                </Badge>
+              )}
+              {assignedLocationId && (
+                <Badge variant="outline" className="text-xs w-fit">
+                  <IconMapPin className="mr-1 size-3" />
+                  {assignedLocationName ?? assignedLocationId}
+                </Badge>
+              )}
+            </span>
+          )
+        },
       },
       {
         accessorKey: "condition",

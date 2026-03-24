@@ -254,6 +254,15 @@
       "safe": "Caja fuerte",
       "cabinet": "Armario",
       "other": "Otros"
+    },
+    "status": "Estado",
+    "changeStatus": "Cambiar estado",
+    "statuses": {
+      "available": "Disponible",
+      "issued": "Emitido",
+      "lost": "Perdido",
+      "defective": "Defectuoso",
+      "retired": "Retirado"
     }
   },
   "tasks": {

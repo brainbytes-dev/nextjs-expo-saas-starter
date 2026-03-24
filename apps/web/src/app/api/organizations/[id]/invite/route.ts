@@ -98,7 +98,7 @@ export async function POST(
         .returning();
 
       // Send a notification email
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://app.zentory.ch";
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
       await sendTeamInviteEmail(
         inviter?.name ?? session.user.email ?? "Jemand",
         org?.name ?? "Zentory",
@@ -117,7 +117,7 @@ export async function POST(
     }
 
     // User does not exist — send a signup invite email
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://app.zentory.ch";
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
     const signupUrl = `${appUrl}/signup?email=${encodeURIComponent(email)}`;
     await sendTeamInviteEmail(
       inviter?.name ?? session.user.email ?? "Jemand",

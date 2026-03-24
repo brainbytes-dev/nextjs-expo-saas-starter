@@ -254,6 +254,15 @@
       "safe": "金庫",
       "cabinet": "キャビネット",
       "other": "その他"
+    },
+    "status": "ステータス",
+    "changeStatus": "ステータス変更",
+    "statuses": {
+      "available": "利用可能",
+      "issued": "貸出中",
+      "lost": "紛失",
+      "defective": "不良",
+      "retired": "廃棄"
     }
   },
   "tasks": {

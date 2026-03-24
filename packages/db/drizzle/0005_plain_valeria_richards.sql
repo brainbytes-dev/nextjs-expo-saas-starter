@@ -1,0 +1,2 @@
+ALTER TABLE "keys" ADD COLUMN "status" text DEFAULT 'available' NOT NULL;--> statement-breakpoint
+CREATE UNIQUE INDEX "uq_material_stocks_material_location" ON "material_stocks" USING btree ("material_id","location_id");

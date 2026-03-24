@@ -75,7 +75,7 @@ export async function POST(request: Request) {
       // Send notification email to admin
       await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || "noreply@zentory.ch",
-        to: "support@zentory.ch",
+        to: process.env.ADMIN_NOTIFICATION_EMAIL || "support@zentory.ch",
         subject: `Kontolöschung beantragt: ${session.user.email}`,
         html: `
           <h2>Kontolöschung beantragt</h2>

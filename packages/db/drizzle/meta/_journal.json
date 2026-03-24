@@ -36,6 +36,13 @@
       "when": 1774279942717,
       "tag": "0004_worried_gorgon",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1774385110550,
+      "tag": "0005_plain_valeria_richards",
+      "breakpoints": true
     }
   ]
 }

@@ -1,37 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const protectedRoutes = ['/dashboard', '/admin']
-const adminRoutes = ['/admin']
+function getSessionToken(request: NextRequest): string | undefined {
+  return (
+    request.cookies.get('__Secure-better-auth.session_token')?.value ||
+    request.cookies.get('better-auth.session_token')?.value
+  )
+}
 
 export async function proxy(request: NextRequest) {
-  const pathname = request.nextUrl.pathname
+  const { pathname } = request.nextUrl
+  const sessionToken = getSessionToken(request)
 
-  const isProtected = protectedRoutes.some(route => pathname.startsWith(route))
-
-  if (!isProtected) {
-    return NextResponse.next()
+  if (!sessionToken) {
+    const loginUrl = new URL('/login', request.url)
+    loginUrl.searchParams.set('redirect', pathname)
+    return NextResponse.redirect(loginUrl)
   }
 
-  // Check for session cookie
-  const sessionCookie = request.cookies.get('__Secure-better-auth.session_token')?.value ||
-    request.cookies.get('better-auth.session_token')?.value
+  // Admin routes — verify role via API
+  if (pathname.startsWith('/admin')) {
+    try {
+      const sessionUrl = new URL('/api/auth/get-session', request.url)
+      const res = await fetch(sessionUrl.toString(), {
+        headers: { cookie: request.headers.get('cookie') || '' },
+      })
 
-  if (!sessionCookie) {
-    return NextResponse.redirect(
-      new URL(`/login?redirect=${encodeURIComponent(pathname)}`, request.url)
-    )
-  }
+      if (!res.ok) {
+        const loginUrl = new URL('/login', request.url)
+        loginUrl.searchParams.set('redirect', pathname)
+        return NextResponse.redirect(loginUrl)
+      }
 
-  // Admin routes require additional role check via server-side layout guard
-  // Middleware can't easily decode the JWT, so admin layout does the role check
-  if (adminRoutes.some(route => pathname.startsWith(route))) {
-    // Pass through — admin layout will verify role and redirect non-admins
-    return NextResponse.next()
+      const session = await res.json()
+      if (session?.user?.role !== 'admin') {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
+    } catch {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
   }
 
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/((?!api|_next|static|public|.*\\..*).*)'],
+  matcher: ['/dashboard/:path*', '/admin/:path*'],
 }

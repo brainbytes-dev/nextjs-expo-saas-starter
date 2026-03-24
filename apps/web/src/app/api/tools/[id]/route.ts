@@ -73,21 +73,26 @@ export async function GET(
       .orderBy(desc(toolBookings.createdAt))
       .limit(20);
 
-    // Custom fields
-    const customFields = await db
-      .select({
-        id: customFieldValues.id,
-        definitionId: customFieldValues.definitionId,
-        fieldName: customFieldDefinitions.name,
-        fieldType: customFieldDefinitions.fieldType,
-        value: customFieldValues.value,
-      })
-      .from(customFieldValues)
-      .innerJoin(
-        customFieldDefinitions,
-        eq(customFieldValues.definitionId, customFieldDefinitions.id)
-      )
-      .where(eq(customFieldValues.entityId, id));
+    // Custom fields — tables may not be migrated yet
+    let customFields: unknown[] = [];
+    try {
+      customFields = await db
+        .select({
+          id: customFieldValues.id,
+          definitionId: customFieldValues.definitionId,
+          fieldName: customFieldDefinitions.name,
+          fieldType: customFieldDefinitions.fieldType,
+          value: customFieldValues.value,
+        })
+        .from(customFieldValues)
+        .innerJoin(
+          customFieldDefinitions,
+          eq(customFieldValues.definitionId, customFieldDefinitions.id)
+        )
+        .where(eq(customFieldValues.entityId, id));
+    } catch {
+      // custom fields tables may not be migrated yet
+    }
 
     return NextResponse.json({
       ...tool,

@@ -807,7 +807,16 @@
       "cabinet": "Schrank",
       "other": "Sonstige"
     },
-    "bookToVehicle": "Auf Fahrzeug buchen"
+    "bookToVehicle": "Auf Fahrzeug buchen",
+    "status": "Status",
+    "changeStatus": "Status ändern",
+    "statuses": {
+      "available": "Verfügbar",
+      "issued": "Ausgegeben",
+      "lost": "Verloren",
+      "defective": "Defekt",
+      "retired": "Ausgemustert"
+    }
   },
   "tasks": {
     "title": "Aufgaben",

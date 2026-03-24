@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { Switch } from "@/components/ui/switch"
-import { getConsent, setConsent, hasConsent, type CookieConsent } from "@/lib/cookie-consent"
+import { getConsent, setConsent, hasConsent } from "@/lib/cookie-consent"
 
 type View = "hidden" | "banner" | "settings"
 

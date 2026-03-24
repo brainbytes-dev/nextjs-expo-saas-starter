@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
 import { keys, locations, users, auditLog } from "@repo/db/schema";
 import { eq, and } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 export async function GET(
   request: Request,
@@ -25,9 +26,11 @@ export async function GET(
         homeLocationName: locations.name,
         assignedToId: keys.assignedToId,
         assignedToName: users.name,
+        assignedLocationId: keys.assignedLocationId,
         barcode: keys.barcode,
         image: keys.image,
         notes: keys.notes,
+        status: keys.status,
         isActive: keys.isActive,
         createdAt: keys.createdAt,
         updatedAt: keys.updatedAt,
@@ -80,6 +83,14 @@ export async function PATCH(
     }
 
     const body = await request.json();
+    const VALID_STATUSES = ["available", "issued", "lost", "defective", "retired"] as const;
+    if (body.status !== undefined && !VALID_STATUSES.includes(body.status)) {
+      return NextResponse.json(
+        { error: "Invalid status value" },
+        { status: 400 }
+      );
+    }
+
     const updatableFields = [
       "number",
       "name",
@@ -87,9 +98,11 @@ export async function PATCH(
       "quantity",
       "homeLocationId",
       "assignedToId",
+      "assignedLocationId",
       "barcode",
       "image",
       "notes",
+      "status",
     ] as const;
 
     const updates: Record<string, unknown> = { updatedAt: new Date() };

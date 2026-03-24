@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 import {
@@ -47,6 +47,25 @@ import { printLieferscheinBatch, type LieferscheinData } from "@/lib/lieferschei
 // ── Types ──────────────────────────────────────────────────────────────
 type CommissionStatus = "open" | "inProgress" | "completed"
 
+interface ApiCommission {
+  id: string
+  name: string
+  number: number | null
+  manualNumber: string | null
+  status: string
+  targetLocationId: string | null
+  targetLocationName: string | null
+  customerId: string | null
+  customerName: string | null
+  responsibleId: string | null
+  responsibleName: string | null
+  vehicleId: string | null
+  vehicleName: string | null
+  entryCount: number
+  createdAt: string
+  updatedAt: string
+}
+
 interface Commission {
   id: string
   name: string
@@ -58,21 +77,33 @@ interface Commission {
   vehicleId: string | null
   vehicleName: string | null
   entryCount: number
-  openCount: number
   status: CommissionStatus
   createdAt: string
 }
 
-// ── Mock Data ──────────────────────────────────────────────────────────
-const MOCK_COMMISSIONS: Commission[] = [
-  { id: "1", name: "Elektroinstallation Oerlikon Phase 1", number: "K-2025-001", manualNumber: "PJ-230/1", targetLocation: "Baustelle Oerlikon", customer: "Muster AG", responsible: "Thomas Müller", vehicleId: null, vehicleName: "VW T6 ZH-123", entryCount: 12, openCount: 5, status: "inProgress", createdAt: "2025-02-10" },
-  { id: "2", name: "Reparatur Schulhaus Winterthur", number: "K-2025-002", manualNumber: null, targetLocation: "Baustelle Winterthur", customer: "Stadt Winterthur", responsible: "Anna Weber", vehicleId: null, vehicleName: null, entryCount: 8, openCount: 8, status: "open", createdAt: "2025-02-18" },
-  { id: "3", name: "Wartung Industrieanlage Schlieren", number: "K-2025-003", manualNumber: "WA-2025-3", targetLocation: "Lager A", customer: "Industriewerke AG", responsible: "Peter Keller", vehicleId: null, vehicleName: "Mercedes Sprinter ZH-456", entryCount: 24, openCount: 0, status: "completed", createdAt: "2025-01-15" },
-  { id: "4", name: "Neubau Wohnüberbauung Zürich Nord", number: "K-2025-004", manualNumber: null, targetLocation: "Baustelle Zürich Nord", customer: "Baupartner GmbH", responsible: "Thomas Müller", vehicleId: null, vehicleName: null, entryCount: 45, openCount: 31, status: "inProgress", createdAt: "2025-02-28" },
-  { id: "5", name: "Umbau Bürogebäude Zug", number: "K-2025-005", manualNumber: "PJ-228", targetLocation: "Fahrzeug VW T6 ZH-777", customer: "Finance Corp AG", responsible: "Sandra Huber", vehicleId: null, vehicleName: "VW T6 ZH-777", entryCount: 6, openCount: 6, status: "open", createdAt: "2025-03-05" },
-  { id: "6", name: "Notfallreparatur Kabelschaden", number: "K-2025-006", manualNumber: null, targetLocation: "Baustelle Oerlikon", customer: "Muster AG", responsible: "Anna Weber", vehicleId: null, vehicleName: null, entryCount: 4, openCount: 0, status: "completed", createdAt: "2025-03-08" },
-  { id: "7", name: "Revision Elektroinstallation Lager", number: "K-2025-007", manualNumber: "REV-2025-1", targetLocation: "Lager A", customer: null, responsible: "Peter Keller", vehicleId: null, vehicleName: null, entryCount: 18, openCount: 12, status: "inProgress", createdAt: "2025-03-12" },
-]
+// ── Helpers ────────────────────────────────────────────────────────────
+const STATUS_MAP: Record<string, CommissionStatus> = {
+  open: "open",
+  in_progress: "inProgress",
+  completed: "completed",
+}
+
+function mapApiToCommission(raw: ApiCommission): Commission {
+  return {
+    id: raw.id,
+    name: raw.name,
+    number: raw.number != null ? `K-${String(raw.number).padStart(4, "0")}` : "—",
+    manualNumber: raw.manualNumber,
+    targetLocation: raw.targetLocationName ?? "—",
+    customer: raw.customerName ?? null,
+    responsible: raw.responsibleName ?? "—",
+    vehicleId: raw.vehicleId,
+    vehicleName: raw.vehicleName,
+    entryCount: Number(raw.entryCount) || 0,
+    status: STATUS_MAP[raw.status] ?? "open",
+    createdAt: raw.createdAt,
+  }
+}
 
 const STATUS_COLORS: Record<CommissionStatus, string> = {
   open:       "bg-muted text-muted-foreground",
@@ -84,21 +115,13 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit", year: "numeric" })
 }
 
-function ProgressBar({ total, open }: { total: number; open: number }) {
-  const done = total - open
-  const pct = total > 0 ? Math.round((done / total) * 100) : 0
+function EntryCount({ total }: { total: number }) {
   return (
-    <div className="flex items-center gap-2 min-w-[100px]">
-      <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-        <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${pct}%` }} />
-      </div>
-      <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">{done}/{total}</span>
-    </div>
+    <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">{total}</span>
   )
 }
 
-// ── Mock LieferscheinData builder for the list (no entry details) ──────
-function buildMockLieferschein(c: Commission): LieferscheinData {
+function buildLieferschein(c: Commission): LieferscheinData {
   return {
     number: c.number,
     manualNumber: c.manualNumber,
@@ -108,7 +131,7 @@ function buildMockLieferschein(c: Commission): LieferscheinData {
     targetLocation: c.targetLocation,
     responsible: c.responsible,
     createdAt: c.createdAt,
-    entries: [],           // batch print from list has no entry details
+    entries: [],
     signature: null,
     signedAt: null,
     signedBy: null,
@@ -129,13 +152,34 @@ export default function CommissionsPage() {
   const tc = useTranslations("common")
   const router = useRouter()
 
+  const [commissions, setCommissions] = useState<Commission[]>([])
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [loading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<Set<string>>(new Set())
 
+  useEffect(() => {
+    let cancelled = false
+    async function fetchCommissions() {
+      try {
+        const res = await fetch("/api/commissions?limit=100")
+        if (!res.ok) throw new Error("Failed to fetch commissions")
+        const json = await res.json()
+        if (cancelled) return
+        const items: ApiCommission[] = json.data ?? json
+        setCommissions(items.map(mapApiToCommission))
+      } catch (err) {
+        console.error("Failed to load commissions:", err)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    fetchCommissions()
+    return () => { cancelled = true }
+  }, [])
+
   const filtered = useMemo(() => {
-    return MOCK_COMMISSIONS.filter((c) => {
+    return commissions.filter((c) => {
       const matchSearch =
         !search ||
         c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -145,12 +189,10 @@ export default function CommissionsPage() {
       const matchStatus = statusFilter === "all" || c.status === statusFilter
       return matchSearch && matchStatus
     })
-  }, [search, statusFilter])
+  }, [commissions, search, statusFilter])
 
-  const totalOpen = MOCK_COMMISSIONS.reduce((s, c) => s + c.openCount, 0)
-  const totalEntries = MOCK_COMMISSIONS.reduce((s, c) => s + c.entryCount, 0)
+  const totalEntries = commissions.reduce((s, c) => s + c.entryCount, 0)
 
-  // ── Selection helpers ────────────────────────────────────────────────
   const allSelected = filtered.length > 0 && filtered.every((c) => selected.has(c.id))
   const someSelected = !allSelected && filtered.some((c) => selected.has(c.id))
   const selectedCount = [...selected].filter((id) => filtered.some((c) => c.id === id)).length
@@ -180,11 +222,8 @@ export default function CommissionsPage() {
     }
   }
 
-  // ── Batch print ──────────────────────────────────────────────────────
   function handleBatchPrint() {
-    const items = filtered
-      .filter((c) => selected.has(c.id))
-      .map(buildMockLieferschein)
+    const items = filtered.filter((c) => selected.has(c.id)).map(buildLieferschein)
     printLieferscheinBatch(items)
   }
 
@@ -195,7 +234,7 @@ export default function CommissionsPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t("title")}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {MOCK_COMMISSIONS.length} {t("title")} · {t("entriesOpen", { open: totalOpen, total: totalEntries })}
+            {commissions.length} {t("title")} · {totalEntries} {tc("entries")}
           </p>
         </div>
         <Button className="gap-2">
@@ -207,7 +246,7 @@ export default function CommissionsPage() {
       {/* Status cards */}
       <div className="grid grid-cols-3 gap-4">
         {(["open", "inProgress", "completed"] as CommissionStatus[]).map((s) => {
-          const count = MOCK_COMMISSIONS.filter((c) => c.status === s).length
+          const count = commissions.filter((c) => c.status === s).length
           return (
             <Card
               key={s}
@@ -234,11 +273,10 @@ export default function CommissionsPage() {
             className="pl-9"
           />
         </div>
-
         {selectedCount > 0 && (
           <Button variant="outline" onClick={handleBatchPrint} className="gap-2 whitespace-nowrap">
             <IconPrinter className="size-4" />
-            {selectedCount === 1 ? t("printDeliveryNotes", { count: selectedCount }) : t("printDeliveryNotesPlural", { count: selectedCount })}
+            {t("printDeliveryNotes", { count: selectedCount })}
           </Button>
         )}
       </div>
@@ -346,7 +384,7 @@ export default function CommissionsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <ProgressBar total={commission.entryCount} open={commission.openCount} />
+                        <EntryCount total={commission.entryCount} />
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>

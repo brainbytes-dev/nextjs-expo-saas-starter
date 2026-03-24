@@ -68,12 +68,6 @@ interface MaterialMatch {
   confidence: "barcode" | "name"
 }
 
-interface EanEnrichment {
-  position: number
-  ean: string
-  data: { name: string | null; manufacturer: string | null } | null
-}
-
 interface MatchResult {
   position: number
   match: MaterialMatch | null
@@ -427,6 +421,7 @@ export function DeliveryScanDialog({
               )}
             >
               {imagePreview ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={imagePreview}
                   alt="Preview"

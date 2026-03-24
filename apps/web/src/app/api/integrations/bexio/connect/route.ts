@@ -11,6 +11,18 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
+import { createHmac } from "crypto";
+
+function signState(nonce: string, orgId: string): string {
+  const secret = process.env.BETTER_AUTH_SECRET;
+  if (!secret) throw new Error("BETTER_AUTH_SECRET is not set");
+  const hmac = createHmac("sha256", secret)
+    .update(`${nonce}.${orgId}`)
+    .digest("hex");
+  return `${nonce}.${orgId}.${hmac}`;
+}
+
+export { signState };
 
 export async function GET(req: NextRequest) {
   const clientId = process.env.BEXIO_CLIENT_ID;
@@ -22,9 +34,9 @@ export async function GET(req: NextRequest) {
   if (result.error) return result.error;
   const { orgId } = result;
 
-  // Encode orgId into the state param so the callback can retrieve it.
-  // A random nonce is prepended to prevent CSRF.
-  const state = `${crypto.randomUUID()}.${orgId}`;
+  // HMAC-signed state: "{nonce}.{orgId}.{hmac}" — verified in the callback
+  const nonce = crypto.randomUUID();
+  const state = signState(nonce, orgId);
 
   const params = new URLSearchParams({
     response_type: "code",

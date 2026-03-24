@@ -22,7 +22,11 @@ function initAuth(): AuthInstance {
     secret: process.env.BETTER_AUTH_SECRET || "dev-secret-key",
     // Allow requests with missing/null Origin (React Native doesn't send one).
     // TODO: restrict to specific origins in production.
-    trustedOrigins: (process.env.TRUSTED_ORIGINS || "http://localhost:3003").split(","),
+    trustedOrigins: process.env.TRUSTED_ORIGINS
+      ? process.env.TRUSTED_ORIGINS.split(",")
+      : process.env.NODE_ENV === "production"
+        ? [process.env.BETTER_AUTH_URL || "https://zentory.ch"]
+        : ["http://localhost:3003"],
     emailAndPassword: {
       enabled: true,
     },

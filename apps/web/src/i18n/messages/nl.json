@@ -254,6 +254,15 @@
       "safe": "Kluis",
       "cabinet": "Kast",
       "other": "Overig"
+    },
+    "status": "Status",
+    "changeStatus": "Status wijzigen",
+    "statuses": {
+      "available": "Beschikbaar",
+      "issued": "Uitgegeven",
+      "lost": "Verloren",
+      "defective": "Defect",
+      "retired": "Buiten gebruik"
     }
   },
   "tasks": {

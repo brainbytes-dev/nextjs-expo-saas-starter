@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendWelcomeEmail } from '@/lib/email';
 import { auth } from '@/lib/auth';
-import { checkRateLimit } from '@/lib/rate-limit';
+import { checkDailyRateLimit } from '@/lib/rate-limit';
 import * as Sentry from '@sentry/nextjs';
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,27 +15,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Rate limit per user
-    const allowed = await checkRateLimit(`welcome-email:${session.user.id}`);
+    // Rate limit: max 1 welcome email per user per day
+    const allowed = await checkDailyRateLimit(`welcome-email:${session.user.id}`);
     if (!allowed) {
       return NextResponse.json(
-        { error: 'Too many requests. Please try again later.' },
+        { error: 'Welcome email already sent recently. Please try again later.' },
         { status: 429 }
       );
     }
 
-    const { name, email } = await req.json();
+    // Use session data only — never accept email/name from request body
+    const email = session.user.email;
+    const name = session.user.name || '';
 
-    if (!email || !name) {
+    if (!email) {
       return NextResponse.json(
-        { error: 'Email and name are required' },
-        { status: 400 }
-      );
-    }
-
-    if (!EMAIL_REGEX.test(email)) {
-      return NextResponse.json(
-        { error: 'Invalid email format' },
+        { error: 'No email address associated with your account' },
         { status: 400 }
       );
     }

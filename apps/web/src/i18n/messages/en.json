@@ -807,7 +807,16 @@
       "cabinet": "Cabinet",
       "other": "Other"
     },
-    "bookToVehicle": "Book to vehicle"
+    "bookToVehicle": "Book to vehicle",
+    "status": "Status",
+    "changeStatus": "Change status",
+    "statuses": {
+      "available": "Available",
+      "issued": "Issued",
+      "lost": "Lost",
+      "defective": "Defective",
+      "retired": "Retired"
+    }
   },
   "tasks": {
     "title": "Tasks",

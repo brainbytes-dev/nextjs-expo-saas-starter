@@ -3,6 +3,8 @@
 import { Fragment, useEffect, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
+import { useTheme } from "next-themes"
+import { Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Logo, Wordmark } from "@/components/logo"
 import { ModeToggle } from "@/components/theme/theme-toggle"
@@ -744,6 +746,7 @@ export default function LandingPage() {
   const t = useTranslations("landing")
   const [navSolid, setNavSolid] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { resolvedTheme, setTheme } = useTheme()
 
   useEffect(() => {
     const fn = () => setNavSolid(window.scrollY > 32)
@@ -916,10 +919,20 @@ export default function LandingPage() {
                   </Button>
                 </Link>
               </div>
-              <div className="flex items-center justify-between text-white [&_button]:text-white [&_button]:hover:text-white/80 [&_button]:hover:bg-white/10">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <LanguageSwitcher compact />
-                  <ModeToggle />
+                  {/* Inline theme toggle — always white on dark overlay */}
+                  <button
+                    type="button"
+                    aria-label="Toggle theme"
+                    onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                    className="flex size-9 items-center justify-center rounded-md text-white hover:bg-white/10 transition-colors"
+                  >
+                    {resolvedTheme === "dark"
+                      ? <Sun className="size-5" />
+                      : <Moon className="size-5" />}
+                  </button>
                 </div>
                 <span className="font-mono text-[10px] tracking-[0.2em] text-white/20 uppercase">zentory.ch</span>
               </div>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { keys, locations, users } from "@repo/db/schema";
 import { eq, and, or, ilike, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { withPermission } from "@/lib/rbac";
 
 // ─── GET /api/keys ──────────────────────────────────────────────────────────
@@ -11,6 +12,7 @@ export const GET = withPermission("keys", "read")(async (request, { db, orgId })
     const page = Math.max(1, parseInt(url.searchParams.get("page") || "1"));
     const limit = Math.min(100, Math.max(1, parseInt(url.searchParams.get("limit") || "20")));
     const search = url.searchParams.get("search") || "";
+    const locationId = url.searchParams.get("locationId");
     const offset = (page - 1) * limit;
 
     const conditions = [
@@ -27,6 +29,14 @@ export const GET = withPermission("keys", "read")(async (request, { db, orgId })
         )!
       );
     }
+    if (locationId) {
+      conditions.push(
+        or(eq(keys.homeLocationId, locationId), eq(keys.assignedLocationId, locationId))!
+      );
+    }
+
+    const homeLocation = alias(locations, "home_location");
+    const assignedLocation = alias(locations, "assigned_location");
 
     const [items, countResult] = await Promise.all([
       db
@@ -37,18 +47,22 @@ export const GET = withPermission("keys", "read")(async (request, { db, orgId })
           address: keys.address,
           quantity: keys.quantity,
           homeLocationId: keys.homeLocationId,
-          homeLocationName: locations.name,
+          homeLocationName: homeLocation.name,
           assignedToId: keys.assignedToId,
           assignedToName: users.name,
+          assignedLocationId: keys.assignedLocationId,
+          assignedLocationName: assignedLocation.name,
           barcode: keys.barcode,
           image: keys.image,
           notes: keys.notes,
+          status: keys.status,
           isActive: keys.isActive,
           createdAt: keys.createdAt,
           updatedAt: keys.updatedAt,
         })
         .from(keys)
-        .leftJoin(locations, eq(keys.homeLocationId, locations.id))
+        .leftJoin(homeLocation, eq(keys.homeLocationId, homeLocation.id))
+        .leftJoin(assignedLocation, eq(keys.assignedLocationId, assignedLocation.id))
         .leftJoin(users, eq(keys.assignedToId, users.id))
         .where(and(...conditions))
         .orderBy(keys.name)
