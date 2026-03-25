@@ -793,6 +793,31 @@ export const inventoryCountItems = pgTable("inventory_count_items", {
   index("idx_inventory_count_items_material_id").on(table.materialId),
 ]);
 
+// ─── Feature Usage (server-side analytics, consent-independent) ─────
+export const featureUsage = pgTable(
+  "feature_usage",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    feature: text("feature").notNull(),
+    date: date("date").notNull(),
+    count: integer("count").default(1).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("uq_feature_usage_org_feature_date").on(
+      table.organizationId,
+      table.feature,
+      table.date
+    ),
+    index("idx_feature_usage_org_id").on(table.organizationId),
+    index("idx_feature_usage_date").on(table.date),
+  ]
+);
+
 // ─── Type Exports ───────────────────────────────────────────────────
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;

@@ -11,6 +11,7 @@ import {
 } from "@repo/db/schema";
 import { eq, and } from "drizzle-orm";
 import { toCSV } from "@/lib/csv-parser";
+import { trackFeature } from "@/lib/track-feature";
 
 type ExportEntity = "materials" | "tools" | "suppliers" | "locations" | "commissions";
 type ExportFormat = "csv" | "json";
@@ -32,6 +33,7 @@ export const GET = withPermission("materials", "read")(async (request, { db, org
     }
 
     const { headers: csvHeaders, rows, filename } = await fetchEntityData(db, orgId, entity);
+    trackFeature(db, orgId, "exports");
 
     if (format === "json") {
       // Convert to array of objects

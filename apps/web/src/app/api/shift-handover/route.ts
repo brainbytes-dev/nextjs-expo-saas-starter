@@ -12,6 +12,7 @@ import {
   suppliers,
 } from "@repo/db/schema";
 import { eq, and, gte, lte, inArray } from "drizzle-orm";
+import { trackFeature } from "@/lib/track-feature";
 
 // ---------------------------------------------------------------------------
 // GET /api/shift-handover
@@ -180,6 +181,7 @@ export async function GET(request: Request) {
       (r) => r.bookingType === "checkin"
     ).length;
 
+    trackFeature(db, orgId, "shift_handovers");
     return NextResponse.json({
       date: dateParam,
       shift,

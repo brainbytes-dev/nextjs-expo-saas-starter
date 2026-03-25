@@ -8,6 +8,7 @@ import {
   IconArrowLeft,
   IconBrush,
   IconBuilding,
+  IconChartBar,
   IconDashboard,
   IconReceipt,
   IconUsers,
@@ -30,6 +31,7 @@ const NAV_ITEMS = [
   { href: "/admin/users", label: "Benutzer", icon: IconUsers },
   { href: "/admin/payments", label: "Umsatz", icon: IconReceipt },
   { href: "/admin/reseller", label: "Reseller / White-Label", icon: IconBrush },
+  { href: "/admin/analytics", label: "Feature Analytics", icon: IconChartBar },
 ]
 
 export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

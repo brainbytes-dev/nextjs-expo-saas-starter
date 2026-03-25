@@ -3,6 +3,7 @@ import { materials, materialGroups, locations, materialStocks } from "@repo/db/s
 import { eq, and, ilike, sql, isNotNull, inArray, desc } from "drizzle-orm";
 import { dispatchWebhook } from "@/lib/webhooks";
 import { withPermission } from "@/lib/rbac";
+import { trackFeature } from "@/lib/track-feature";
 
 // ─── GET /api/materials ───────────────────────────────────────────────────────
 // Example of withPermission wrapper usage. Apply this pattern to other routes.
@@ -182,6 +183,7 @@ export const POST = withPermission("materials", "create")(async (request, { db, 
       createdAt: material.createdAt,
     });
 
+    trackFeature(db, orgId, "materials");
     return NextResponse.json(material, { status: 201 });
   } catch (error) {
     console.error("POST /api/materials error:", error);

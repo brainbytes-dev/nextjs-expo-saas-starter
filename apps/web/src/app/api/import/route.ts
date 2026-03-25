@@ -9,6 +9,7 @@ import {
 } from "@repo/db/schema";
 import { eq, and } from "drizzle-orm";
 import type { EntityType } from "@/lib/migration/templates";
+import { trackFeature } from "@/lib/track-feature";
 
 // ─── Field-to-column mapping per entity ─────────────────────────────────────
 
@@ -157,6 +158,7 @@ export const POST = withPermission("materials", "create")(async (request, { db, 
       }
     }
 
+    trackFeature(db, orgId, "imports");
     return NextResponse.json({ imported, skipped, errors });
   } catch (error) {
     console.error("POST /api/import error:", error);

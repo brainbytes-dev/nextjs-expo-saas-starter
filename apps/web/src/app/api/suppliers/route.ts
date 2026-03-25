@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
 import { suppliers } from "@repo/db/schema";
 import { eq, ilike, and, sql } from "drizzle-orm";
+import { trackFeature } from "@/lib/track-feature";
 
 export async function GET(request: Request) {
   try {
@@ -98,6 +99,7 @@ export async function POST(request: Request) {
       })
       .returning();
 
+    trackFeature(db, orgId, "suppliers");
     return NextResponse.json(supplier, { status: 201 });
   } catch (error) {
     console.error("POST /api/suppliers error:", error);

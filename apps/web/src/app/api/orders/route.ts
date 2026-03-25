@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
 import { orders, orderItems, suppliers } from "@repo/db/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
+import { trackFeature } from "@/lib/track-feature";
 
 export async function GET(request: Request) {
   try {
@@ -124,6 +125,7 @@ export async function POST(request: Request) {
 
     // If this was created from a material request, we could update the request status here
     // For now we just return the order with the requestId for the client to handle
+    trackFeature(db, orgId, "orders");
     return NextResponse.json({ ...order, requestId }, { status: 201 });
   } catch (error) {
     console.error("POST /api/orders error:", error);

@@ -3,6 +3,7 @@ import { keys, locations, users } from "@repo/db/schema";
 import { eq, and, or, ilike, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { withPermission } from "@/lib/rbac";
+import { trackFeature } from "@/lib/track-feature";
 
 // ─── GET /api/keys ──────────────────────────────────────────────────────────
 
@@ -126,8 +127,7 @@ export const POST = withPermission("keys", "create")(async (request, { db, orgId
       })
       .returning();
 
-    // TODO: Add key.created webhook event type
-
+    trackFeature(db, orgId, "keys");
     return NextResponse.json(key, { status: 201 });
   } catch (error) {
     console.error("POST /api/keys error:", error);

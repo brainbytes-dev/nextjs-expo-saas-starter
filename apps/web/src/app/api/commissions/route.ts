@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
 import { commissions, locations, customers, users } from "@repo/db/schema";
 import { eq, and, inArray, desc, sql, count, aliasedTable } from "drizzle-orm";
+import { trackFeature } from "@/lib/track-feature";
 
 export async function GET(request: Request) {
   try {
@@ -112,6 +113,7 @@ export async function POST(request: Request) {
       })
       .returning();
 
+    trackFeature(db, orgId, "commissions");
     return NextResponse.json(commission, { status: 201 });
   } catch (error) {
     console.error("POST /api/commissions error:", error);

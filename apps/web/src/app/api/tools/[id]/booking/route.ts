@@ -3,6 +3,7 @@ import { getSessionAndOrg } from "@/app/api/_helpers/auth";
 import { tools, toolBookings } from "@repo/db/schema";
 import { eq, and } from "drizzle-orm";
 import { needsApproval, createApprovalAndNotify } from "@/lib/approval-engine";
+import { trackFeature } from "@/lib/track-feature";
 
 export async function POST(
   request: Request,
@@ -99,6 +100,7 @@ export async function POST(
 
     await db.update(tools).set(toolUpdates).where(eq(tools.id, toolId));
 
+    trackFeature(db, orgId, "tool_bookings");
     return NextResponse.json(booking, { status: 201 });
   } catch (error) {
     console.error("POST /api/tools/[id]/booking error:", error);

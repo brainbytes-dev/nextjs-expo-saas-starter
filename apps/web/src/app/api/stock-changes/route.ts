@@ -6,6 +6,7 @@ import { eq, and, desc, sql } from "drizzle-orm";
 import { dispatchWebhook } from "@/lib/webhooks";
 import { evaluateRules } from "@/lib/rules-engine";
 import { sendPushToOrg } from "@/lib/push-notifications";
+import { trackFeature } from "@/lib/track-feature";
 
 export async function GET(request: Request) {
   try {
@@ -241,6 +242,7 @@ export async function POST(request: Request) {
       createdAt: stockChange.createdAt,
     };
 
+    trackFeature(db, orgId, "stock_changes");
     // Dispatch webhook — fire-and-forget, outside the transaction
     dispatchWebhook(orgId, "stock.changed", eventContext);
 
