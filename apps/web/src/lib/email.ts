@@ -41,7 +41,7 @@ function brandedHtml(bodyContent: string): string {
         <!-- Header -->
         <tr>
           <td style="background:${BRAND.green};padding:24px 32px;text-align:center;">
-            <span style="color:#ffffff;font-size:22px;font-weight:700;letter-spacing:2px;">${BRAND.name.toUpperCase()}</span>
+            <span style="color:#ffffff;font-size:22px;font-weight:700;letter-spacing:2px;">ZEN</span><span style="color:#ffffff;font-size:22px;font-weight:300;letter-spacing:2px;">TORY</span>
           </td>
         </tr>
         <!-- Body -->
@@ -416,6 +416,326 @@ export async function sendShiftReportEmail({
     return result;
   } catch (error) {
     console.error('Failed to send shift report email:', error);
+    throw error;
+  }
+}
+
+export async function sendAutoReorderEmail({
+  ownerEmail,
+  ownerName,
+  ordersCreated,
+  itemsOrdered,
+  details,
+  skipped,
+}: {
+  ownerEmail: string
+  ownerName: string
+  ordersCreated: number
+  itemsOrdered: number
+  details: Array<{ materialName: string; quantity: number; unitPrice: number; supplierName: string }>
+  skipped: Array<{ materialName: string; reason: string }>
+}) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.zentory.ch';
+  const itemRows = details
+    .map(
+      (d) =>
+        `<tr>
+          <td style="padding:8px 12px;border:1px solid #e5e7eb;color:#374151;">${escapeHtml(d.materialName)}</td>
+          <td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:right;color:#1f2937;">${d.quantity}</td>
+          <td style="padding:8px 12px;border:1px solid #e5e7eb;text-align:right;color:#1f2937;">CHF ${(d.unitPrice / 100).toFixed(2)}</td>
+          <td style="padding:8px 12px;border:1px solid #e5e7eb;color:#374151;">${escapeHtml(d.supplierName)}</td>
+        </tr>`
+    )
+    .join('');
+
+  const skippedSection =
+    skipped.length > 0
+      ? `<p style="${S.p}"><strong>Nicht bestellbar (${skipped.length}):</strong></p>
+         <ul style="color:#4b5563;font-size:14px;line-height:24px;margin:0 0 16px;padding-left:20px;">
+           ${skipped.map((s) => `<li>${escapeHtml(s.materialName)}: ${escapeHtml(s.reason)}</li>`).join('')}
+         </ul>`
+      : '';
+
+  try {
+    return await getResend().emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'noreply@zentory.ch',
+      to: ownerEmail,
+      subject: `Auto-Nachbestellung: ${ordersCreated} Bestellung${ordersCreated !== 1 ? 'en' : ''} erstellt`,
+      html: brandedHtml(`
+        <h2 style="${S.h2}">Auto-Nachbestellung</h2>
+        <p style="${S.p}">Hallo ${escapeHtml(ownerName)},</p>
+        <p style="${S.p}">
+          Die automatische Nachbestellung hat heute <strong>${ordersCreated} Bestellung${ordersCreated !== 1 ? 'en' : ''}</strong>
+          mit <strong>${itemsOrdered} Position${itemsOrdered !== 1 ? 'en' : ''}</strong> erstellt.
+        </p>
+        <table style="border-collapse:collapse;width:100%;font-size:14px;margin-bottom:16px;">
+          <thead>
+            <tr style="background:#f9fafb;">
+              <th style="padding:8px 12px;border:1px solid #e5e7eb;text-align:left;color:#374151;">Material</th>
+              <th style="padding:8px 12px;border:1px solid #e5e7eb;text-align:right;color:#374151;">Menge</th>
+              <th style="padding:8px 12px;border:1px solid #e5e7eb;text-align:right;color:#374151;">Einzelpreis</th>
+              <th style="padding:8px 12px;border:1px solid #e5e7eb;text-align:left;color:#374151;">Lieferant</th>
+            </tr>
+          </thead>
+          <tbody>${itemRows}</tbody>
+        </table>
+        ${skippedSection}
+        <div style="${S.center}">
+          ${primaryButton('Bestellungen ansehen', `${appUrl}/dashboard/orders`)}
+        </div>
+        <p style="${S.muted}">Diese E-Mail wird automatisch versandt, wenn der Auto-Nachbestellungs-Cron ausgef&uuml;hrt wird.</p>
+      `),
+    });
+  } catch (error) {
+    console.error('Failed to send auto-reorder email:', error);
+    throw error;
+  }
+}
+
+export async function sendAnomalyAlertEmail({
+  ownerEmail,
+  ownerName,
+  orgName,
+  highCount,
+  anomalyDescriptions,
+}: {
+  ownerEmail: string
+  ownerName: string
+  orgName: string
+  highCount: number
+  anomalyDescriptions: string[]
+}) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.zentory.ch';
+  const visibleItems = anomalyDescriptions.slice(0, 5);
+  const moreCount = anomalyDescriptions.length > 5 ? anomalyDescriptions.length - 5 : 0;
+
+  const listItems = visibleItems
+    .map((desc) => `<li style="margin-bottom:8px;">${escapeHtml(desc)}</li>`)
+    .join('');
+
+  const moreNote = moreCount > 0
+    ? `<p style="${S.muted}">... und ${moreCount} weitere Anomali${moreCount !== 1 ? 'en' : 'e'}.</p>`
+    : '';
+
+  try {
+    return await getResend().emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'noreply@zentory.ch',
+      to: ownerEmail,
+      subject: `Anomalie-Alarm: ${highCount} kritische Bewegung${highCount !== 1 ? 'en' : ''} erkannt \u2014 ${orgName}`,
+      html: brandedHtml(`
+        <h2 style="color:#dc2626;font-size:20px;font-weight:700;margin:0 0 16px;">Anomalie-Alarm</h2>
+        <p style="${S.p}">Hallo ${escapeHtml(ownerName)},</p>
+        <p style="${S.p}">
+          Die automatische Anomalieerkennung hat <strong>${highCount} kritische
+          Lager${highCount !== 1 ? 'bewegungen' : 'bewegung'}</strong> in deiner Organisation
+          <strong>${escapeHtml(orgName)}</strong> erkannt:
+        </p>
+        <ul style="color:#4b5563;font-size:15px;line-height:24px;margin:0 0 16px;padding-left:20px;">
+          ${listItems}
+        </ul>
+        ${moreNote}
+        <div style="${S.center}">
+          <a href="${appUrl}/dashboard/anomalies" style="display:inline-block;background:#dc2626;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:14px;">Anomalien pr&uuml;fen</a>
+        </div>
+        <p style="${S.muted}">
+          Diese Benachrichtigung wird alle 4 Stunden verschickt, sofern kritische Anomalien vorliegen.
+          Die Erkennung basiert auf statistischen Methoden (Z-Score, Perzentile) und kann Fehlalarme enthalten.
+        </p>
+      `),
+    });
+  } catch (error) {
+    console.error('Failed to send anomaly alert email:', error);
+    throw error;
+  }
+}
+
+export async function sendAccountDeletionEmail({
+  userEmail,
+  userName,
+  deletionDateFormatted,
+  appUrl: appUrlParam,
+}: {
+  userEmail: string
+  userName: string
+  deletionDateFormatted: string
+  appUrl?: string
+}) {
+  const appUrl = appUrlParam ?? process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.zentory.ch';
+  try {
+    return await getResend().emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'noreply@zentory.ch',
+      to: userEmail,
+      subject: 'Ihre L\u00f6schanfrage wurde registriert',
+      html: brandedHtml(`
+        <h2 style="${S.h2}">L&ouml;schanfrage best&auml;tigt</h2>
+        <p style="${S.p}">Hallo ${escapeHtml(userName)},</p>
+        <p style="${S.p}">Ihre Anfrage zur Kontol&ouml;schung wurde erfolgreich registriert.</p>
+        <p style="${S.p}"><strong>L&ouml;schdatum:</strong> ${escapeHtml(deletionDateFormatted)}</p>
+        <p style="${S.p}">
+          Sie haben <strong>30 Tage</strong> Zeit, diese Anfrage zu widerrufen.
+          Nach Ablauf dieser Frist werden alle Ihre Daten unwiderruflich gel&ouml;scht.
+        </p>
+        <div style="${S.center}">
+          <a href="${appUrl}/dashboard/settings" style="display:inline-block;background:#dc2626;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:14px;">L&ouml;schung widerrufen</a>
+        </div>
+        <p style="${S.muted}">
+          Falls Sie diese Anfrage nicht gestellt haben, widerrufen Sie die L&ouml;schung umgehend und &auml;ndern Sie Ihr Passwort.
+        </p>
+      `),
+    });
+  } catch (error) {
+    console.error('Failed to send account deletion email:', error);
+    throw error;
+  }
+}
+
+export async function sendAccountDeletionAdminEmail({
+  adminEmail,
+  userName,
+  userEmail,
+  userId,
+  requestedAtFormatted,
+  deletionDateFormatted,
+}: {
+  adminEmail: string
+  userName: string
+  userEmail: string
+  userId: string
+  requestedAtFormatted: string
+  deletionDateFormatted: string
+}) {
+  try {
+    return await getResend().emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'noreply@zentory.ch',
+      to: adminEmail,
+      subject: `Kontol\u00f6schung beantragt: ${userEmail}`,
+      html: brandedHtml(`
+        <h2 style="${S.h2}">Kontol&ouml;schung beantragt</h2>
+        <p style="${S.p}">Ein Benutzer hat die L&ouml;schung seines Kontos beantragt.</p>
+        <table style="border-collapse:collapse;width:100%;font-size:14px;margin-bottom:16px;">
+          <tr>
+            <td style="padding:8px 12px;border:1px solid #e5e7eb;background:#f9fafb;font-weight:bold;color:#374151;">Name</td>
+            <td style="padding:8px 12px;border:1px solid #e5e7eb;color:#1f2937;">${escapeHtml(userName || '—')}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 12px;border:1px solid #e5e7eb;background:#f9fafb;font-weight:bold;color:#374151;">E-Mail</td>
+            <td style="padding:8px 12px;border:1px solid #e5e7eb;color:#1f2937;">${escapeHtml(userEmail)}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 12px;border:1px solid #e5e7eb;background:#f9fafb;font-weight:bold;color:#374151;">Benutzer-ID</td>
+            <td style="padding:8px 12px;border:1px solid #e5e7eb;color:#1f2937;font-family:monospace;font-size:12px;">${escapeHtml(userId)}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 12px;border:1px solid #e5e7eb;background:#f9fafb;font-weight:bold;color:#374151;">Beantragt am</td>
+            <td style="padding:8px 12px;border:1px solid #e5e7eb;color:#1f2937;">${escapeHtml(requestedAtFormatted)}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 12px;border:1px solid #e5e7eb;background:#f9fafb;font-weight:bold;color:#374151;">L&ouml;schung am</td>
+            <td style="padding:8px 12px;border:1px solid #e5e7eb;color:#1f2937;">${escapeHtml(deletionDateFormatted)}</td>
+          </tr>
+        </table>
+      `),
+    });
+  } catch (error) {
+    console.error('Failed to send account deletion admin email:', error);
+    throw error;
+  }
+}
+
+export async function sendOrderCcEmail({
+  ccEmail,
+  orgName,
+  orderNumber,
+  supplierName,
+  itemCount,
+  orderId,
+}: {
+  ccEmail: string
+  orgName: string
+  orderNumber: string | null
+  supplierName: string
+  itemCount: number
+  orderId: string
+}) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.zentory.ch';
+  const displayOrderNumber = orderNumber || orderId.slice(0, 8).toUpperCase();
+
+  try {
+    return await getResend().emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'noreply@zentory.ch',
+      to: ccEmail,
+      subject: `Neue Bestellung #${displayOrderNumber} \u2014 ${orgName}`,
+      html: brandedHtml(`
+        <h2 style="${S.h2}">Neue Bestellung erstellt</h2>
+        <p style="${S.p}">Eine neue Bestellung wurde in <strong>${escapeHtml(orgName)}</strong> erfasst:</p>
+        <table style="border-collapse:collapse;width:100%;font-size:14px;margin-bottom:24px;">
+          <tr>
+            <td style="padding:8px 12px;border:1px solid #e5e7eb;background:#f9fafb;font-weight:bold;color:#374151;">Bestellnummer</td>
+            <td style="padding:8px 12px;border:1px solid #e5e7eb;color:#1f2937;">#${escapeHtml(displayOrderNumber)}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 12px;border:1px solid #e5e7eb;background:#f9fafb;font-weight:bold;color:#374151;">Lieferant</td>
+            <td style="padding:8px 12px;border:1px solid #e5e7eb;color:#1f2937;">${escapeHtml(supplierName)}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 12px;border:1px solid #e5e7eb;background:#f9fafb;font-weight:bold;color:#374151;">Positionen</td>
+            <td style="padding:8px 12px;border:1px solid #e5e7eb;color:#1f2937;">${itemCount}</td>
+          </tr>
+        </table>
+        <div style="${S.center}">
+          ${primaryButton('Bestellung ansehen', `${appUrl}/dashboard/orders/${orderId}`)}
+        </div>
+      `),
+    });
+  } catch (error) {
+    console.error('Failed to send order CC email:', error);
+    throw error;
+  }
+}
+
+export async function sendInventoryCountCompletedEmail({
+  recipientEmail,
+  recipientName,
+  orgName,
+  correctionsCreated,
+  countId,
+}: {
+  recipientEmail: string
+  recipientName: string
+  orgName: string
+  correctionsCreated: number
+  countId: string
+}) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.zentory.ch';
+
+  try {
+    return await getResend().emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'noreply@zentory.ch',
+      to: recipientEmail,
+      subject: `Inventur abgeschlossen \u2014 ${orgName}`,
+      html: brandedHtml(`
+        <h2 style="${S.h2}">Inventur abgeschlossen</h2>
+        <p style="${S.p}">Hallo ${escapeHtml(recipientName)},</p>
+        <p style="${S.p}">
+          Die Inventur in <strong>${escapeHtml(orgName)}</strong> wurde erfolgreich abgeschlossen.
+        </p>
+        <table style="border-collapse:collapse;width:100%;font-size:14px;margin-bottom:24px;">
+          <tr>
+            <td style="padding:8px 12px;border:1px solid #e5e7eb;background:#f9fafb;font-weight:bold;color:#374151;">Korrekturen erstellt</td>
+            <td style="padding:8px 12px;border:1px solid #e5e7eb;font-weight:bold;text-align:right;color:#1f2937;">${correctionsCreated}</td>
+          </tr>
+        </table>
+        ${correctionsCreated > 0
+          ? `<p style="${S.p}">Die Lagerbest&auml;nde wurden automatisch auf die gez&auml;hlten Mengen korrigiert.</p>`
+          : `<p style="${S.p}">Keine Abweichungen gefunden &mdash; alle Best&auml;nde sind korrekt.</p>`
+        }
+        <div style="${S.center}">
+          ${primaryButton('Inventur ansehen', `${appUrl}/dashboard/inventory-counts/${countId}`)}
+        </div>
+      `),
+    });
+  } catch (error) {
+    console.error('Failed to send inventory count completed email:', error);
     throw error;
   }
 }

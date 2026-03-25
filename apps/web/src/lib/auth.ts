@@ -57,6 +57,17 @@ function initAuth(): AuthInstance {
       database: {
         generateId: "uuid",
       },
+      // Share session cookie across all subdomains (app./admin./status.)
+      cookiePrefix: "better-auth",
+      cookies: {
+        session_token: {
+          attributes: {
+            domain: process.env.NODE_ENV === "production" ? ".zentory.ch" : undefined,
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
+          },
+        },
+      },
     },
     plugins: [
       nextCookies(),

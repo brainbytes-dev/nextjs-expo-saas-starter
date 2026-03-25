@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
+import { COMPANY } from "@/lib/company"
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("impressum")
@@ -31,25 +32,25 @@ export default async function ImpressumPage() {
         </h2>
         <div className="space-y-4 text-sm text-muted-foreground leading-relaxed">
           <p>
-            <span className="font-bold text-foreground">HR Online Consulting LLC</span> (DBA Zentory)<br />
+            <span className="font-bold text-foreground">{COMPANY.name}</span> (DBA {COMPANY.brand})<br />
             {t("companyInfo")}<br />
-            550 Kings Mountain, Kings Mountain, NC 28086, USA
+            {COMPANY.address.street}, {COMPANY.address.city}, {COMPANY.address.state} {COMPANY.address.zip}, {COMPANY.address.country}
           </p>
           <p>
             {t("managingDirector")}<br />
-            EIN (Tax ID): 61-2199060
+            EIN (Tax ID): {COMPANY.ein}
           </p>
           <p>
-            {t("phone")}: +1 (828) 214-7447<br />
-            {t("email")}: <a href="mailto:legal@zentory.ch" className="text-primary hover:underline">legal@zentory.ch</a>
+            {t("phone")}: <a href={`tel:${COMPANY.contact.phone}`} className="text-primary hover:underline">{COMPANY.contact.phone}</a><br />
+            {t("email")}: <a href={`mailto:${COMPANY.contact.legal}`} className="text-primary hover:underline">{COMPANY.contact.legal}</a>
           </p>
           <p>
             {t("vatExempt")}
           </p>
           <p>
             {t("odrPlatform")}{" "}
-            <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-              https://ec.europa.eu/consumers/odr/
+            <a href={COMPANY.web.odr} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+              {COMPANY.web.odr}
             </a>
             . {t("odrDisclaimer")}
           </p>

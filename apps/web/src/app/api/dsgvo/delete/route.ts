@@ -3,6 +3,7 @@ import { getSessionAndOrg } from "@/app/api/_helpers/auth";
 import { users, notifications, organizationMembers } from "@repo/db/schema";
 import { eq, and } from "drizzle-orm";
 import { inngest } from "@/lib/inngest";
+import { sendAccountDeletionEmail, sendAccountDeletionAdminEmail } from "@/lib/email";
 
 export async function POST(request: Request) {
   try {
@@ -40,69 +41,26 @@ export async function POST(request: Request) {
 
     // Send confirmation email to user
     try {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zentory.ch";
-      const { Resend } = await import("resend");
-      const resend = new Resend(process.env.RESEND_API_KEY);
-
       const fmtDate = deletionDate.toLocaleDateString("de-CH", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
       });
+      const requestedAtFormatted = `${now.toLocaleDateString("de-CH")} ${now.toLocaleTimeString("de-CH")}`;
 
-      await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL || "noreply@zentory.ch",
-        to: session.user.email,
-        subject: "Ihre Löschanfrage wurde registriert",
-        html: `
-          <h2>Löschanfrage bestätigt</h2>
-          <p>Hallo ${session.user.name || ""},</p>
-          <p>Ihre Anfrage zur Kontolöschung wurde erfolgreich registriert.</p>
-          <p><strong>Löschdatum:</strong> ${fmtDate}</p>
-          <p>Sie haben <strong>30 Tage</strong> Zeit, diese Anfrage zu widerrufen. Nach Ablauf dieser Frist werden alle Ihre Daten unwiderruflich gelöscht.</p>
-          <p>
-            <a href="${appUrl}/dashboard/settings"
-               style="display:inline-block;background:#dc2626;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">
-              Löschung widerrufen
-            </a>
-          </p>
-          <p style="color:#999;font-size:12px;">
-            Falls Sie diese Anfrage nicht gestellt haben, widerrufen Sie die Löschung umgehend und ändern Sie Ihr Passwort.
-          </p>
-        `,
+      await sendAccountDeletionEmail({
+        userEmail: session.user.email,
+        userName: session.user.name || "",
+        deletionDateFormatted: fmtDate,
       });
 
-      // Send notification email to admin
-      await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL || "noreply@zentory.ch",
-        to: process.env.ADMIN_NOTIFICATION_EMAIL || "support@zentory.ch",
-        subject: `Kontolöschung beantragt: ${session.user.email}`,
-        html: `
-          <h2>Kontolöschung beantragt</h2>
-          <p>Ein Benutzer hat die Löschung seines Kontos beantragt.</p>
-          <table style="border-collapse:collapse;width:100%;max-width:480px;font-size:14px;">
-            <tr>
-              <td style="padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc;font-weight:bold;">Name</td>
-              <td style="padding:8px 12px;border:1px solid #e2e8f0;">${session.user.name || "—"}</td>
-            </tr>
-            <tr>
-              <td style="padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc;font-weight:bold;">E-Mail</td>
-              <td style="padding:8px 12px;border:1px solid #e2e8f0;">${session.user.email}</td>
-            </tr>
-            <tr>
-              <td style="padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc;font-weight:bold;">Benutzer-ID</td>
-              <td style="padding:8px 12px;border:1px solid #e2e8f0;">${userId}</td>
-            </tr>
-            <tr>
-              <td style="padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc;font-weight:bold;">Beantragt am</td>
-              <td style="padding:8px 12px;border:1px solid #e2e8f0;">${now.toLocaleDateString("de-CH")} ${now.toLocaleTimeString("de-CH")}</td>
-            </tr>
-            <tr>
-              <td style="padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc;font-weight:bold;">Löschung am</td>
-              <td style="padding:8px 12px;border:1px solid #e2e8f0;">${fmtDate}</td>
-            </tr>
-          </table>
-        `,
+      await sendAccountDeletionAdminEmail({
+        adminEmail: process.env.ADMIN_NOTIFICATION_EMAIL || "support@zentory.ch",
+        userName: session.user.name || "",
+        userEmail: session.user.email,
+        userId,
+        requestedAtFormatted,
+        deletionDateFormatted: fmtDate,
       });
     } catch (emailError) {
       console.error("[DSGVO Delete] Email senden fehlgeschlagen:", emailError);

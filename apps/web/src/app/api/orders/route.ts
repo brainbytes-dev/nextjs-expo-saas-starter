@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { getSessionAndOrg } from "@/app/api/_helpers/auth";
-import { orders, orderItems, suppliers } from "@repo/db/schema";
+import { orders, orderItems, suppliers, orgSettings } from "@repo/db/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { trackFeature } from "@/lib/track-feature";
+import { sendOrderCcEmail } from "@/lib/email";
 
 export async function GET(request: Request) {
   try {
@@ -126,6 +127,34 @@ export async function POST(request: Request) {
     // If this was created from a material request, we could update the request status here
     // For now we just return the order with the requestId for the client to handle
     trackFeature(db, orgId, "orders");
+
+    // Fire-and-forget CC email if configured
+    void (async () => {
+      try {
+        const [ccRow] = await db
+          .select({ value: orgSettings.value })
+          .from(orgSettings)
+          .where(and(eq(orgSettings.organizationId, orgId), eq(orgSettings.key, "order_cc_email")))
+          .limit(1);
+        const ccEmail = (ccRow?.value as { ccEmail?: string } | null)?.ccEmail;
+        if (ccEmail) {
+          const [sup] = await db
+            .select({ name: suppliers.name })
+            .from(suppliers)
+            .where(eq(suppliers.id, supplierId))
+            .limit(1);
+          await sendOrderCcEmail({
+            ccEmail,
+            orgName: orgId,
+            orderNumber: order.orderNumber ?? null,
+            supplierName: sup?.name ?? supplierId,
+            itemCount: positions.length,
+            orderId: order.id,
+          });
+        }
+      } catch { /* non-critical */ }
+    })();
+
     return NextResponse.json({ ...order, requestId }, { status: 201 });
   } catch (error) {
     console.error("POST /api/orders error:", error);

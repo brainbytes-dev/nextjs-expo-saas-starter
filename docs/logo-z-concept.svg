@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!--
+    Zentory Z-mark — concept overview
+    Three variants stacked left-to-right in a 1600x600 canvas (shown here: 512x512 single mark)
+
+    Construction: geometric Z letterform as positive shape.
+    - No enclosing frame (differs from reference "frame + triangles" approach)
+    - Top bar: y=77–181, full width
+    - Bottom bar: y=331–435, full width
+    - Diagonal bar: connecting corners (435,181)→(181,331) and (77,331)→(331,181)
+    - Two natural concave notches form the classic Z counter-shapes
+    - Zentory Green: #236B56
+  -->
+
+  <!-- Mark: solid green Z on transparent -->
+  <path
+    d="M77,77 L435,77 L435,181 L181,331 L435,331 L435,435 L77,435 L77,331 L331,181 L77,181 Z"
+    fill="#236B56"
+  />
+</svg>

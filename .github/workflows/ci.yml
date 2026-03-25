@@ -101,17 +101,44 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('**/package.json') }}
+
       - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm playwright:install
 
       - name: Build web app
         run: pnpm build --filter=@repo/web
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/testdb
+          BETTER_AUTH_SECRET: ci-test-secret-not-real
+          BETTER_AUTH_URL: http://localhost:3003
+          NEXT_PUBLIC_APP_URL: http://localhost:3003
+
+      - name: Run database migrations
+        run: pnpm --filter=@repo/db db:migrate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/testdb
+
+      - name: Start web server
+        run: pnpm --filter @repo/web start &
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/testdb
+          BETTER_AUTH_SECRET: ci-test-secret-not-real
+          BETTER_AUTH_URL: http://localhost:3003
+          NEXT_PUBLIC_APP_URL: http://localhost:3003
+
+      - name: Wait for server
+        # Use tcp: not http: — avoids false negatives from redirect/500 responses
+        run: npx wait-on tcp:localhost:3003 --timeout 60000
 
       - name: Run E2E tests
-        run: |
-          pnpm --filter @repo/web start &
-          npx wait-on http://localhost:3003 --timeout 30000
-          pnpm test:e2e
+        run: pnpm test:e2e
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3003
           CI: true

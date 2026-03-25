@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <clipPath id="c">
+      <rect width="512" height="512" rx="80"/>
+    </clipPath>
+  </defs>
+  <!-- White background (for opaque icon contexts) -->
+  <rect width="512" height="512" rx="80" fill="white"/>
+  <!-- Top-left triangle -->
+  <polygon points="0,0 308,0 0,277" fill="#236B56" clip-path="url(#c)"/>
+  <!-- Bottom-right triangle -->
+  <polygon points="512,235 512,512 204,512" fill="#236B56" clip-path="url(#c)"/>
+  <!-- Frame border -->
+  <rect width="512" height="512" rx="80" stroke="#236B56" stroke-width="28"/>
+</svg>

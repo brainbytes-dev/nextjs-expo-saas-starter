@@ -8,16 +8,7 @@ import {
 } from "@repo/db/schema";
 import { eq, and } from "drizzle-orm";
 import { runAnomalyDetection } from "@/lib/anomaly-detection";
-
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zentory.ch";
-
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
+import { sendAnomalyAlertEmail } from "@/lib/email";
 
 // ── Cron: every 4 hours ───────────────────────────────────────────────────
 
@@ -81,57 +72,15 @@ export const detectAnomaliesFn = inngest.createFunction(
 
         // Build email content from high-severity anomalies
         const highAnomalies = anomalies.filter((a) => a.severity === "high");
-        const anomalyLines = highAnomalies
-          .slice(0, 5)
-          .map(
-            (a) =>
-              `<li style="margin-bottom:8px;">${escapeHtml(a.description)}</li>`
-          )
-          .join("");
-
-        const moreCount = highAnomalies.length > 5 ? highAnomalies.length - 5 : 0;
 
         try {
-          const { Resend } = await import("resend");
-          const resend = new Resend(process.env.RESEND_API_KEY);
-
-          await resend.emails.send({
-            from: process.env.RESEND_FROM_EMAIL ?? "noreply@zentory.ch",
-            to: owner.email,
-            subject: `Anomalie-Alarm: ${highCount} kritische Bewegung${highCount !== 1 ? "en" : ""} erkannt — ${escapeHtml(org.orgName)}`,
-            html: `
-              <div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;">
-                <h2 style="color:#dc2626;">Anomalie-Alarm von Zentory</h2>
-                <p>Hallo ${escapeHtml(owner.name ?? "Team")},</p>
-                <p>
-                  Die automatische Anomalieerkennung hat <strong>${highCount} kritische
-                  Lager${highCount !== 1 ? "bewegungen" : "bewegung"}</strong> in deiner Organisation
-                  <strong>${escapeHtml(org.orgName)}</strong> erkannt:
-                </p>
-                <ul style="padding-left:20px;color:#374151;">
-                  ${anomalyLines}
-                </ul>
-                ${
-                  moreCount > 0
-                    ? `<p style="color:#6b7280;font-size:14px;">... und ${moreCount} weitere Anomali${moreCount !== 1 ? "en" : "e"}.</p>`
-                    : ""
-                }
-                <p>
-                  <a
-                    href="${APP_URL}/dashboard/anomalies"
-                    style="display:inline-block;background:#dc2626;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;"
-                  >
-                    Anomalien prüfen
-                  </a>
-                </p>
-                <p style="color:#9ca3af;font-size:12px;margin-top:24px;">
-                  Diese Benachrichtigung wird alle 4 Stunden verschickt, sofern kritische Anomalien vorliegen.
-                  Die Erkennung basiert auf statistischen Methoden (Z-Score, Perzentile) und kann Fehlalarme enthalten.
-                </p>
-              </div>
-            `,
+          await sendAnomalyAlertEmail({
+            ownerEmail: owner.email,
+            ownerName: owner.name ?? "Team",
+            orgName: org.orgName,
+            highCount,
+            anomalyDescriptions: highAnomalies.map((a) => a.description),
           });
-
           emailSent = true;
         } catch (emailErr) {
           console.error(

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Monochrome / dark background variant: green background, white Z negative space -->
+  <defs>
+    <clipPath id="c">
+      <rect width="512" height="512" rx="80"/>
+    </clipPath>
+  </defs>
+  <rect width="512" height="512" rx="80" fill="#236B56"/>
+  <!-- Top-left white triangle (Z negative space on dark bg) -->
+  <polygon points="0,0 308,0 0,277" fill="white" clip-path="url(#c)"/>
+  <!-- Bottom-right white triangle -->
+  <polygon points="512,235 512,512 204,512" fill="white" clip-path="url(#c)"/>
+</svg>

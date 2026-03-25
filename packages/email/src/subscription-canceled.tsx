@@ -25,7 +25,7 @@ export function SubscriptionCanceledEmail({
       <Body style={main}>
         <Container style={container}>
           <Section style={header}>
-            <Text style={logo}>ZENTORY</Text>
+            <Text style={logo}><span style={logoZen}>ZEN</span><span style={logoTory}>TORY</span></Text>
           </Section>
           <Section style={body}>
             <Heading style={h1}>Abo gek&uuml;ndigt</Heading>
@@ -61,7 +61,9 @@ export default SubscriptionCanceledEmail;
 const main = { backgroundColor: "#f4f5f7", fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" };
 const container = { margin: "0 auto", maxWidth: "560px", backgroundColor: "#ffffff", borderRadius: "8px", overflow: "hidden" as const };
 const header = { backgroundColor: "#236B56", padding: "24px 32px", textAlign: "center" as const };
-const logo = { color: "#ffffff", fontSize: "22px", fontWeight: "700" as const, letterSpacing: "2px", margin: "0" };
+const logo = { color: "#ffffff", fontSize: "22px", letterSpacing: "2px", margin: "0" };
+const logoZen = { fontWeight: "700" as const };
+const logoTory = { fontWeight: "300" as const };
 const body = { padding: "32px 32px 24px" };
 const h1 = { color: "#1f2937", fontSize: "20px", fontWeight: "bold" as const, margin: "0 0 16px" };
 const text = { color: "#4b5563", fontSize: "15px", lineHeight: "24px", margin: "0 0 12px" };

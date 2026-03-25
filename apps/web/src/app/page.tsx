@@ -422,7 +422,7 @@ function CostCalculator() {
 
       {/* CTA */}
       <div className="text-center">
-        <Link href="/signup">
+        <Link href={`${APP_URL}/signup`}>
           <Button className="font-mono text-[11px] tracking-widest uppercase gap-2">
             {t("calcCta")}
           </Button>
@@ -552,13 +552,13 @@ function MigrationSection() {
           </div>
 
           <div className="flex gap-3">
-            <Link href="/dashboard/migration">
+            <Link href={`${APP_URL}/dashboard/migration`}>
               <Button className="font-mono text-[11px] tracking-widest uppercase gap-2">
                 <IconTransfer className="size-3.5" />
                 {t("migCtaMigrate")}
               </Button>
             </Link>
-            <Link href="/dashboard/import">
+            <Link href={`${APP_URL}/dashboard/import`}>
               <Button variant="outline" className="font-mono text-[11px] tracking-widest uppercase gap-2">
                 <IconUpload className="size-3.5" />
                 {t("migCtaImport")}
@@ -742,6 +742,10 @@ function FeatureComparisonSection() {
 }
 
 /* ─── Page ───────────────────────────────────────────────────── */
+// All links pointing into the app use this base URL so that
+// users land on app.zentory.ch (not zentory.ch/dashboard etc.)
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zentory.ch"
+
 export default function LandingPage() {
   const t = useTranslations("landing")
   const [navSolid, setNavSolid] = useState(false)
@@ -852,10 +856,10 @@ export default function LandingPage() {
             <div className="flex items-center gap-1.5">
               <LanguageSwitcher compact />
               <ModeToggle />
-              <Link href="/login" className="hidden lg:inline-flex">
+              <Link href={`${APP_URL}/login`} className="hidden lg:inline-flex">
                 <Button variant="ghost" size="sm" className="text-sm">{t("navLogin")}</Button>
               </Link>
-              <Link href="/signup" className="hidden lg:inline-flex">
+              <Link href={`${APP_URL}/signup`} className="hidden lg:inline-flex">
                 <Button size="sm" className="text-sm gap-1.5 bg-secondary hover:bg-secondary/90 text-secondary-foreground">
                   {t("navStart")} <IconArrowUpRight className="size-3.5" />
                 </Button>
@@ -908,12 +912,12 @@ export default function LandingPage() {
             {/* Bottom: CTA + controls */}
             <div className="mob-actions space-y-6">
               <div className="flex gap-3">
-                <Link href="/login" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                <Link href={`${APP_URL}/login`} className="flex-1" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="outline" className="w-full h-12 text-sm border-white/20 text-white hover:bg-white/10 hover:text-white">
                     {t("navLogin")}
                   </Button>
                 </Link>
-                <Link href="/signup" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                <Link href={`${APP_URL}/signup`} className="flex-1" onClick={() => setMobileMenuOpen(false)}>
                   <Button className="w-full h-12 text-sm gap-1.5 bg-secondary hover:bg-secondary/90 text-secondary-foreground">
                     {t("navStart")} <IconArrowUpRight className="size-3.5" />
                   </Button>
@@ -1029,12 +1033,12 @@ export default function LandingPage() {
                 </p>
 
                 <div className="hero-sub-3 flex flex-wrap gap-3 mb-4">
-                  <Link href="/signup">
+                  <Link href={`${APP_URL}/signup`}>
                     <Button size="lg" className="font-mono text-xs tracking-widest uppercase gap-2 px-7 h-12 bg-secondary hover:bg-secondary/90 text-secondary-foreground">
                       {t("heroCta")} <IconArrowUpRight className="size-4" />
                     </Button>
                   </Link>
-                  <Link href="/dashboard">
+                  <Link href={`${APP_URL}/dashboard`}>
                     <Button size="lg" variant="outline" className="font-mono text-xs tracking-widest uppercase h-12 px-7">
                       {t("heroDemo")}
                     </Button>
@@ -1328,7 +1332,7 @@ export default function LandingPage() {
 
             {/* CTA */}
             <div className="text-center">
-              <Link href="/signup">
+              <Link href={`${APP_URL}/signup`}>
                 <Button size="lg" className="font-mono text-[11px] tracking-widest uppercase gap-2 px-10 h-12 bg-secondary hover:bg-secondary/90 text-secondary-foreground border-0">
                   {t("scanCta")} <IconArrowUpRight className="size-4" />
                 </Button>
@@ -1403,7 +1407,7 @@ export default function LandingPage() {
 
             {/* CTA */}
             <div className="flex items-center gap-4">
-              <Link href="/dashboard/settings/integrations">
+              <Link href={`${APP_URL}/dashboard/settings/integrations`}>
                 <Button variant="outline" className="font-mono text-[11px] tracking-widest uppercase gap-2">
                   <IconPlugConnected className="size-3.5" />
                   {t("intViewAll")}
@@ -1471,7 +1475,7 @@ export default function LandingPage() {
               <p className="font-mono text-sm text-muted-foreground mb-8 max-w-sm mx-auto">
                 {t("ctaDesc")}
               </p>
-              <Link href="/signup">
+              <Link href={`${APP_URL}/signup`}>
                 <Button size="lg" className="font-mono text-[11px] tracking-widest uppercase gap-2 px-10 h-12">
                   {t("ctaButton")} <IconArrowUpRight className="size-4" />
                 </Button>
@@ -1493,8 +1497,8 @@ export default function LandingPage() {
                 <a href="#migration" className="hover:text-foreground transition-colors">{t("footerMigration")}</a>
                 <a href="#peripherals" className="hover:text-foreground transition-colors">{t("footerHardware")}</a>
                 <a href="#comparison" className="hover:text-foreground transition-colors">{t("footerComparison")}</a>
-                <Link href="/login"  className="hover:text-foreground transition-colors">{t("footerLogin")}</Link>
-                <Link href="/signup" className="hover:text-foreground transition-colors">{t("footerSignup")}</Link>
+                <Link href={`${APP_URL}/login`}  className="hover:text-foreground transition-colors">{t("footerLogin")}</Link>
+                <Link href={`${APP_URL}/signup`} className="hover:text-foreground transition-colors">{t("footerSignup")}</Link>
               </div>
             </div>
             {/* Legal row */}

@@ -6,6 +6,8 @@ import {
 import Link from "next/link";
 import { Wordmark } from "@/components/logo";
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zentory.ch";
+
 // ─── Static code examples ─────────────────────────────────────────────────────
 
 const CURL_EXAMPLE = `curl -X GET "https://app.zentory.ch/api/v1/materials?limit=20" \\
@@ -122,7 +124,7 @@ export default function DevelopersPage() {
             <span className="text-sm text-muted-foreground">Entwickler-Dokumentation</span>
           </div>
           <Link
-            href="/dashboard"
+            href={`${APP_URL}/dashboard`}
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             Zum Dashboard
@@ -210,7 +212,7 @@ export default function DevelopersPage() {
                 <p className="text-sm text-muted-foreground">
                   API-Schlüssel kannst du unter{" "}
                   <Link
-                    href="/dashboard/settings/api-keys"
+                    href={`${APP_URL}/dashboard/settings/api-keys`}
                     className="underline underline-offset-2 hover:opacity-80"
                   >
                     Einstellungen → API-Schlüssel
@@ -433,7 +435,7 @@ export default function DevelopersPage() {
                 mit der Integration.
               </p>
               <Link
-                href="/dashboard/settings/api-keys"
+                href={`${APP_URL}/dashboard/settings/api-keys`}
                 className="inline-flex items-center justify-center rounded-md bg-foreground text-background px-4 py-2 text-sm font-medium hover:opacity-90 transition-opacity"
               >
                 API-Schlüssel erstellen

@@ -5,8 +5,10 @@ import {
   inventoryCountItems,
   materialStocks,
   stockChanges,
+  organizations,
 } from "@repo/db/schema";
 import { eq, and } from "drizzle-orm";
+import { sendInventoryCountCompletedEmail } from "@/lib/email";
 
 // POST /api/inventory-counts/[id]/complete
 // Atomically: marks count as completed + creates signed stock corrections for all diffs
@@ -122,6 +124,24 @@ export async function POST(
         });
       }
     });
+
+    // Fire-and-forget completion email
+    void (async () => {
+      try {
+        const [org] = await db
+          .select({ name: organizations.name })
+          .from(organizations)
+          .where(eq(organizations.id, orgId))
+          .limit(1);
+        await sendInventoryCountCompletedEmail({
+          recipientEmail: session.user.email,
+          recipientName: session.user.name || session.user.email,
+          orgName: org?.name ?? orgId,
+          correctionsCreated: itemsWithDiffs.length,
+          countId: id,
+        });
+      } catch { /* non-critical */ }
+    })();
 
     return NextResponse.json({
       success: true,

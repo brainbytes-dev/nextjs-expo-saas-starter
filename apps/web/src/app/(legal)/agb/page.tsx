@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
+import { COMPANY } from "@/lib/company"
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("agb")
@@ -34,7 +35,7 @@ export default async function AGBPage() {
           {t("s1Title")}
         </h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          {t("s1P1")} <a href="https://zentory.ch" className="text-primary hover:underline">zentory.ch</a> {t("s1P1End")}
+          {t("s1P1")} <a href={COMPANY.web.url} className="text-primary hover:underline">{COMPANY.web.domain}</a> {t("s1P1End")}
         </p>
         <p className="text-sm text-muted-foreground leading-relaxed">
           {t("s1P2")}
@@ -89,7 +90,7 @@ export default async function AGBPage() {
         <div>
           <h3 className="text-sm font-semibold mb-2">{t("s4_1Title")}</h3>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            {t("s4_1P1")} <a href="https://zentory.ch/#pricing" className="text-primary hover:underline">zentory.ch/#pricing</a> {t("s4_1P1End")}
+            {t("s4_1P1")} <a href={`${COMPANY.web.url}/#pricing`} className="text-primary hover:underline">{COMPANY.web.domain}/#pricing</a> {t("s4_1P1End")}
           </p>
         </div>
 
@@ -204,7 +205,7 @@ export default async function AGBPage() {
         <div>
           <h3 className="text-sm font-semibold mb-2">{t("s9_1Title")}</h3>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            {t("s9_1P1")} <a href="mailto:info@zentory.ch" className="text-primary hover:underline">info@zentory.ch</a>.
+            {t("s9_1P1")} <a href={`mailto:${COMPANY.contact.email}`} className="text-primary hover:underline">{COMPANY.contact.email}</a>.
           </p>
         </div>
 
@@ -268,7 +269,7 @@ export default async function AGBPage() {
         </p>
         <p className="text-sm text-muted-foreground leading-relaxed">
           {t("s13P2")}{" "}
-          <a href="mailto:info@zentory.ch" className="text-primary hover:underline">info@zentory.ch</a>
+          <a href={`mailto:${COMPANY.contact.email}`} className="text-primary hover:underline">{COMPANY.contact.email}</a>
         </p>
       </section>
     </article>
