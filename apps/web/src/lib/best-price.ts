@@ -42,8 +42,8 @@ export async function findBestPrice(
       and(
         eq(supplierPrices.organizationId, orgId),
         eq(supplierPrices.materialId, materialId),
-        // Filter: minOrderQuantity <= requested quantity
-        lte(supplierPrices.minOrderQuantity, quantity),
+        // Filter: minOrderQuantity <= requested quantity (NULL = no minimum)
+        or(isNull(supplierPrices.minOrderQuantity), lte(supplierPrices.minOrderQuantity, quantity)),
         // Filter: price is currently valid
         or(isNull(supplierPrices.validTo), gte(supplierPrices.validTo, now)),
         // Optionally filter by specific supplier
