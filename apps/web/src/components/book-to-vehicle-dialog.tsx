@@ -119,15 +119,12 @@ export function BookToVehicleDialog({
         })
         ok = res.ok
       } else if (entityType === "key") {
-        const vehicleName = selectedVehicle?.name ?? ""
-        const make = selectedVehicle?.metadata?.make ?? ""
-        const model = selectedVehicle?.metadata?.model ?? ""
-        const label = [vehicleName, make, model].filter(Boolean).join(" ")
         const res = await fetch(`/api/keys/${entityId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            notes: `Zugewiesen an Fahrzeug: ${label}`,
+            assignedLocationId: selectedVehicleId,
+            status: "issued",
           }),
         })
         ok = res.ok
