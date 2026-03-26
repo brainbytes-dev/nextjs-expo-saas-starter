@@ -3887,8 +3887,8 @@
     "pricePerMonth": "/mo",
     "pricePerMonthYearly": "/mo (yearly)",
     "priceFrom": "from CHF 699",
-    "priceSavedPerYear": "CHF {amount} saved per year",
-    "priceYearlyBilling": "CHF {yearly}/year · instead of CHF {monthly}",
+    "priceSavedPerYear": "{amount} saved per year",
+    "priceYearlyBilling": "{yearly}/year · instead of {monthly}",
     "priceStarterDesc": "For small teams and beginners.",
     "priceProDesc": "For growing businesses with full equipment.",
     "priceEnterpriseDesc": "For companies with individual requirements.",
@@ -4008,7 +4008,8 @@
     "footerTerms": "Terms",
     "footerImprint": "Imprint",
     "footerCookies": "Cookie Settings",
-    "scrollToTop": "Scroll to top"
+    "scrollToTop": "Scroll to top",
+    "priceCurrencyNote": "Indicative prices. Billing is in CHF."
   },
   "onboarding": {
     "pageTitle": "Zentory",
@@ -5202,10 +5203,10 @@
     "s14Title": "Single Sign-On Authentication",
     "s14P1": "\"Single Sign-On\" or \"Single Sign-On authentication\" refers to procedures that allow users to log in to our online offering using a user account held with a Single Sign-On provider (e.g., a social network). The prerequisite for Single Sign-On authentication is that the users are registered with the respective Single Sign-On provider and enter the required access credentials in the designated online form, or are already logged in with the Single Sign-On provider and confirm the Single Sign-On login via a button.",
     "s14P2": "Authentication takes place directly with the respective Single Sign-On provider. In the course of such authentication, we receive a user ID with the information that the user is logged in with the respective Single Sign-On provider under that user ID, as well as an ID that cannot be used by us for other purposes (a so-called \"user handle\"). Whether additional data is transmitted to us depends solely on the Single Sign-On procedure used, the data releases chosen during authentication, and what data users have shared in the privacy or other settings of their user account with the Single Sign-On provider. Depending on the Single Sign-On provider and the users’ choices, various data may be involved; typically this includes the email address and username. The password entered at the Single Sign-On provider as part of the Single Sign-On procedure is neither visible to us nor stored by us.",
-        "s14AppleDesc": "Authentication service (Sign in with Apple)",
+    "s14AppleDesc": "Authentication service (Sign in with Apple)",
     "s14GoogleDesc": "Authentication service (Sign in with Google)",
     "s14MicrosoftDesc": "Authentication service (Sign in with Microsoft)",
-"s15Title": "Blogs and Publication Media",
+    "s15Title": "Blogs and Publication Media",
     "s15P1": "We use blogs or comparable means of online communication and publication (hereinafter \"publication medium\"). Readers’ data is processed for the purposes of the publication medium only to the extent necessary for its presentation and communication between authors and readers, or for security reasons. For the rest, we refer to the information on the processing of visitors to our publication medium within the scope of these privacy notices.",
     "s16Title": "Contact and Inquiry Management",
     "s16P1": "When contacting us (e.g., by post, contact form, email, telephone, or via social media) and in the context of existing user and business relationships, the information of the inquiring persons is processed to the extent necessary to respond to the contact inquiries and any requested measures.",

@@ -3854,8 +3854,8 @@
     "pricePerMonth": "/mese",
     "pricePerMonthYearly": "/mese (annuale)",
     "priceFrom": "da CHF 699",
-    "priceSavedPerYear": "CHF {amount} risparmiati all'anno",
-    "priceYearlyBilling": "CHF {yearly}/anno · anziché CHF {monthly}",
+    "priceSavedPerYear": "{amount} risparmiati all'anno",
+    "priceYearlyBilling": "{yearly}/anno · invece di {monthly}",
     "priceStarterDesc": "Per piccoli team e principianti.",
     "priceProDesc": "Per aziende in crescita con dotazione completa.",
     "priceEnterpriseDesc": "Per aziende con esigenze individuali.",
@@ -3975,7 +3975,8 @@
     "footerTerms": "CGC",
     "footerImprint": "Impronta",
     "footerCookies": "Impostazioni cookie",
-    "scrollToTop": "Torna in alto"
+    "scrollToTop": "Torna in alto",
+    "priceCurrencyNote": "Prezzi indicativi. La fatturazione avviene in CHF."
   },
   "onboarding": {
     "pageTitle": "Zentory",
@@ -5147,10 +5148,10 @@
     "s14Title": "Accesso Single Sign-On",
     "s14P1": "Per «Single Sign-On» o «accesso o autenticazione Single Sign-On» si intendono procedure che consentono agli utenti di accedere alla nostra offerta online tramite un account utente presso un fornitore di procedure Single Sign-On (ad es. un social network). Il presupposto dell'autenticazione Single Sign-On è che gli utenti siano registrati presso il rispettivo fornitore Single Sign-On e inseriscano i dati di accesso richiesti nel modulo online a tal fine predisposto, ovvero abbiano già effettuato l'accesso presso il fornitore Single Sign-On e confermino l'accesso Single Sign-On tramite il pulsante corrispondente.",
     "s14P2": "L'autenticazione avviene direttamente presso il rispettivo fornitore Single Sign-On. Nell'ambito di tale autenticazione riceviamo un ID utente con l'informazione che l'utente è connesso con tale ID utente presso il rispettivo fornitore Single Sign-On, nonché un ID non ulteriormente utilizzabile da noi per altri scopi (c.d. «user handle»). La trasmissione di ulteriori dati dipende esclusivamente dalla procedura Single Sign-On utilizzata, dalle condivisioni di dati scelte nell'ambito dell'autenticazione e, inoltre, dai dati che gli utenti hanno condiviso nelle impostazioni sulla privacy o di altro tipo dell'account utente presso il fornitore Single Sign-On. A seconda del fornitore Single Sign-On e della scelta degli utenti, possono trattarsi di dati diversi, in genere l'indirizzo e-mail e il nome utente. La password inserita nell'ambito della procedura Single Sign-On presso il fornitore Single Sign-On non è né visionabile da noi né da noi conservata.",
-        "s14AppleDesc": "Servizio di autenticazione (Accedi con Apple)",
+    "s14AppleDesc": "Servizio di autenticazione (Accedi con Apple)",
     "s14GoogleDesc": "Servizio di autenticazione (Accedi con Google)",
     "s14MicrosoftDesc": "Servizio di autenticazione (Accedi con Microsoft)",
-"s15Title": "Blog e mezzi di pubblicazione",
+    "s15Title": "Blog e mezzi di pubblicazione",
     "s15P1": "Utilizziamo blog o mezzi analoghi di comunicazione e pubblicazione online (di seguito «mezzo di pubblicazione»). I dati dei lettori vengono trattati per le finalità del mezzo di pubblicazione soltanto nella misura necessaria per la sua presentazione e per la comunicazione tra autori e lettori o per motivi di sicurezza. Per il resto rinviamo alle informazioni sul trattamento dei visitatori del nostro mezzo di pubblicazione nell'ambito della presente informativa sulla protezione dei dati.",
     "s16Title": "Gestione di contatti e richieste",
     "s16P1": "In caso di contatto con noi (ad es. per posta, modulo di contatto, e-mail, telefono o tramite social media) e nell'ambito di rapporti utente e commerciali esistenti, le indicazioni delle persone richiedenti vengono trattate nella misura necessaria per rispondere alle richieste di contatto ed eventuali misure richieste.",

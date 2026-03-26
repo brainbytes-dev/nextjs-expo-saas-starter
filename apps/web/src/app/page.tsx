@@ -433,10 +433,26 @@ function CostCalculator() {
   )
 }
 
-/* ─── Pricing Section with yearly toggle ─────────────────────── */
+/* ─── Pricing Section with yearly toggle + currency switcher ─── */
+const CURRENCIES = ["CHF", "EUR", "USD"] as const
+type PriceCurrency = typeof CURRENCIES[number]
+
+// Approximate indicative rates (CHF base). Display only — billing in CHF.
+const FX: Record<PriceCurrency, number> = { CHF: 1, EUR: 0.97, USD: 1.09 }
+const FX_LOCALE: Record<PriceCurrency, string> = { CHF: "de-CH", EUR: "de-DE", USD: "en-US" }
+
+function fmtPrice(chfAmount: number, currency: PriceCurrency): string {
+  return new Intl.NumberFormat(FX_LOCALE[currency], {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(Math.round(chfAmount * FX[currency]))
+}
+
 function PricingSection() {
   const t = useTranslations("landing")
   const [yearly, setYearly] = useState(false)
+  const [currency, setCurrency] = useState<PriceCurrency>("CHF")
 
   return (
     <section id="pricing" className="mx-auto w-full max-w-7xl px-6 py-24">
@@ -445,8 +461,9 @@ function PricingSection() {
         <h2 className="text-3xl lg:text-4xl font-bold">{t("priceHeading")}</h2>
       </div>
 
-      {/* Toggle — centered above cards */}
-      <div className="flex justify-center mb-8">
+      {/* Controls row — billing period left, currency right */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+        {/* Billing period toggle */}
         <div className="flex items-center gap-1 p-1 rounded-full border border-border bg-muted/30">
           <button
             onClick={() => setYearly(false)}
@@ -462,12 +479,26 @@ function PricingSection() {
             <span className="text-[9px] font-bold bg-secondary text-secondary-foreground rounded-full px-2 py-0.5">{t("priceDiscount")}</span>
           </button>
         </div>
+
+        {/* Currency switcher */}
+        <div className="flex items-center gap-1 p-1 rounded-full border border-border bg-muted/30">
+          {CURRENCIES.map(c => (
+            <button
+              key={c}
+              onClick={() => setCurrency(c)}
+              className={`px-4 py-1.5 rounded-full font-mono text-xs font-medium tracking-widest uppercase transition-all ${currency === c ? "bg-background shadow-sm text-foreground" : "text-muted-foreground"}`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="grid md:grid-cols-3 gap-px bg-border">
         {PLANS.map(plan => {
           const isEnterprise = plan.monthly < 0
-          const price = isEnterprise ? t("priceFrom") : `CHF ${yearly ? plan.yearly : plan.monthly}`
+          const chfAmount = yearly ? plan.yearly : plan.monthly
+          const price = isEnterprise ? t("priceFrom") : fmtPrice(chfAmount, currency)
           const per = isEnterprise ? t("pricePerMonth") : yearly ? t("pricePerMonthYearly") : t("pricePerMonth")
           const yearlyTotal = isEnterprise ? null : plan.yearly * 12
           const monthlyTotal = isEnterprise ? null : plan.monthly * 12
@@ -486,12 +517,12 @@ function PricingSection() {
               </div>
               {yearly && savings > 0 && (
                 <p className="text-xs text-primary font-mono font-semibold mb-2">
-                  {t("priceSavedPerYear", { amount: savings })}
+                  {t("priceSavedPerYear", { amount: fmtPrice(savings, currency) })}
                 </p>
               )}
               {yearly && yearlyTotal != null && monthlyTotal != null && (
                 <p className="text-[10px] text-muted-foreground font-mono mb-6">
-                  {t("priceYearlyBilling", { yearly: yearlyTotal, monthly: monthlyTotal })}
+                  {t("priceYearlyBilling", { yearly: fmtPrice(yearlyTotal, currency), monthly: fmtPrice(monthlyTotal, currency) })}
                 </p>
               )}
               {!yearly && <div className="mb-8" />}
@@ -513,6 +544,13 @@ function PricingSection() {
           )
         })}
       </div>
+
+      {/* Currency disclaimer */}
+      {currency !== "CHF" && (
+        <p className="mt-4 text-center font-mono text-[10px] text-muted-foreground tracking-wide">
+          {t("priceCurrencyNote")}
+        </p>
+      )}
     </section>
   )
 }

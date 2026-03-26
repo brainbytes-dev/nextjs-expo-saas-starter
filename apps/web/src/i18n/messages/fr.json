@@ -3854,8 +3854,8 @@
     "pricePerMonth": "/mois",
     "pricePerMonthYearly": "/mois (annuel)",
     "priceFrom": "dès CHF 699",
-    "priceSavedPerYear": "CHF {amount} économisés par an",
-    "priceYearlyBilling": "CHF {yearly}/an · au lieu de CHF {monthly}",
+    "priceSavedPerYear": "{amount} économisés par an",
+    "priceYearlyBilling": "{yearly}/an · au lieu de {monthly}",
     "priceStarterDesc": "Pour les petites équipes et débutants.",
     "priceProDesc": "Pour les entreprises en croissance avec équipement complet.",
     "priceEnterpriseDesc": "Pour les entreprises avec des besoins spécifiques.",
@@ -3975,7 +3975,8 @@
     "footerTerms": "CGV",
     "footerImprint": "Mentions légales",
     "footerCookies": "Paramètres des cookies",
-    "scrollToTop": "Retour en haut"
+    "scrollToTop": "Retour en haut",
+    "priceCurrencyNote": "Prix indicatifs. La facturation s'effectue en CHF."
   },
   "onboarding": {
     "pageTitle": "Zentory",
@@ -5147,10 +5148,10 @@
     "s14Title": "Connexion par authentification unique (Single Sign-On)",
     "s14P1": "On entend par « Single Sign-On » ou « connexion/authentification unique » les procédures qui permettent aux utilisateurs de se connecter à notre offre en ligne à l'aide d'un compte utilisateur auprès d'un fournisseur de services Single Sign-On (p. ex. un réseau social). La condition préalable à l'authentification Single Sign-On est que les utilisateurs soient inscrits auprès du fournisseur SSO concerné et saisissent les données d'accès requises dans le formulaire en ligne prévu à cet effet, ou qu'ils soient déjà connectés auprès du fournisseur SSO et confirment la connexion SSO via un bouton.",
     "s14P2": "L'authentification s'effectue directement auprès du fournisseur SSO concerné. Dans le cadre d'une telle authentification, nous recevons un identifiant utilisateur accompagné de l'information que l'utilisateur est connecté sous cet identifiant auprès du fournisseur SSO concerné, ainsi qu'un identifiant qui ne peut pas être utilisé par nous à d'autres fins (appelé « User Handle »). La transmission ou non de données supplémentaires dépend uniquement du procédé SSO utilisé, des partages de données choisis lors de l'authentification et des données que les utilisateurs ont rendues accessibles dans les paramètres de confidentialité ou autres paramètres de leur compte auprès du fournisseur SSO. Selon le fournisseur SSO et le choix des utilisateurs, il peut s'agir de diverses données ; en règle générale, il s'agit de l'adresse e-mail et du nom d'utilisateur. Le mot de passe saisi lors de la procédure SSO auprès du fournisseur SSO n'est ni visible pour nous ni conservé par nous.",
-        "s14AppleDesc": "Service d'authentification (Connexion avec Apple)",
+    "s14AppleDesc": "Service d'authentification (Connexion avec Apple)",
     "s14GoogleDesc": "Service d'authentification (Connexion avec Google)",
     "s14MicrosoftDesc": "Service d'authentification (Connexion avec Microsoft)",
-"s15Title": "Blogs et médias de publication",
+    "s15Title": "Blogs et médias de publication",
     "s15P1": "Nous utilisons des blogs ou des moyens similaires de communication en ligne et de publication (ci-après « médias de publication »). Les données des lecteurs ne sont traitées aux fins du média de publication que dans la mesure où cela est nécessaire à sa présentation et à la communication entre auteurs et lecteurs, ou pour des raisons de sécurité. Pour le reste, nous renvoyons aux informations relatives au traitement des visiteurs de notre média de publication dans le cadre des présentes mentions relatives à la protection des données.",
     "s16Title": "Gestion des contacts et des demandes",
     "s16P1": "Lors de la prise de contact avec nous (p. ex. par courrier postal, formulaire de contact, e-mail, téléphone ou via les réseaux sociaux) ainsi que dans le cadre de relations existantes avec des utilisateurs et des partenaires commerciaux, les informations des personnes demandant contact sont traitées dans la mesure où cela est nécessaire pour répondre aux demandes de contact et aux éventuelles mesures demandées.",

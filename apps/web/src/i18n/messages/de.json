@@ -3904,8 +3904,8 @@
     "pricePerMonth": "/Mo",
     "pricePerMonthYearly": "/Mo (jährl.)",
     "priceFrom": "ab CHF 699",
-    "priceSavedPerYear": "CHF {amount} pro Jahr gespart",
-    "priceYearlyBilling": "CHF {yearly}/Jahr · statt CHF {monthly}",
+    "priceSavedPerYear": "{amount} pro Jahr gespart",
+    "priceYearlyBilling": "{yearly}/Jahr · statt {monthly}",
     "priceStarterDesc": "Für kleine Teams und Einsteiger.",
     "priceProDesc": "Für wachsende Betriebe mit Vollausstattung.",
     "priceEnterpriseDesc": "Für Unternehmen mit individuellen Anforderungen.",
@@ -4025,7 +4025,8 @@
     "footerTerms": "AGB",
     "footerImprint": "Impressum",
     "footerCookies": "Cookie-Einstellungen",
-    "scrollToTop": "Zum Seitenanfang"
+    "scrollToTop": "Zum Seitenanfang",
+    "priceCurrencyNote": "Richtwerte. Abrechnung erfolgt in CHF."
   },
   "onboarding": {
     "pageTitle": "Zentory",
@@ -5219,10 +5220,10 @@
     "s14Title": "Single-Sign-On-Anmeldung",
     "s14P1": "Als \"Single-Sign-On\" oder \"Single-Sign-On-Anmeldung bzw. -Authentifizierung\" werden Verfahren bezeichnet, die es Nutzern erlauben, sich mit Hilfe eines Nutzerkontos bei einem Anbieter von Single-Sign-On-Verfahren (z. B. einem sozialen Netzwerk), auch bei unserem Onlineangebot, anzumelden. Voraussetzung der Single-Sign-On-Authentifizierung ist, dass die Nutzer bei dem jeweiligen Single-Sign-On-Anbieter registriert sind und die erforderlichen Zugangsdaten in dem dafür vorgesehenen Onlineformular eingeben, bzw. schon bei dem Single-Sign-On-Anbieter angemeldet sind und die Single-Sign-On-Anmeldung via Schaltfläche bestätigen.",
     "s14P2": "Die Authentifizierung erfolgt direkt bei dem jeweiligen Single-Sign-On-Anbieter. Im Rahmen einer solchen Authentifizierung erhalten wir eine Nutzer-ID mit der Information, dass der Nutzer unter dieser Nutzer-ID beim jeweiligen Single-Sign-On-Anbieter eingeloggt ist und eine für uns für andere Zwecke nicht weiter nutzbare ID (sog. \"User Handle\"). Ob uns zusätzliche Daten übermittelt werden, hängt allein von dem genutzten Single-Sign-On-Verfahren ab, von den gewählten Datenfreigaben im Rahmen der Authentifizierung und zudem davon, welche Daten Nutzer in den Privatsphäre- oder sonstigen Einstellungen des Nutzerkontos beim Single-Sign-On-Anbieter freigegeben haben. Es können je nach Single-Sign-On-Anbieter und der Wahl der Nutzer verschiedene Daten sein, in der Regel sind es die E-Mail-Adresse und der Benutzername. Das im Rahmen des Single-Sign-On-Verfahrens eingegebene Passwort bei dem Single-Sign-On-Anbieter ist für uns weder einsehbar, noch wird es von uns gespeichert.",
-        "s14AppleDesc": "Authentifizierungsdienst (Anmeldung mit Apple)",
+    "s14AppleDesc": "Authentifizierungsdienst (Anmeldung mit Apple)",
     "s14GoogleDesc": "Authentifizierungsdienst (Anmeldung mit Google)",
     "s14MicrosoftDesc": "Authentifizierungsdienst (Anmeldung mit Microsoft)",
-"s15Title": "Blogs und Publikationsmedien",
+    "s15Title": "Blogs und Publikationsmedien",
     "s15P1": "Wir nutzen Blogs oder vergleichbare Mittel der Onlinekommunikation und Publikation (nachfolgend \"Publikationsmedium\"). Die Daten der Leser werden für die Zwecke des Publikationsmediums nur insoweit verarbeitet, als es für dessen Darstellung und die Kommunikation zwischen Autoren und Lesern oder aus Gründen der Sicherheit erforderlich ist. Im Übrigen verweisen wir auf die Informationen zur Verarbeitung der Besucher unseres Publikationsmediums im Rahmen dieser Datenschutzhinweise.",
     "s16Title": "Kontakt- und Anfrageverwaltung",
     "s16P1": "Bei der Kontaktaufnahme mit uns (z. B. per Post, Kontaktformular, E-Mail, Telefon oder via soziale Medien) sowie im Rahmen bestehender Nutzer- und Geschäftsbeziehungen werden die Angaben der anfragenden Personen verarbeitet, soweit dies zur Beantwortung der Kontaktanfragen und etwaiger angefragter Maßnahmen erforderlich ist.",
