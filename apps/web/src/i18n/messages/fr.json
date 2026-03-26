@@ -101,7 +101,8 @@
     "statusInProgress": "En cours",
     "statusNotStarted": "Non commencé",
     "view": "Vue",
-    "unknown": "Inconnu"
+    "unknown": "Inconnu",
+    "entries": "entrées"
   },
   "auth": {
     "login": "Se connecter",
@@ -840,6 +841,7 @@
     "overdue": "En retard",
     "thisWeek": "Cette semaine",
     "upcoming": "À venir",
+    "all": "Tous",
     "selectDay": "Sélectionnez un jour pour voir les événements",
     "dragHint": "Les dates de maintenance peuvent être déplacées par glisser-déposer",
     "more": "en plus",
@@ -856,7 +858,8 @@
     "summary30": "Résumé (30 jours)",
     "maintenanceNext30": "Maintenances dans les 30 prochains jours",
     "weekdays": "Lun,Mar,Mer,Jeu,Ven,Sam,Dim",
-    "months": "Janvier,Février,Mars,Avril,Mai,Juin,Juillet,Août,Septembre,Octobre,Novembre,Décembre"
+    "months": "Janvier,Février,Mars,Avril,Mai,Juin,Juillet,Août,Septembre,Octobre,Novembre,Décembre",
+    "expiringMaterials": "Dates d'expiration"
   },
   "suppliers": {
     "title": "Fournisseurs",

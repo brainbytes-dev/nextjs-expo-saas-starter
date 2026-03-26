@@ -181,6 +181,9 @@ interface ToolItem {
   number: string | null
   condition: string | null
   assignedToId: string | null
+  assignedUserName: string | null
+  assignedLocationId: string | null
+  assignedLocationName: string | null
 }
 
 interface KeyItem {
@@ -836,14 +839,22 @@ export default function LocationDetailPage() {
                     </TableRow>
                   ) : (
                     tools.map((tool) => (
-                      <TableRow key={tool.id}>
+                      <TableRow
+                        key={tool.id}
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() => router.push(`/dashboard/tools/${tool.id}`)}
+                      >
                         <TableCell className="font-mono text-sm text-muted-foreground">
                           {tool.number ?? "\u2014"}
                         </TableCell>
                         <TableCell className="font-medium">{tool.name}</TableCell>
                         <TableCell>{conditionBadge(tool.condition)}</TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {tool.assignedToId ?? "\u2014"}
+                        <TableCell className="text-muted-foreground text-sm">
+                          {tool.assignedUserName
+                            ? tool.assignedUserName
+                            : tool.assignedLocationId && tool.assignedLocationId !== id
+                              ? (tool.assignedLocationName ?? tool.assignedLocationId)
+                              : "\u2014"}
                         </TableCell>
                       </TableRow>
                     ))

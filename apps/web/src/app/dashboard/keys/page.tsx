@@ -110,29 +110,30 @@ type KeyStatus = "available" | "issued" | "lost" | "defective" | "retired"
 const KEY_STATUSES: KeyStatus[] = ["available", "issued", "lost", "defective", "retired"]
 
 function KeyStatusBadge({ status }: { status: string }) {
+  const t = useTranslations("keys")
   const config: Record<KeyStatus, { label: string; className: string; icon: React.ReactNode }> = {
     available: {
-      label: "available",
+      label: t("statuses.available"),
       className: "bg-green-500/10 text-green-600 dark:text-green-400",
       icon: <IconCircleCheck className="size-3" />,
     },
     issued: {
-      label: "issued",
+      label: t("statuses.issued"),
       className: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
       icon: <IconCircleDotted className="size-3" />,
     },
     lost: {
-      label: "lost",
+      label: t("statuses.lost"),
       className: "bg-red-500/10 text-red-600 dark:text-red-400",
       icon: <IconAlertTriangle className="size-3" />,
     },
     defective: {
-      label: "defective",
+      label: t("statuses.defective"),
       className: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
       icon: <IconTool className="size-3" />,
     },
     retired: {
-      label: "retired",
+      label: t("statuses.retired"),
       className: "bg-muted text-muted-foreground",
       icon: <IconArchive className="size-3" />,
     },

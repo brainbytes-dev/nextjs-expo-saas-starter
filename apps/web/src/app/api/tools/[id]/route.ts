@@ -65,13 +65,18 @@ export async function GET(
       return NextResponse.json({ error: "Tool not found" }, { status: 404 });
     }
 
-    // Recent bookings
-    const recentBookings = await db
-      .select()
-      .from(toolBookings)
-      .where(eq(toolBookings.toolId, id))
-      .orderBy(desc(toolBookings.createdAt))
-      .limit(20);
+    // Recent bookings — wrapped in try/catch; checklist_result col may not be migrated
+    let recentBookings: unknown[] = [];
+    try {
+      recentBookings = await db
+        .select()
+        .from(toolBookings)
+        .where(eq(toolBookings.toolId, id))
+        .orderBy(desc(toolBookings.createdAt))
+        .limit(20);
+    } catch {
+      // column may not be migrated yet
+    }
 
     // Custom fields — tables may not be migrated yet
     let customFields: unknown[] = [];

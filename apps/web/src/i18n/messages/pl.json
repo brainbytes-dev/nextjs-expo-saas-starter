@@ -21,7 +21,8 @@
     "details": "Szczegóły",
     "open": "Otwórz",
     "rows": "Wiersze",
-    "columns": "Kolumny"
+    "columns": "Kolumny",
+    "entries": "wpisów"
   },
   "auth": {
     "login": "Zaloguj się",
@@ -305,7 +306,8 @@
     "tasks": "Zadania",
     "orders": "Zamówienia",
     "commissions": "Zlecenia",
-    "noEvents": "Brak wydarzeń"
+    "noEvents": "Brak wydarzeń",
+    "expiringMaterials": "Daty ważności"
   },
   "suppliers": {
     "title": "Źródła zaopatrzenia",

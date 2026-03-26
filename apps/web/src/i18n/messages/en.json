@@ -101,7 +101,8 @@
     "statusInProgress": "In Progress",
     "statusNotStarted": "Not Started",
     "view": "View",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "entries": "entries"
   },
   "auth": {
     "login": "Sign in",
@@ -873,6 +874,7 @@
     "overdue": "Overdue",
     "thisWeek": "This week",
     "upcoming": "Upcoming",
+    "all": "All",
     "selectDay": "Select a day to view events",
     "dragHint": "Maintenance dates can be rescheduled via drag & drop",
     "more": "more",
@@ -889,7 +891,8 @@
     "summary30": "Summary (30 days)",
     "maintenanceNext30": "Maintenance in the next 30 days",
     "weekdays": "Mon,Tue,Wed,Thu,Fri,Sat,Sun",
-    "months": "January,February,March,April,May,June,July,August,September,October,November,December"
+    "months": "January,February,March,April,May,June,July,August,September,October,November,December",
+    "expiringMaterials": "Expiry dates"
   },
   "suppliers": {
     "title": "Suppliers",

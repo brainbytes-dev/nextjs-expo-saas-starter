@@ -21,7 +21,8 @@
     "details": "詳細",
     "open": "開く",
     "rows": "行",
-    "columns": "列"
+    "columns": "列",
+    "entries": "件"
   },
   "auth": {
     "login": "ログイン",
@@ -305,7 +306,8 @@
     "tasks": "タスク",
     "orders": "注文",
     "commissions": "コミッション",
-    "noEvents": "イベントなし"
+    "noEvents": "イベントなし",
+    "expiringMaterials": "有効期限"
   },
   "suppliers": {
     "title": "調達先",

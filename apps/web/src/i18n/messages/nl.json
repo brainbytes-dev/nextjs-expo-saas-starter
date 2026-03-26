@@ -21,7 +21,8 @@
     "details": "Details",
     "open": "Openen",
     "rows": "Rijen",
-    "columns": "Kolommen"
+    "columns": "Kolommen",
+    "entries": "items"
   },
   "auth": {
     "login": "Inloggen",
@@ -305,7 +306,8 @@
     "tasks": "Taken",
     "orders": "Bestellingen",
     "commissions": "Commissies",
-    "noEvents": "Geen evenementen"
+    "noEvents": "Geen evenementen",
+    "expiringMaterials": "Vervaldatums"
   },
   "suppliers": {
     "title": "Leveringsbronnen",

@@ -21,7 +21,8 @@
     "details": "Detalles",
     "open": "Abrir",
     "rows": "Filas",
-    "columns": "Columnas"
+    "columns": "Columnas",
+    "entries": "entradas"
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -305,7 +306,8 @@
     "tasks": "Tareas",
     "orders": "Pedidos",
     "commissions": "Comisiones",
-    "noEvents": "Sin eventos"
+    "noEvents": "Sin eventos",
+    "expiringMaterials": "Fechas de vencimiento"
   },
   "suppliers": {
     "title": "Fuentes de suministro",

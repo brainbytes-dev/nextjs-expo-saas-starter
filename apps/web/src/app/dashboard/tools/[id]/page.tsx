@@ -274,9 +274,11 @@ export default function ToolDetailPage() {
           const d = await toolRes.json()
           setTool(d)
           setForm(d)
+        } else {
+          console.error(`GET /api/tools/${toolId} → HTTP ${toolRes.status}`, await toolRes.text().catch(() => ""))
         }
-      } catch {
-        // Tool fetch failed — page will show "not found"
+      } catch (err) {
+        console.error(`GET /api/tools/${toolId} fetch error:`, err)
       }
 
       // Fetch reference data (non-critical)

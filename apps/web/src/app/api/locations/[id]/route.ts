@@ -6,7 +6,7 @@ import {
   tools,
   keys,
 } from "@repo/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, or, sql } from "drizzle-orm";
 
 export async function GET(
   request: Request,
@@ -42,27 +42,33 @@ export async function GET(
         )
       );
 
-    const [toolCount] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(tools)
-      .where(
-        and(
-          eq(tools.assignedLocationId, id),
-          eq(tools.organizationId, orgId),
-          eq(tools.isActive, true)
-        )
-      );
+    let toolCount: { count: number } | undefined;
+    try {
+      [toolCount] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(tools)
+        .where(
+          and(
+            or(eq(tools.homeLocationId, id), eq(tools.assignedLocationId, id))!,
+            eq(tools.organizationId, orgId),
+            eq(tools.isActive, true)
+          )
+        );
+    } catch { /* column may not be migrated */ }
 
-    const [keyCount] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(keys)
-      .where(
-        and(
-          eq(keys.homeLocationId, id),
-          eq(keys.organizationId, orgId),
-          eq(keys.isActive, true)
-        )
-      );
+    let keyCount: { count: number } | undefined;
+    try {
+      [keyCount] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(keys)
+        .where(
+          and(
+            or(eq(keys.homeLocationId, id), eq(keys.assignedLocationId, id))!,
+            eq(keys.organizationId, orgId),
+            eq(keys.isActive, true)
+          )
+        );
+    } catch { /* column may not be migrated */ }
 
     return NextResponse.json({
       ...location,

@@ -101,7 +101,8 @@
     "statusInProgress": "In Bearbeitung",
     "statusNotStarted": "Nicht begonnen",
     "view": "Ansicht",
-    "unknown": "Unbekannt"
+    "unknown": "Unbekannt",
+    "entries": "Einträge"
   },
   "auth": {
     "login": "Anmelden",
@@ -890,6 +891,7 @@
     "overdue": "Überfällig",
     "thisWeek": "Diese Woche",
     "upcoming": "Demnächst",
+    "all": "Alle",
     "selectDay": "Tag auswählen um Ereignisse anzuzeigen",
     "dragHint": "Wartungstermine können per Drag & Drop verschoben werden",
     "more": "weitere",
@@ -906,7 +908,8 @@
     "summary30": "Zusammenfassung (30 Tage)",
     "maintenanceNext30": "Wartungen in den nächsten 30 Tagen",
     "weekdays": "Mo,Di,Mi,Do,Fr,Sa,So",
-    "months": "Januar,Februar,März,April,Mai,Juni,Juli,August,September,Oktober,November,Dezember"
+    "months": "Januar,Februar,März,April,Mai,Juni,Juli,August,September,Oktober,November,Dezember",
+    "expiringMaterials": "Ablaufdaten"
   },
   "suppliers": {
     "title": "Bezugsquellen",

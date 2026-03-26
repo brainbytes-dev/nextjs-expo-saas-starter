@@ -21,7 +21,8 @@
     "details": "Detaylar",
     "open": "Aç",
     "rows": "Satırlar",
-    "columns": "Sütunlar"
+    "columns": "Sütunlar",
+    "entries": "kayıt"
   },
   "auth": {
     "login": "Giriş yap",
@@ -305,7 +306,8 @@
     "tasks": "Görevler",
     "orders": "Siparişler",
     "commissions": "Komisyonlar",
-    "noEvents": "Etkinlik yok"
+    "noEvents": "Etkinlik yok",
+    "expiringMaterials": "Son kullanma tarihleri"
   },
   "suppliers": {
     "title": "Tedarik Kaynakları",

@@ -81,12 +81,14 @@ const MOCK_EVENTS: CalendarEvent[] = [
   { id: "12", type: "task", title: "Beschaffung Kabelrohr 20mm", subtitle: "Peter Keller — Offen", date: "2025-03-30", color: "bg-primary" },
 ]
 
-const EVENT_TYPE_CONFIG: Record<EventType, { icon: React.ComponentType<{ className?: string }>; label: string; bg: string; text: string }> = {
-  toolBooking: { icon: IconTool, label: "toolBookings", bg: "bg-primary/10", text: "text-primary" },
-  task: { icon: IconChecklist, label: "tasks", bg: "bg-primary/10", text: "text-primary" },
-  order: { icon: IconFileInvoice, label: "orders", bg: "bg-secondary/10", text: "text-secondary" },
-  commission: { icon: IconClipboardList, label: "commissions", bg: "bg-muted", text: "text-muted-foreground" },
-  expiringMaterial: { icon: IconAlertTriangle, label: "Ablaufdaten", bg: "bg-amber-500/10", text: "text-amber-700 dark:text-amber-400" },
+function getEventTypeConfig(t: (key: string) => string): Record<EventType, { icon: React.ComponentType<{ className?: string }>; label: string; bg: string; text: string }> {
+  return {
+    toolBooking: { icon: IconTool, label: t("toolBookings"), bg: "bg-primary/10", text: "text-primary" },
+    task: { icon: IconChecklist, label: t("tasks"), bg: "bg-primary/10", text: "text-primary" },
+    order: { icon: IconFileInvoice, label: t("orders"), bg: "bg-secondary/10", text: "text-secondary" },
+    commission: { icon: IconClipboardList, label: t("commissions"), bg: "bg-muted", text: "text-muted-foreground" },
+    expiringMaterial: { icon: IconAlertTriangle, label: t("expiringMaterials"), bg: "bg-amber-500/10", text: "text-amber-700 dark:text-amber-400" },
+  }
 }
 
 function getDaysInMonth(year: number, month: number) {
@@ -383,6 +385,7 @@ export default function CalendarPage() {
 
   const STATUS_CONFIG = getStatusConfig(t)
   const FILTER_LABELS = getFilterLabels(t)
+  const EVENT_TYPE_CONFIG = getEventTypeConfig(t)
 
   const MONTHS = t("months").split(",")
   const WEEKDAYS = t("weekdays").split(",")
@@ -428,7 +431,7 @@ export default function CalendarPage() {
         const res = await fetch("/api/materials/expiring?days=90")
         if (res.ok) {
           const data: ExpiringMaterial[] = await res.json()
-          if (isMounted.current) setExpiringMaterials(data)
+          if (isMounted.current) setExpiringMaterials(Array.isArray(data) ? data : [])
         }
       } catch {
         // silent — no expiring material data
